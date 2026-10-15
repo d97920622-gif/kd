@@ -119,4 +119,25 @@ sub-step NN.YY".
 
 RESUME INSTRUCTION: read docs/handoffs/CHAT_13_PROGRESS.md, continue from the
 first unchecked sub-step, never re-implement an existing passing file.
+HOW TO WORK (permission gated, simple). Work one sub-step at a time.
+
+After every sub-step: run npm run verify, commit that sub-step, update
+docs/handoffs/CHAT_13_PROGRESS.md, then print exactly these three lines and stop:
+DONE: sub-step 13.YY - <one short line>
+NEXT: sub-step 13.ZZ - <one short line>
+CONTINUE? type continue for the next sub-step, or stop to finish this chat
+
+Then wait. Do not start the next sub-step until the owner types continue. Never
+put two sub-steps in one commit, never skip a check, and never cross a segment
+gate.
+
+When the owner types stop, print the closing report instead:
+STATUS: complete | partial
+NEXT: <the file to paste in the next chat>
+MERGE: ready to merge into integration | nothing to merge
+If the owner replies with the word merge, open a pull request from this session
+branch into integration and merge it with a merge commit, then confirm in one line.
+
+For this step: after the last sub-step of a segment, NEXT points to the first sub-step of the next segment; while segments remain, the next chat pastes this same file 13 again, and when the step is complete the next chat pastes CHAT_14.md.
+
 === END PASTE ===

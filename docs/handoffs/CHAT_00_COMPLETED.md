@@ -105,3 +105,14 @@ run as four chats each with small, individually verifiable sub-steps.
 
 No specification content was changed. This revision only adds operating rules
 that prevent wrong-branch starts and lost work.
+
+## 8. Revision 5 (simple guide and permission gated rhythm)
+
+| File | Change |
+| --- | --- |
+| `docs/PLAN/12_SIMPLE_GUIDE.md` | New one-page guide: three owner actions only (paste a prompt, type continue, type merge), closing report format, FAQ |
+| `docs/PLAN/chat-prompts/CHAT_01.md` to `CHAT_16.md` | Added the permission gated work rhythm: after every sub-step the agent prints DONE, NEXT and CONTINUE?, commits only that sub-step, and waits for the owner before continuing |
+| `README.md`, `docs/PLAN/README.md`, `docs/PLAN/chat-prompts/README.md` | Start-here pointer moved to the simple guide; permission rhythm documented |
+
+The long rules still apply inside the prompts (quality, security, gates), but the
+owner now interacts with two words: continue and merge.

@@ -37,6 +37,14 @@ tells the agent to read `docs/handoffs/CHAT_NN_PROGRESS.md` and continue from
 the first unchecked sub-step, so no work is repeated and no file is written
 twice.
 
+## Permission gated work rhythm
+
+Every prompt instructs the agent to work one sub-step at a time and to stop after
+each one with `DONE`, `NEXT` and `CONTINUE?`. The owner types `continue` for the
+next sub-step or `stop` to close the chat. When the chat closes, it prints
+`STATUS`, `NEXT` and `MERGE`; the owner types `merge` to have the work merged
+into `integration`. Nothing runs without the owner's permission.
+
 ## Segment model for the heavy steps
 
 Each prompt covers its whole step. Steps 1, 3, 4, 6, 10 and 13 are divided into

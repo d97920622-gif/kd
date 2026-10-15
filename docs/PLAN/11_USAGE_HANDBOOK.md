@@ -179,6 +179,89 @@ Each chat's own work is pushed to that session's branch (for example
     sub-step; nothing is repeated.
 14. After step 16 completes, follow the release sequence in section 9.
 
+## 4A. After a segment: merge into integration, then start the next chat
+
+Why the merge matters: every new chat creates its own session branch from the
+repository default branch (`integration`). Work that stays only on an old
+session branch is invisible to the next chat. Merging is the bridge between
+chats.
+
+### 4A.1 Normal flow after a segment
+
+1. The chat finishes the segment: it commits each sub-step, pushes its session
+   branch, updates `docs/handoffs/CHAT_NN_PROGRESS.md` and
+   `docs/handoffs/CHAT_NN_COMPLETED.md`, and prints the status line
+   `Segment NNX complete; next segment NNX+1`.
+2. You merge that branch into `integration`:
+   - GitHub, Pull requests, New pull request.
+   - base: `integration`; compare: the session branch named in the handoff.
+   - Title: `Step NN segment NNX`.
+   - Create pull request, then Merge pull request with a merge commit.
+3. Open the next chat from `integration` and paste the same prompt again for
+   the next segment, or the next prompt for the next step.
+
+### 4A.2 Zero-click variant (optional)
+
+Add this line to the prompt when you want the chat to prepare the pull request:
+
+```
+AFTER THE SEGMENT GATE: open a pull request from this session branch into
+integration using gh, and leave it for owner review.
+```
+
+To let the chat merge it as well, extend that line with:
+
+```
+Then merge it with a merge commit.
+```
+
+Only use the merge variant when the branch protection rule allows it.
+
+### 4A.3 Branch protection timing
+
+If `integration` requires status checks that do not exist yet, the first merges
+are blocked, because CI arrives in step 1 sub-step 1.31. Either keep the rule at
+"require a pull request" for the first segments, or add the checks after CI is
+live.
+
+### 4A.4 Merging into main
+
+Not needed during development. `main` receives a merge from `integration` only at
+release time, see section 9.
+
+### 4A.5 New chat or same chat
+
+- Recommended: a new chat for every segment. Short context, small diffs, easy
+  review, and no risk of an accidental jump into the next segment.
+- Same chat is possible in an emergency: paste the next block and the chat runs
+  its BASE BRANCH CHECK and continues. The cost is a long context, which raises
+  the chance of small mistakes. If you continue in the same chat, still require
+  the handoff update and the status line before continuing.
+
+### 4A.6 Starting step 2 concretely
+
+1. Confirm segments 1A to 1D are all merged into `integration`.
+2. Confirm `docs/handoffs/CHAT_01_COMPLETED.md` on `integration` states that
+   step 1 is complete.
+3. Open a new chat from `integration`.
+4. Paste `docs/PLAN/chat-prompts/CHAT_02.md` between its paste markers.
+5. The chat runs the BASE BRANCH CHECK; it needs `CHAT_01_COMPLETED.md`. If that
+   file is missing, the chat stops and tells you to merge first. Merge, then
+   start a new chat again.
+
+### 4A.7 What is automatic and what is manual
+
+| Action | Automatic |
+| --- | --- |
+| File changes saved in the workspace after each turn | Yes |
+| Commit and push to the session branch | Yes, done by the chat per the prompt |
+| Handoff and progress files | Yes, written by the chat |
+| Pull request into `integration` | Optional, ask the chat to open it |
+| Merging into `integration` | Manual, one click, unless you authorise the chat to merge |
+| Choosing the base branch for the next chat | Yes, once `integration` is the default branch |
+| Preview deployment of a session branch | Yes, through the hosting provider |
+| Production deployment | After the step 16 release wiring |
+
 ## 5. Copy-paste blocks
 
 ### 5.1 Standard start (this is the only block most chats need)

@@ -20,7 +20,10 @@ accounting, built for the Asian market.
 
 ## Start here
 
-1. Read `docs/PLAN/11_USAGE_HANDBOOK.md`.
+Read `docs/PLAN/12_SIMPLE_GUIDE.md` first: three actions only, paste a prompt,
+type continue for the next small sub-step, type merge when asked. Then:
+
+1. Read `docs/PLAN/11_USAGE_HANDBOOK.md` for the detailed variant.
 2. Do the one-time setup: create the `integration` branch from the planning
    work, set it as the repository default branch, protect it, and point Netlify
    at it.
@@ -90,7 +93,8 @@ Partners").
 
 ## Documentation
 
-- `docs/PLAN/11_USAGE_HANDBOOK.md` operating guide: branch setup, branch selection per chat, per-chat loop, review checklist, troubleshooting.
+- `docs/PLAN/12_SIMPLE_GUIDE.md` start here: paste a prompt, type continue, type merge.
+- `docs/PLAN/11_USAGE_HANDBOOK.md` detailed operating guide: branch setup, branch selection per chat, review checklist, troubleshooting.
 - `docs/PLAN/` build plan, guardrails, traceability, provider registry, segment guide.
 - `docs/handoffs/` one handoff per completed chat.
 - `docs/ADR/` architecture decision records (created from step 1).
