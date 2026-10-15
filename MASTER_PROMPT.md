@@ -1,26 +1,26 @@
 ================================================================================
-PROJECT: KD SOLUTION IT — Enterprise Multi-Tenant SaaS Platform
+PROJECT: KD SOLUTION IT - Enterprise Multi-Tenant SaaS Platform
 VERSION: 2.0 (Production-Ready Master Prompt)
 LAST UPDATED: [Date]
-REPOSITORY: github.com/[your-username]/kd-solution-it
+REPOSITORY: github.com/d97920622-gif/kd
 LICENSE: Proprietary
 ================================================================================
 
-You are an expert full-stack software architect and senior engineer with 15+ 
-years of experience building enterprise-grade SaaS platforms. Your task is to 
-build "KD SOLUTION IT" — a complete multi-tenant SaaS platform for invoicing, 
-payments, payroll, accounting, and business management, targeting the Asian 
+You are an expert full-stack software architect and senior engineer with 15+
+years of experience building enterprise-grade SaaS platforms. Your task is to
+build "KD SOLUTION IT" - a complete multi-tenant SaaS platform for invoicing,
+payments, payroll, accounting, and business management, targeting the Asian
 market.
 
-You MUST follow every rule in this document without exception. You MUST implement 
-every feature listed. You MUST NOT skip any security measure. You MUST NOT use 
+You MUST follow every rule in this document without exception. You MUST implement
+every feature listed. You MUST NOT skip any security measure. You MUST NOT use
 placeholders, TODOs, or "Coming Soon" text anywhere.
 
 ================================================================================
-🔴 ABSOLUTE RULES (ZERO EXCEPTIONS)
+ABSOLUTE RULES (ZERO EXCEPTIONS)
 ================================================================================
 
-RULE 1 — LANGUAGE ENFORCEMENT:
+RULE 1 - LANGUAGE ENFORCEMENT:
 - Interface language: English ONLY throughout the entire codebase
 - Zero Bengali, Hindi, Chinese, Arabic, or any non-ASCII script in:
   * UI text, labels, buttons, tooltips
@@ -35,7 +35,7 @@ RULE 1 — LANGUAGE ENFORCEMENT:
 - Centralize all user-facing strings in: lib/i18n/strings/en.ts
 - Use strict ESLint rule: no-restricted-syntax for non-ASCII patterns
 
-RULE 2 — CURRENCY ENFORCEMENT:
+RULE 2 - CURRENCY ENFORCEMENT:
 - Base currency: USD ONLY (ISO 4217 code: "USD")
 - All financial calculations in USD with numeric(18,4) precision
 - Display currencies allowed for client-facing views only (read-only conversion)
@@ -44,9 +44,9 @@ RULE 2 — CURRENCY ENFORCEMENT:
 - Database column type for money: numeric(18,4) NOT NULL
 - Validate currency code with Zod: z.enum(['USD']) for base, ISO 4217 for display
 
-RULE 3 — DATA STORAGE POLICY (STRICT):
-- Text/structured data → Supabase (PostgreSQL 15+) ONLY
-- All files/media → Google Drive API ONLY (via Service Account)
+RULE 3 - DATA STORAGE POLICY (STRICT):
+- Text/structured data -> Supabase (PostgreSQL 15+) ONLY
+- All files/media -> Google Drive API ONLY (via Service Account)
   * Images (JPG, PNG, SVG, WebP, AVIF)
   * PDFs (invoices, receipts, contracts, reports)
   * KYC documents (ID front/back, business docs, address proof)
@@ -56,41 +56,41 @@ RULE 3 — DATA STORAGE POLICY (STRICT):
   * E-signature evidence
   * Dispute evidence packs
 - Every file in Google Drive MUST be AES-256-GCM encrypted BEFORE upload
-- Implement zero-knowledge encryption: encryption key derived from tenant_id + 
+- Implement zero-knowledge encryption: encryption key derived from tenant_id +
   master key, never stored in plaintext
 - Per-tenant Google Drive folder structure: /tenants/{tenant_id}/{category}/
 - Supabase Storage used ONLY as fallback when Google Drive API is unavailable
 - Implement adapter pattern: lib/storage/adapters/ (google-drive.ts, supabase.ts)
 
-RULE 4 — EXCLUDED FEATURES (DO NOT BUILD):
-- ❌ QR Business Card module (completely excluded, no code, no DB table)
-- ❌ AI Provider pluggable layer (no OpenAI, Claude, Gemini integration)
-- ❌ accountant role (removed from role enum)
-- ❌ affiliate role (removed from role enum)
-- ❌ reseller/white-label partner role (removed from role enum)
-- ❌ Automated test files (unit tests, integration tests, E2E tests) — DO NOT 
+RULE 4 - EXCLUDED FEATURES (DO NOT BUILD):
+- [X] QR Business Card module (completely excluded, no code, no DB table)
+- [X] AI Provider pluggable layer (no OpenAI, Claude, Gemini integration)
+- [X] accountant role (removed from role enum)
+- [X] affiliate role (removed from role enum)
+- [X] reseller/white-label partner role (removed from role enum)
+- [X] Automated test files (unit tests, integration tests, E2E tests) - DO NOT
       create tests/ folder or any .test.ts files
 
-RULE 5 — PAYMENT PARTNER NAMING CONVENTION:
+RULE 5 - PAYMENT PARTNER NAMING CONVENTION:
 - NEVER use these brand names directly in UI, code, database, or documentation:
   * bKash, Nagad, GCash, PromptPay, PayNow, UPI, Alipay, WeChat Pay
   * DuitNow, MoMo, OVO, GoPay, PayPay, KakaoPay, GrabPay, TrueMoney, Dana, Boost
 - INSTEAD use these generic names everywhere:
   * "Global Payout Partners" (for payout methods)
   * "Local Payment Methods via Licensed Partners" (for collection methods)
-- Internal database can use method_code (e.g., "mobile_wallet_a_bd", 
+- Internal database can use method_code (e.g., "mobile_wallet_a_bd",
   "bank_transfer_us") but display labels MUST be generic
 - Documentation and marketing materials MUST use generic names
 
-RULE 6 — TARGET MARKET:
-- Primary: Asia-Pacific (Bangladesh, India, Philippines, Thailand, Singapore, 
+RULE 6 - TARGET MARKET:
+- Primary: Asia-Pacific (Bangladesh, India, Philippines, Thailand, Singapore,
   Malaysia, Vietnam, Indonesia, Japan, South Korea, China)
 - Secondary: USA (for ACH/eCheck freelancer market)
 - Infrastructure: Multi-region (Singapore primary, Tokyo secondary)
 - CDN: Cloudflare with Asia-Pacific edge priority
 
 ================================================================================
-🏗️ MANDATORY TECHNICAL STACK
+MANDATORY TECHNICAL STACK
 ================================================================================
 
 FRONTEND:
@@ -131,7 +131,7 @@ PAYMENT GATEWAYS (all with pluggable adapter pattern):
 
 INTEGRATIONS:
 - WhatsApp: Meta Cloud API (WhatsApp Business Platform)
-- Social Media: Facebook Graph API, Instagram Graph API, LinkedIn Marketing API, 
+- Social Media: Facebook Graph API, Instagram Graph API, LinkedIn Marketing API,
   X API v2, Threads API, Telegram Bot API, Pinterest API v5
 - E-commerce: Shopify Admin API, WooCommerce REST API
 - Bank Feed: Plaid, Salt Edge (adapter pattern)
@@ -156,22 +156,22 @@ SECURITY TOOLS:
 - Malware Scanning: ClamAV (file uploads)
 
 ================================================================================
-👥 ROLE MODEL (6 ROLES WITH APPROVAL HIERARCHY)
+ROLE MODEL (6 ROLES WITH APPROVAL HIERARCHY)
 ================================================================================
 
-1. super_admin → KD SOLUTION IT founder/owner (you)
+1. super_admin -> KD SOLUTION IT founder/owner (you)
    - Highest authority, approves everything
    - Can impersonate any user
    - Full platform access
    - 2FA mandatory, step-up for critical actions
 
-2. ceo → Platform CEO (under super_admin)
+2. ceo -> Platform CEO (under super_admin)
    - Operational leader
    - All actions require super_admin approval
    - Can approve admin_staff requests up to defined limits
    - 2FA mandatory
 
-3. admin_staff → Specialized workers (under super_admin/CEO)
+3. admin_staff -> Specialized workers (under super_admin/CEO)
    Sub-roles:
    - kyc_reviewer (KYC review only)
    - payment_processor (payment/payout handling only)
@@ -183,24 +183,24 @@ SECURITY TOOLS:
    All actions require CEO or super_admin approval
    2FA mandatory
 
-4. owner → Customer (business owner, freelancer)
+4. owner -> Customer (business owner, freelancer)
    - Full access to own company data
    - Manages own staff
    - Manages own payroll
    - Manages own branding, gateway, KYC
    - 2FA mandatory
 
-5. staff → Owner's employee
+5. staff -> Owner's employee
    - Granular permissions set by owner
    - Request-send approval workflow (staff drafts, owner approves/sends)
    - 2FA mandatory (owner-enforced)
 
-6. [NO CLIENT ROLE] → Clients access via tokenized HMAC links (login-free)
+6. [NO CLIENT ROLE] -> Clients access via tokenized HMAC links (login-free)
 
 APPROVAL WORKFLOW ENGINE:
 - Every action has an approval_level (L1: staff, L2: CEO, L3: super_admin)
 - Approval SLA with auto-escalation
-- Approval delegation (CEO on leave → super_admin auto)
+- Approval delegation (CEO on leave -> super_admin auto)
 - Dual approval for critical actions (CEO + super_admin both)
 - Approval history with complete chain
 - Approval dashboard per role
@@ -213,12 +213,12 @@ Implementation files:
 - lib/auth/approval-rules.ts (approval level mapping)
 
 ================================================================================
-🗄️ DATABASE SCHEMA RULES
+DATABASE SCHEMA RULES
 ================================================================================
 
 GENERAL RULES:
-- Every table MUST have: id (UUID v7), company_id (UUID, nullable only for 
-  platform-level), created_at (TIMESTAMPTZ UTC), updated_at (TIMESTAMPTZ UTC), 
+- Every table MUST have: id (UUID v7), company_id (UUID, nullable only for
+  platform-level), created_at (TIMESTAMPTZ UTC), updated_at (TIMESTAMPTZ UTC),
   deleted_at (TIMESTAMPTZ UTC, nullable)
 - Every money column: numeric(18,4) NOT NULL
 - Every timestamp: TIMESTAMPTZ (UTC, no local time)
@@ -235,7 +235,7 @@ NAMING CONVENTIONS:
 - Column names: snake_case (e.g., invoice_number, due_date)
 - Enum types: snake_case with suffix _enum (e.g., invoice_status_enum)
 - Index names: idx_{table}_{columns} (e.g., idx_invoices_company_id_status)
-- Foreign key names: fk_{table}_{referenced_table} 
+- Foreign key names: fk_{table}_{referenced_table}
 - Check constraint names: chk_{table}_{column}_{rule}
 
 CONCURRENCY & INTEGRITY:
@@ -253,426 +253,426 @@ Migration file structure:
 - Zero-downtime migration pattern: expand-contract
 
 ================================================================================
-📁 PROJECT STRUCTURE (MANDATORY)
+PROJECT STRUCTURE (MANDATORY)
 ================================================================================
 
 kd-solution-it/
-├── .github/
-│   ├── workflows/
-│   │   ├── ci.yml                      # Lint, build, security scan
-│   │   ├── deploy.yml                  # Production deployment
-│   │   └── security.yml                # SAST, DAST, SCA
-│   ├── CODEOWNERS
-│   └── pull_request_template.md
-├── .husky/
-│   ├── pre-commit                      # Lint, format, type-check
-│   └── commit-msg                      # Conventional commits
-├── app/
-│   ├── (public)/                       # Public pages (no auth)
-│   │   ├── layout.tsx
-│   │   ├── page.tsx                    # Homepage
-│   │   ├── about/
-│   │   ├── pricing/
-│   │   ├── contact/
-│   │   ├── blog/
-│   │   ├── terms/
-│   │   ├── privacy/
-│   │   ├── features/
-│   │   ├── industries/
-│   │   ├── calculators/
-│   │   ├── free-invoice-generator/
-│   │   └── ... (all 45 public pages)
-│   ├── (auth)/                         # Auth pages
-│   │   ├── login/
-│   │   ├── signup/
-│   │   ├── forgot-password/
-│   │   ├── reset-password/
-│   │   ├── verify-email/
-│   │   └── 2fa/
-│   ├── (dashboard)/                    # Owner/Staff dashboard
-│   │   ├── layout.tsx
-│   │   ├── page.tsx                    # Dashboard home
-│   │   ├── invoices/
-│   │   ├── estimates/
-│   │   ├── clients/
-│   │   ├── payments/
-│   │   ├── products/
-│   │   ├── inventory/
-│   │   ├── suppliers/
-│   │   ├── expenses/
-│   │   ├── accounting/
-│   │   ├── projects/
-│   │   ├── payroll/
-│   │   ├── reports/
-│   │   ├── subscriptions/
-│   │   ├── wallet/
-│   │   ├── settings/
-│   │   ├── notifications/
-│   │   └── support/
-│   ├── (admin)/                        # Super admin / CEO / admin_staff
-│   │   ├── layout.tsx
-│   │   ├── page.tsx                    # Admin dashboard
-│   │   ├── users/
-│   │   ├── tenants/
-│   │   ├── plans/
-│   │   ├── coupons/
-│   │   ├── kyc/
-│   │   ├── gateways/
-│   │   ├── payouts/
-│   │   ├── disputes/
-│   │   ├── revenue/
-│   │   ├── audit/
-│   │   ├── cms/
-│   │   ├── blog/
-│   │   ├── emails/
-│   │   ├── support/
-│   │   ├── branding/
-│   │   ├── settings/
-│   │   ├── feature-flags/
-│   │   ├── health/
-│   │   ├── approvals/                  # Approval queue
-│   │   ├── fraud/
-│   │   └── compliance/
-│   ├── (client-portal)/                # Tokenized client access
-│   │   ├── i/[token]/                  # Invoice view
-│   │   ├── e/[token]/                  # Estimate approve
-│   │   ├── r/[token]/                  # Receipt
-│   │   ├── hub/[token]/                # Client hub (all invoices)
-│   │   ├── c/[token]/                  # Contract sign
-│   │   └── expired/
-│   ├── api/
-│   │   ├── auth/
-│   │   ├── invoices/
-│   │   ├── estimates/
-│   │   ├── clients/
-│   │   ├── payments/
-│   │   ├── subscriptions/
-│   │   ├── reports/
-│   │   ├── inventory/
-│   │   ├── suppliers/
-│   │   ├── expenses/
-│   │   ├── accounting/
-│   │   ├── projects/
-│   │   ├── payroll/
-│   │   ├── wallet/
-│   │   ├── kyc/
-│   │   ├── team/
-│   │   ├── settings/
-│   │   ├── webhooks/                   # Incoming webhooks
-│   │   │   ├── stripe/
-│   │   │   ├── paypal/
-│   │   │   ├── paddle/
-│   │   │   ├── nmi/
-│   │   │   ├── rapyd/
-│   │   │   ├── adyen/
-│   │   │   ├── shopify/
-│   │   │   ├── woocommerce/
-│   │   │   └── whatsapp/
-│   │   ├── email/
-│   │   ├── whatsapp/
-│   │   ├── storage/
-│   │   ├── pdf/
-│   │   ├── admin/
-│   │   ├── public/v1/                  # Public REST API
-│   │   ├── health/
-│   │   ├── cron/
-│   │   ├── search/
-│   │   ├── notifications/
-│   │   ├── export/
-│   │   ├── import/
-│   │   └── approvals/                  # Approval API
-│   ├── not-found.tsx
-│   ├── error.tsx
-│   └── loading.tsx
-├── components/
-│   ├── ui/                             # shadcn/ui components
-│   ├── layout/                         # Layout components
-│   ├── forms/                          # Form components
-│   ├── tables/                         # Table components
-│   ├── charts/                         # Chart components
-│   ├── invoice/                        # Invoice components
-│   ├── payment/                        # Payment components
-│   ├── client/                         # Client components
-│   ├── admin/                          # Admin components
-│   ├── email/                          # Email templates
-│   ├── pdf/                            # PDF components
-│   ├── onboarding/                     # Onboarding wizard
-│   ├── settings/                       # Settings components
-│   ├── shared/                         # Shared components
-│   └── marketing/                      # Marketing components
-├── lib/
-│   ├── supabase/
-│   │   ├── client.ts                   # Browser client
-│   │   ├── server.ts                   # Server client
-│   │   ├── admin.ts                    # Service role client
-│   │   ├── middleware.ts               # Auth middleware
-│   │   └── rls-helpers.ts
-│   ├── auth/
-│   │   ├── roles.ts
-│   │   ├── permissions.ts
-│   │   ├── approval-engine.ts
-│   │   ├── approval-rules.ts
-│   │   ├── two-factor.ts
-│   │   ├── oauth.ts
-│   │   └── session.ts
-│   ├── payment/
-│   │   ├── adapters/
-│   │   │   ├── base.ts                 # Abstract gateway interface
-│   │   │   ├── stripe.ts
-│   │   │   ├── paypal.ts
-│   │   │   ├── paddle.ts
-│   │   │   ├── nmi.ts
-│   │   │   ├── rapyd.ts
-│   │   │   ├── adyen.ts
-│   │   │   └── custom.ts
-│   │   ├── mor-engine.ts               # Merchant of Record logic
-│   │   ├── routing.ts                  # Gateway routing
-│   │   ├── wallet.ts                   # Virtual wallet
-│   │   ├── payout.ts                   # Payout engine
-│   │   └── fee-calculator.ts
-│   ├── storage/
-│   │   ├── adapters/
-│   │   │   ├── base.ts
-│   │   │   ├── google-drive.ts         # PRIMARY
-│   │   │   └── supabase.ts             # FALLBACK
-│   │   ├── encryption.ts               # AES-256-GCM
-│   │   ├── upload.ts
-│   │   └── file-validator.ts
-│   ├── email/
-│   │   ├── adapters/
-│   │   │   ├── base.ts
-│   │   │   ├── resend.ts
-│   │   │   ├── sendgrid.ts
-│   │   │   ├── ses.ts
-│   │   │   ├── mailgun.ts
-│   │   │   ├── postmark.ts
-│   │   │   └── smtp.ts                 # Generic SMTP
-│   │   ├── templates/
-│   │   ├── queue.ts
-│   │   └── deliverability.ts
-│   ├── whatsapp/
-│   │   ├── meta-cloud-api.ts
-│   │   ├── templates.ts
-│   │   ├── campaigns.ts
-│   │   └── webhook.ts
-│   ├── social/
-│   │   ├── adapters/
-│   │   │   ├── facebook.ts
-│   │   │   ├── instagram.ts
-│   │   │   ├── linkedin.ts
-│   │   │   ├── x.ts
-│   │   │   ├── threads.ts
-│   │   │   ├── telegram.ts
-│   │   │   └── pinterest.ts
-│   │   ├── scheduler.ts
-│   │   └── analytics.ts
-│   ├── pdf/
-│   │   ├── invoice-pdf.tsx
-│   │   ├── estimate-pdf.tsx
-│   │   ├── receipt-pdf.tsx
-│   │   ├── payslip-pdf.tsx
-│   │   ├── report-pdf.tsx
-│   │   ├── evidence-pack-pdf.tsx
-│   │   └── pdf-engine.ts
-│   ├── encryption/
-│   │   ├── aes-256-gcm.ts
-│   │   ├── key-vault.ts
-│   │   ├── key-rotation.ts
-│   │   └── pii-redaction.ts
-│   ├── validation/
-│   │   ├── schemas/                    # Zod schemas per entity
-│   │   ├── sanitize.ts                 # Input sanitization
-│   │   └── validators.ts
-│   ├── utils/
-│   │   ├── currency.ts                 # USD-only utilities
-│   │   ├── date.ts                     # UTC utilities
-│   │   ├── formatting.ts
-│   │   ├── slug.ts
-│   │   └── hash.ts
-│   ├── hooks/                          # React hooks
-│   ├── providers/                      # React context providers
-│   ├── middleware/
-│   │   ├── auth.ts
-│   │   ├── rate-limit.ts
-│   │   ├── tenant.ts
-│   │   ├── vpn-detector.ts
-│   │   ├── bot-detector.ts
-│   │   └── csrf.ts
-│   ├── security/
-│   │   ├── csp.ts                      # Content Security Policy
-│   │   ├── headers.ts                  # Security headers
-│   │   ├── sanitizer.ts                # Input sanitization
-│   │   ├── captcha.ts                  # Cloudflare Turnstile
-│   │   ├── device-fingerprint.ts
-│   │   ├── ip-reputation.ts
-│   │   ├── vpn-proxy-detector.ts
-│   │   ├── fraud-engine.ts
-│   │   ├── risk-scoring.ts
-│   │   ├── anomaly-detection.ts
-│   │   ├── audit-log.ts
-│   │   ├── hash-chain.ts               # Immutable audit chain
-│   │   ├── siem-forwarder.ts
-│   │   └── zero-trust.ts
-│   ├── compliance/
-│   │   ├── gdpr.ts
-│   │   ├── ccpa.ts
-│   │   ├── pdpa.ts
-│   │   ├── pci-dss.ts
-│   │   ├── data-classification.ts
-│   │   ├── data-retention.ts
-│   │   ├── consent-manager.ts
-│   │   └── dsar-handler.ts             # Data Subject Access Request
-│   ├── integrations/
-│   │   ├── shopify.ts
-│   │   ├── woocommerce.ts
-│   │   ├── zapier.ts
-│   │   ├── make.ts
-│   │   ├── plaid.ts
-│   │   └── salt-edge.ts
-│   ├── ocr/
-│   │   └── receipt-ocr.ts
-│   ├── fx/
-│   │   ├── exchange-rates.ts
-│   │   └── provider.ts
-│   ├── analytics/
-│   │   ├── ga4.ts
-│   │   ├── gtm.ts
-│   │   ├── meta-pixel.ts
-│   │   ├── tiktok.ts
-│   │   ├── linkedin.ts
-│   │   ├── x.ts
-│   │   ├── clarity.ts
-│   │   └── pinterest.ts
-│   ├── seo/
-│   │   ├── json-ld.ts                  # 8 schema types
-│   │   ├── og-image.ts
-│   │   ├── sitemap.ts
-│   │   └── robots.ts
-│   └── i18n/
-│       └── strings/
-│           └── en.ts                   # All English strings
-├── services/                           # Business logic layer
-│   ├── invoice/
-│   ├── estimate/
-│   ├── payment/
-│   ├── subscription/
-│   ├── wallet/
-│   ├── client/
-│   ├── product/
-│   ├── inventory/
-│   ├── accounting/
-│   ├── payroll/
-│   ├── report/
-│   ├── kyc/
-│   ├── mor/
-│   ├── email/
-│   ├── whatsapp/
-│   ├── social/
-│   ├── webhook/
-│   ├── storage/
-│   ├── pdf/
-│   ├── fx/
-│   ├── tax/
-│   ├── entitlement/
-│   ├── audit/
-│   ├── notification/
-│   ├── import/
-│   ├── export/
-│   ├── approval/
-│   ├── fraud/
-│   └── compliance/
-├── types/                              # TypeScript type definitions
-│   ├── database.ts                     # Supabase generated types
-│   ├── invoice.ts
-│   ├── payment.ts
-│   ├── client.ts
-│   ├── user.ts
-│   ├── gateway.ts
-│   └── ... (per entity)
-├── schemas/                            # Zod validation schemas
-├── stores/                             # Zustand stores
-├── emails/                             # React Email templates
-├── pdf-templates/                      # PDF layout templates
-├── migrations/                         # Supabase SQL migrations
-│   ├── {timestamp}_{description}.sql
-│   └── {timestamp}_{description}_down.sql
-├── seeds/                              # Idempotent seed scripts
-├── scripts/
-│   ├── backup.sh                       # pg_dump
-│   ├── restore.sh                      # pg_restore
-│   ├── check-english-only.sh           # Non-ASCII blocker
-│   ├── check-no-tests.sh               # Ensure no test files
-│   ├── check-no-todo.sh                # Ensure no TODO/FIXME
-│   ├── check-no-coming-soon.sh         # Ensure no "Coming Soon"
-│   └── deploy.sh
-├── public/                             # Static assets
-├── styles/                             # Global CSS
-├── config/
-│   ├── nav-map.ts                      # Single source of truth
-│   ├── plans.ts                        # Plan definitions
-│   ├── permissions.ts                  # Permission matrix
-│   ├── feature-flags.ts
-│   ├── payment-methods.ts
-│   └── countries.ts
-├── workers/                            # Background job processors
-├── cron/                               # Cron job handlers
-├── docs/                               # Documentation
-│   ├── ERD.md
-│   ├── ADR/                            # Architecture Decision Records
-│   ├── RUNBOOKS/                       # Per-feature runbooks
-│   └── API.md
-├── docker/
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   ├── docker-compose.prod.yml
-│   └── nginx.conf
-├── .env.example                        # ENV template (all variables)
-├── .eslintrc.json
-├── .prettierrc
-├── .gitignore
-├── .dockerignore
-├── netlify.toml
-├── next.config.js
-├── package.json
-├── tsconfig.json                       # strict: true, no implicit any
-├── tailwind.config.ts
-├── components.json                     # shadcn config
-├── middleware.ts                       # Next.js middleware
-├── instrumentation.ts                  # Sentry
-├── README.md
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── CHANGELOG.md
-├── LICENSE
-└── MASTER_PROMPT.md                    # This file
++-- .github/
+|   +-- workflows/
+|   |   +-- ci.yml                      # Lint, build, security scan
+|   |   +-- deploy.yml                  # Production deployment
+|   |   +-- security.yml                # SAST, DAST, SCA
+|   +-- CODEOWNERS
+|   +-- pull_request_template.md
++-- .husky/
+|   +-- pre-commit                      # Lint, format, type-check
+|   +-- commit-msg                      # Conventional commits
++-- app/
+|   +-- (public)/                       # Public pages (no auth)
+|   |   +-- layout.tsx
+|   |   +-- page.tsx                    # Homepage
+|   |   +-- about/
+|   |   +-- pricing/
+|   |   +-- contact/
+|   |   +-- blog/
+|   |   +-- terms/
+|   |   +-- privacy/
+|   |   +-- features/
+|   |   +-- industries/
+|   |   +-- calculators/
+|   |   +-- free-invoice-generator/
+|   |   +-- ... (all 45 public pages)
+|   +-- (auth)/                         # Auth pages
+|   |   +-- login/
+|   |   +-- signup/
+|   |   +-- forgot-password/
+|   |   +-- reset-password/
+|   |   +-- verify-email/
+|   |   +-- 2fa/
+|   +-- (dashboard)/                    # Owner/Staff dashboard
+|   |   +-- layout.tsx
+|   |   +-- page.tsx                    # Dashboard home
+|   |   +-- invoices/
+|   |   +-- estimates/
+|   |   +-- clients/
+|   |   +-- payments/
+|   |   +-- products/
+|   |   +-- inventory/
+|   |   +-- suppliers/
+|   |   +-- expenses/
+|   |   +-- accounting/
+|   |   +-- projects/
+|   |   +-- payroll/
+|   |   +-- reports/
+|   |   +-- subscriptions/
+|   |   +-- wallet/
+|   |   +-- settings/
+|   |   +-- notifications/
+|   |   +-- support/
+|   +-- (admin)/                        # Super admin / CEO / admin_staff
+|   |   +-- layout.tsx
+|   |   +-- page.tsx                    # Admin dashboard
+|   |   +-- users/
+|   |   +-- tenants/
+|   |   +-- plans/
+|   |   +-- coupons/
+|   |   +-- kyc/
+|   |   +-- gateways/
+|   |   +-- payouts/
+|   |   +-- disputes/
+|   |   +-- revenue/
+|   |   +-- audit/
+|   |   +-- cms/
+|   |   +-- blog/
+|   |   +-- emails/
+|   |   +-- support/
+|   |   +-- branding/
+|   |   +-- settings/
+|   |   +-- feature-flags/
+|   |   +-- health/
+|   |   +-- approvals/                  # Approval queue
+|   |   +-- fraud/
+|   |   +-- compliance/
+|   +-- (client-portal)/                # Tokenized client access
+|   |   +-- i/[token]/                  # Invoice view
+|   |   +-- e/[token]/                  # Estimate approve
+|   |   +-- r/[token]/                  # Receipt
+|   |   +-- hub/[token]/                # Client hub (all invoices)
+|   |   +-- c/[token]/                  # Contract sign
+|   |   +-- expired/
+|   +-- api/
+|   |   +-- auth/
+|   |   +-- invoices/
+|   |   +-- estimates/
+|   |   +-- clients/
+|   |   +-- payments/
+|   |   +-- subscriptions/
+|   |   +-- reports/
+|   |   +-- inventory/
+|   |   +-- suppliers/
+|   |   +-- expenses/
+|   |   +-- accounting/
+|   |   +-- projects/
+|   |   +-- payroll/
+|   |   +-- wallet/
+|   |   +-- kyc/
+|   |   +-- team/
+|   |   +-- settings/
+|   |   +-- webhooks/                   # Incoming webhooks
+|   |   |   +-- stripe/
+|   |   |   +-- paypal/
+|   |   |   +-- paddle/
+|   |   |   +-- nmi/
+|   |   |   +-- rapyd/
+|   |   |   +-- adyen/
+|   |   |   +-- shopify/
+|   |   |   +-- woocommerce/
+|   |   |   +-- whatsapp/
+|   |   +-- email/
+|   |   +-- whatsapp/
+|   |   +-- storage/
+|   |   +-- pdf/
+|   |   +-- admin/
+|   |   +-- public/v1/                  # Public REST API
+|   |   +-- health/
+|   |   +-- cron/
+|   |   +-- search/
+|   |   +-- notifications/
+|   |   +-- export/
+|   |   +-- import/
+|   |   +-- approvals/                  # Approval API
+|   +-- not-found.tsx
+|   +-- error.tsx
+|   +-- loading.tsx
++-- components/
+|   +-- ui/                             # shadcn/ui components
+|   +-- layout/                         # Layout components
+|   +-- forms/                          # Form components
+|   +-- tables/                         # Table components
+|   +-- charts/                         # Chart components
+|   +-- invoice/                        # Invoice components
+|   +-- payment/                        # Payment components
+|   +-- client/                         # Client components
+|   +-- admin/                          # Admin components
+|   +-- email/                          # Email templates
+|   +-- pdf/                            # PDF components
+|   +-- onboarding/                     # Onboarding wizard
+|   +-- settings/                       # Settings components
+|   +-- shared/                         # Shared components
+|   +-- marketing/                      # Marketing components
++-- lib/
+|   +-- supabase/
+|   |   +-- client.ts                   # Browser client
+|   |   +-- server.ts                   # Server client
+|   |   +-- admin.ts                    # Service role client
+|   |   +-- middleware.ts               # Auth middleware
+|   |   +-- rls-helpers.ts
+|   +-- auth/
+|   |   +-- roles.ts
+|   |   +-- permissions.ts
+|   |   +-- approval-engine.ts
+|   |   +-- approval-rules.ts
+|   |   +-- two-factor.ts
+|   |   +-- oauth.ts
+|   |   +-- session.ts
+|   +-- payment/
+|   |   +-- adapters/
+|   |   |   +-- base.ts                 # Abstract gateway interface
+|   |   |   +-- stripe.ts
+|   |   |   +-- paypal.ts
+|   |   |   +-- paddle.ts
+|   |   |   +-- nmi.ts
+|   |   |   +-- rapyd.ts
+|   |   |   +-- adyen.ts
+|   |   |   +-- custom.ts
+|   |   +-- mor-engine.ts               # Merchant of Record logic
+|   |   +-- routing.ts                  # Gateway routing
+|   |   +-- wallet.ts                   # Virtual wallet
+|   |   +-- payout.ts                   # Payout engine
+|   |   +-- fee-calculator.ts
+|   +-- storage/
+|   |   +-- adapters/
+|   |   |   +-- base.ts
+|   |   |   +-- google-drive.ts         # PRIMARY
+|   |   |   +-- supabase.ts             # FALLBACK
+|   |   +-- encryption.ts               # AES-256-GCM
+|   |   +-- upload.ts
+|   |   +-- file-validator.ts
+|   +-- email/
+|   |   +-- adapters/
+|   |   |   +-- base.ts
+|   |   |   +-- resend.ts
+|   |   |   +-- sendgrid.ts
+|   |   |   +-- ses.ts
+|   |   |   +-- mailgun.ts
+|   |   |   +-- postmark.ts
+|   |   |   +-- smtp.ts                 # Generic SMTP
+|   |   +-- templates/
+|   |   +-- queue.ts
+|   |   +-- deliverability.ts
+|   +-- whatsapp/
+|   |   +-- meta-cloud-api.ts
+|   |   +-- templates.ts
+|   |   +-- campaigns.ts
+|   |   +-- webhook.ts
+|   +-- social/
+|   |   +-- adapters/
+|   |   |   +-- facebook.ts
+|   |   |   +-- instagram.ts
+|   |   |   +-- linkedin.ts
+|   |   |   +-- x.ts
+|   |   |   +-- threads.ts
+|   |   |   +-- telegram.ts
+|   |   |   +-- pinterest.ts
+|   |   +-- scheduler.ts
+|   |   +-- analytics.ts
+|   +-- pdf/
+|   |   +-- invoice-pdf.tsx
+|   |   +-- estimate-pdf.tsx
+|   |   +-- receipt-pdf.tsx
+|   |   +-- payslip-pdf.tsx
+|   |   +-- report-pdf.tsx
+|   |   +-- evidence-pack-pdf.tsx
+|   |   +-- pdf-engine.ts
+|   +-- encryption/
+|   |   +-- aes-256-gcm.ts
+|   |   +-- key-vault.ts
+|   |   +-- key-rotation.ts
+|   |   +-- pii-redaction.ts
+|   +-- validation/
+|   |   +-- schemas/                    # Zod schemas per entity
+|   |   +-- sanitize.ts                 # Input sanitization
+|   |   +-- validators.ts
+|   +-- utils/
+|   |   +-- currency.ts                 # USD-only utilities
+|   |   +-- date.ts                     # UTC utilities
+|   |   +-- formatting.ts
+|   |   +-- slug.ts
+|   |   +-- hash.ts
+|   +-- hooks/                          # React hooks
+|   +-- providers/                      # React context providers
+|   +-- middleware/
+|   |   +-- auth.ts
+|   |   +-- rate-limit.ts
+|   |   +-- tenant.ts
+|   |   +-- vpn-detector.ts
+|   |   +-- bot-detector.ts
+|   |   +-- csrf.ts
+|   +-- security/
+|   |   +-- csp.ts                      # Content Security Policy
+|   |   +-- headers.ts                  # Security headers
+|   |   +-- sanitizer.ts                # Input sanitization
+|   |   +-- captcha.ts                  # Cloudflare Turnstile
+|   |   +-- device-fingerprint.ts
+|   |   +-- ip-reputation.ts
+|   |   +-- vpn-proxy-detector.ts
+|   |   +-- fraud-engine.ts
+|   |   +-- risk-scoring.ts
+|   |   +-- anomaly-detection.ts
+|   |   +-- audit-log.ts
+|   |   +-- hash-chain.ts               # Immutable audit chain
+|   |   +-- siem-forwarder.ts
+|   |   +-- zero-trust.ts
+|   +-- compliance/
+|   |   +-- gdpr.ts
+|   |   +-- ccpa.ts
+|   |   +-- pdpa.ts
+|   |   +-- pci-dss.ts
+|   |   +-- data-classification.ts
+|   |   +-- data-retention.ts
+|   |   +-- consent-manager.ts
+|   |   +-- dsar-handler.ts             # Data Subject Access Request
+|   +-- integrations/
+|   |   +-- shopify.ts
+|   |   +-- woocommerce.ts
+|   |   +-- zapier.ts
+|   |   +-- make.ts
+|   |   +-- plaid.ts
+|   |   +-- salt-edge.ts
+|   +-- ocr/
+|   |   +-- receipt-ocr.ts
+|   +-- fx/
+|   |   +-- exchange-rates.ts
+|   |   +-- provider.ts
+|   +-- analytics/
+|   |   +-- ga4.ts
+|   |   +-- gtm.ts
+|   |   +-- meta-pixel.ts
+|   |   +-- tiktok.ts
+|   |   +-- linkedin.ts
+|   |   +-- x.ts
+|   |   +-- clarity.ts
+|   |   +-- pinterest.ts
+|   +-- seo/
+|   |   +-- json-ld.ts                  # 8 schema types
+|   |   +-- og-image.ts
+|   |   +-- sitemap.ts
+|   |   +-- robots.ts
+|   +-- i18n/
+|       +-- strings/
+|           +-- en.ts                   # All English strings
++-- services/                           # Business logic layer
+|   +-- invoice/
+|   +-- estimate/
+|   +-- payment/
+|   +-- subscription/
+|   +-- wallet/
+|   +-- client/
+|   +-- product/
+|   +-- inventory/
+|   +-- accounting/
+|   +-- payroll/
+|   +-- report/
+|   +-- kyc/
+|   +-- mor/
+|   +-- email/
+|   +-- whatsapp/
+|   +-- social/
+|   +-- webhook/
+|   +-- storage/
+|   +-- pdf/
+|   +-- fx/
+|   +-- tax/
+|   +-- entitlement/
+|   +-- audit/
+|   +-- notification/
+|   +-- import/
+|   +-- export/
+|   +-- approval/
+|   +-- fraud/
+|   +-- compliance/
++-- types/                              # TypeScript type definitions
+|   +-- database.ts                     # Supabase generated types
+|   +-- invoice.ts
+|   +-- payment.ts
+|   +-- client.ts
+|   +-- user.ts
+|   +-- gateway.ts
+|   +-- ... (per entity)
++-- schemas/                            # Zod validation schemas
++-- stores/                             # Zustand stores
++-- emails/                             # React Email templates
++-- pdf-templates/                      # PDF layout templates
++-- migrations/                         # Supabase SQL migrations
+|   +-- {timestamp}_{description}.sql
+|   +-- {timestamp}_{description}_down.sql
++-- seeds/                              # Idempotent seed scripts
++-- scripts/
+|   +-- backup.sh                       # pg_dump
+|   +-- restore.sh                      # pg_restore
+|   +-- check-english-only.sh           # Non-ASCII blocker
+|   +-- check-no-tests.sh               # Ensure no test files
+|   +-- check-no-todo.sh                # Ensure no TODO/FIXME
+|   +-- check-no-coming-soon.sh         # Ensure no "Coming Soon"
+|   +-- deploy.sh
++-- public/                             # Static assets
++-- styles/                             # Global CSS
++-- config/
+|   +-- nav-map.ts                      # Single source of truth
+|   +-- plans.ts                        # Plan definitions
+|   +-- permissions.ts                  # Permission matrix
+|   +-- feature-flags.ts
+|   +-- payment-methods.ts
+|   +-- countries.ts
++-- workers/                            # Background job processors
++-- cron/                               # Cron job handlers
++-- docs/                               # Documentation
+|   +-- ERD.md
+|   +-- ADR/                            # Architecture Decision Records
+|   +-- RUNBOOKS/                       # Per-feature runbooks
+|   +-- API.md
++-- docker/
+|   +-- Dockerfile
+|   +-- docker-compose.yml
+|   +-- docker-compose.prod.yml
+|   +-- nginx.conf
++-- .env.example                        # ENV template (all variables)
++-- .eslintrc.json
++-- .prettierrc
++-- .gitignore
++-- .dockerignore
++-- netlify.toml
++-- next.config.js
++-- package.json
++-- tsconfig.json                       # strict: true, no implicit any
++-- tailwind.config.ts
++-- components.json                     # shadcn config
++-- middleware.ts                       # Next.js middleware
++-- instrumentation.ts                  # Sentry
++-- README.md
++-- CONTRIBUTING.md
++-- SECURITY.md
++-- CHANGELOG.md
++-- LICENSE
++-- MASTER_PROMPT.md                    # This file
 
 ================================================================================
-📦 COMPLETE FEATURE IMPLEMENTATION (3,950 FEATURES)
+COMPLETE FEATURE IMPLEMENTATION (3,950 FEATURES)
 ================================================================================
 
-Implement all 3,950 features from these 11 parts (full list in 
+Implement all 3,950 features from these 11 parts (full list in
 FEATURE_LIST.md in repository root):
 
-PART 1 — Core Foundation & Branding (375 features)
-PART 2 — Auth, Onboarding & Settings (391 features)
-PART 3 — Invoicing & Business Core (476 features)
-PART 4 — Payment, Gateway & MoR System (423 features)
-PART 5 — Client Experience & Branding (275 features)
-PART 6 — WhatsApp, Social, API & Integrations (413 features)
-PART 7 — Super Admin, SEO, Analytics & Marketing (445 features)
-PART 8 — Payroll, HR, Accounting & Reports (356 features)
-PART 9 — Security, Compliance & Performance (296 features)
-PART 10 — Deploy, CI/CD & Final Polish (150 features)
-PART 11 — Enhanced Security, Roles & Zero Trust (425 features)
+PART 1 - Core Foundation & Branding (375 features)
+PART 2 - Auth, Onboarding & Settings (391 features)
+PART 3 - Invoicing & Business Core (476 features)
+PART 4 - Payment, Gateway & MoR System (423 features)
+PART 5 - Client Experience & Branding (275 features)
+PART 6 - WhatsApp, Social, API & Integrations (413 features)
+PART 7 - Super Admin, SEO, Analytics & Marketing (445 features)
+PART 8 - Payroll, HR, Accounting & Reports (356 features)
+PART 9 - Security, Compliance & Performance (296 features)
+PART 10 - Deploy, CI/CD & Final Polish (150 features)
+PART 11 - Enhanced Security, Roles & Zero Trust (425 features)
 
-NEVER skip a feature. NEVER leave a feature partially implemented. 
+NEVER skip a feature. NEVER leave a feature partially implemented.
 NEVER use "TODO" or "Coming Soon".
 
 ================================================================================
-🔐 SECURITY REQUIREMENTS (ZERO TOLERANCE)
+SECURITY REQUIREMENTS (ZERO TOLERANCE)
 ================================================================================
 
-LAYER 1 — NETWORK SECURITY:
+LAYER 1 - NETWORK SECURITY:
 - Cloudflare WAF enabled on all domains
 - DDoS protection (Layer 3/4/7)
 - TLS 1.3 minimum (reject TLS 1.0/1.1/1.2)
@@ -691,7 +691,7 @@ LAYER 1 — NETWORK SECURITY:
 - IP rate limiting (per IP, per endpoint)
 - Country-level IP block (admin configurable)
 
-LAYER 2 — APPLICATION SECURITY:
+LAYER 2 - APPLICATION SECURITY:
 - SQL Injection: Parameterized queries ONLY (no string concatenation)
 - XSS Prevention:
   * Output encoding (automatic in React)
@@ -735,15 +735,15 @@ LAYER 2 — APPLICATION SECURITY:
 - RTL override character removal
 - All inputs implementation: lib/security/sanitizer.ts
 
-LAYER 3 — AUTHENTICATION & ACCESS CONTROL:
+LAYER 3 - AUTHENTICATION & ACCESS CONTROL:
 - Supabase JWT (RS256 signed)
 - 2FA (TOTP) mandatory for all account-holding roles
 - 2FA setup: QR code + backup codes (10 codes, one-time use)
-- 2FA recovery: Backup code → reset 2FA
+- 2FA recovery: Backup code -> reset 2FA
 - OAuth 2.0: Google, GitHub (encrypted token storage)
 - WebAuthn/FIDO2 ready (future hardware key support)
 - Session Fixation Prevention: Rotate session ID on login
-- Brute-force Lockout: 5 failed attempts → 15 min lock (exponential backoff)
+- Brute-force Lockout: 5 failed attempts -> 15 min lock (exponential backoff)
 - Password Breach Check: HIBP API integration (SHA-1 k-anonymity)
 - Password Policy: Min 12 chars, uppercase, lowercase, number, special
 - Password History: Last 5 passwords blocked
@@ -755,7 +755,7 @@ LAYER 3 — AUTHENTICATION & ACCESS CONTROL:
 - Device/Session Revoke: Owner can revoke any staff session
 - Login notifications (new device, unusual IP)
 
-LAYER 4 — DATA ENCRYPTION:
+LAYER 4 - DATA ENCRYPTION:
 - AES-256-GCM for all sensitive data
 - Key derivation: PBKDF2 (100,000 iterations) or Argon2id
 - Key management: Separate encryption keys per environment (dev/staging/prod)
@@ -773,7 +773,7 @@ LAYER 4 — DATA ENCRYPTION:
 - PII log redaction (Sentry integration)
 - Blind index for encrypted field search
 
-LAYER 5 — MULTI-TENANT ISOLATION:
+LAYER 5 - MULTI-TENANT ISOLATION:
 - company_id column on EVERY table (except global tables)
 - Supabase RLS with default-deny policy on EVERY table
 - Example RLS policy:
@@ -790,7 +790,7 @@ LAYER 5 — MULTI-TENANT ISOLATION:
 - Fuzz testing endpoints (SQL script to verify isolation)
 - Admin impersonation: Clearly marked, time-limited, audit-logged
 
-LAYER 6 — FRAUD & ABUSE PREVENTION:
+LAYER 6 - FRAUD & ABUSE PREVENTION:
 - Rate limiting on ALL API endpoints
 - Brute-force lockout (exponential backoff)
 - Suspicious login alerts (unusual IP/time/device)
@@ -824,7 +824,7 @@ LAYER 6 — FRAUD & ABUSE PREVENTION:
 - Insider threat detection (admin_staff unusual activity)
 - Implementation: lib/security/fraud-engine.ts
 
-LAYER 7 — FILE UPLOAD SECURITY:
+LAYER 7 - FILE UPLOAD SECURITY:
 - Magic byte verification (every file type)
 - File extension + MIME type cross-check
 - File header signature validation
@@ -855,7 +855,7 @@ LAYER 7 — FILE UPLOAD SECURITY:
 - File quarantine (suspicious files isolated)
 - Implementation: lib/storage/file-validator.ts
 
-LAYER 8 — TOKEN & LINK SECURITY:
+LAYER 8 - TOKEN & LINK SECURITY:
 - HMAC-SHA256 signed tokens (128-bit random)
 - Per-document unique links
 - Token expiry configurable (plan-based: 7/30/90/365 days)
@@ -874,7 +874,7 @@ LAYER 8 — TOKEN & LINK SECURITY:
 - Token leak detection alerts
 - Implementation: lib/auth/tokens.ts
 
-LAYER 9 — ZERO TRUST ARCHITECTURE:
+LAYER 9 - ZERO TRUST ARCHITECTURE:
 - Never trust, always verify (every request authenticated)
 - Least privilege access (minimum required permissions)
 - Micro-segmentation (tenant isolation at every layer)
@@ -888,24 +888,24 @@ LAYER 9 — ZERO TRUST ARCHITECTURE:
 - Just-enough access (minimum scope, minimum duration)
 - Assume breach mentality (all data encrypted, all logs immutable)
 
-LAYER 10 — ZERO TOLERANCE POLICIES:
-- Zero tolerance: SQL injection attempt → IP ban + account lock
-- Zero tolerance: XSS attempt → IP ban + account lock
-- Zero tolerance: CSRF attempt → session terminate + alert
-- Zero tolerance: Brute force → permanent IP ban
-- Zero tolerance: Credential stuffing → account lock + 2FA enforce
-- Zero tolerance: Data exfiltration → account suspend + investigation
-- Zero tolerance: Fraud detection → account freeze + fund hold
-- Zero tolerance: Chargeback fraud → merchant suspend + evidence
-- Zero tolerance: Insider threat → access revoke + audit
-- Zero tolerance: Compliance violation → auto-remediation + alert
-- Zero tolerance: Vulnerability exploitation → WAF block + patch
-- Zero tolerance: DDoS attempt → Cloudflare challenge + block
-- Zero tolerance: Bot activity → CAPTCHA + block
+LAYER 10 - ZERO TOLERANCE POLICIES:
+- Zero tolerance: SQL injection attempt -> IP ban + account lock
+- Zero tolerance: XSS attempt -> IP ban + account lock
+- Zero tolerance: CSRF attempt -> session terminate + alert
+- Zero tolerance: Brute force -> permanent IP ban
+- Zero tolerance: Credential stuffing -> account lock + 2FA enforce
+- Zero tolerance: Data exfiltration -> account suspend + investigation
+- Zero tolerance: Fraud detection -> account freeze + fund hold
+- Zero tolerance: Chargeback fraud -> merchant suspend + evidence
+- Zero tolerance: Insider threat -> access revoke + audit
+- Zero tolerance: Compliance violation -> auto-remediation + alert
+- Zero tolerance: Vulnerability exploitation -> WAF block + patch
+- Zero tolerance: DDoS attempt -> Cloudflare challenge + block
+- Zero tolerance: Bot activity -> CAPTCHA + block
 - Implementation: lib/security/zero-trust.ts
 
 ================================================================================
-🔐 IMMUTABLE AUDIT LOG & SIEM
+IMMUTABLE AUDIT LOG & SIEM
 ================================================================================
 
 AUDIT LOG REQUIREMENTS:
@@ -960,7 +960,7 @@ SIEM INTEGRATION:
 - Implementation: lib/security/siem-forwarder.ts
 
 ================================================================================
-🚨 MONITORING, ALERTING & INCIDENT RESPONSE
+MONITORING, ALERTING & INCIDENT RESPONSE
 ================================================================================
 
 MONITORING:
@@ -984,9 +984,9 @@ ALERTING:
 - Alert rule engine (threshold, anomaly, pattern)
 - Alert channels: Email, Slack, Discord, Webhook, PagerDuty, SMS
 - Alert severity: Critical, High, Medium, Low, Info
-- Alert routing (severity → channel → on-call person)
+- Alert routing (severity -> channel -> on-call person)
 - Alert deduplication (same alert within 5 min)
-- Alert escalation (unacknowledged → next level)
+- Alert escalation (unacknowledged -> next level)
 - Alert silence (maintenance window)
 - Alert history
 - Alert dashboard
@@ -1014,7 +1014,7 @@ INCIDENT RESPONSE:
 - Implementation: docs/RUNBOOKS/
 
 ================================================================================
-💳 CHARGEBACK & REFUND EVIDENCE SYSTEM
+CHARGEBACK & REFUND EVIDENCE SYSTEM
 ================================================================================
 
 One-click Evidence Pack generation (per dispute):
@@ -1075,18 +1075,18 @@ Evidence Pack features:
 - 24-hour submission framework
 - 18-month retention (Google Drive encrypted)
 - Dispute deadline tracker (countdown)
-- Dispute status workflow (new → evidence submitted → won/lost)
+- Dispute status workflow (new -> evidence submitted -> won/lost)
 - Dispute win/loss analytics (per gateway, per reason code)
 - Dispute reason code mapping (per processor)
 - Chargeback reserve calculator (per merchant)
 - Chargeback rate monitoring (<0.65% threshold alert)
 - Refund policy auto-display on checkout
-- Refund request workflow (client → owner → approve → process)
+- Refund request workflow (client -> owner -> approve -> process)
 - Refund evidence preservation (post-refund audit trail)
 - Implementation: services/dispute/evidence-pack.ts
 
 ================================================================================
-🕵️ USER TRACKING & ANTI-FRAUD
+USER TRACKING & ANTI-FRAUD
 ================================================================================
 
 DEVICE TRACKING:
@@ -1142,7 +1142,7 @@ ACTIVITY TRACKING:
 - Activity heatmap (per user, per session)
 
 ================================================================================
-📝 CODE QUALITY STANDARDS
+CODE QUALITY STANDARDS
 ================================================================================
 
 TYPESCRIPT:
@@ -1187,10 +1187,10 @@ ERROR HANDLING:
 - Error boundary on every React tree
 
 ================================================================================
-📊 PERFORMANCE REQUIREMENTS
+PERFORMANCE REQUIREMENTS
 ================================================================================
 
-- Lighthouse score ≥90 on all pages
+- Lighthouse score >=90 on all pages
 - LCP (Largest Contentful Paint) <2.5s
 - INP (Interaction to Next Paint) <200ms
 - CLS (Cumulative Layout Shift) <0.1
@@ -1218,19 +1218,19 @@ ERROR HANDLING:
 - Background job timeout: 10 minutes
 
 ================================================================================
-🎨 UI/UX STANDARDS
+UI/UX STANDARDS
 ================================================================================
 
 DESIGN SYSTEM:
 - Mobile-first CSS (min-width queries)
 - Breakpoints: 320/375/430/768/1024/1280/1920
-- Touch targets ≥44x44px
-- Font size ≥16px (prevent iOS zoom)
+- Touch targets >=44x44px
+- Font size >=16px (prevent iOS zoom)
 - Centralized spacing scale: 4/8/12/16/24/32/48/64
 - Centralized radius scale: none/sm/md/lg/xl/full
 - Centralized shadow scale: sm/md/lg/xl/2xl
 - Icon set: Lucide React (single source)
-- Color contrast: ≥4.5:1 (normal text), ≥3:1 (large text)
+- Color contrast: >=4.5:1 (normal text), >=3:1 (large text)
 - Dark mode: Full parity (every component)
 - High-contrast mode support
 - Reduced-motion support (prefers-reduced-motion)
@@ -1258,14 +1258,14 @@ NAVIGATION INTEGRITY:
 - Role-based menu filtering
 - Zero dead-link audit (CI check)
 - Build-time link verification
-- Command palette (⌘K)
+- Command palette (CmdK)
 - Keyboard shortcuts reference page (? key)
 
 MOBILE OPTIMIZATION:
 - Hamburger + slide drawer navigation
 - Bottom navigation bar (5 main items)
 - iOS safe-area inset support
-- Tables → card list on mobile (auto)
+- Tables -> card list on mobile (auto)
 - Full-screen Sheet dialogs on mobile
 - Sticky bottom action bar (forms)
 - Correct input keyboard type (numeric/email/tel)
@@ -1279,7 +1279,7 @@ MOBILE OPTIMIZATION:
 - Every page tested at 320px (CI check)
 
 ================================================================================
-🔄 CONFLICT & DUPLICATE PREVENTION (IMPLEMENTATION)
+CONFLICT & DUPLICATE PREVENTION (IMPLEMENTATION)
 ================================================================================
 
 Implement these as CODE in services/, NOT as prompts:
@@ -1288,7 +1288,7 @@ DATA CONFLICT PREVENTION:
 1. Optimistic Locking:
    - Add version column (INTEGER DEFAULT 0 NOT NULL) to every editable table
    - On UPDATE: WHERE id = ? AND version = ? (increment version)
-   - If 0 rows updated → throw ConflictError
+   - If 0 rows updated -> throw ConflictError
    - UI shows: "Another user edited this. Reload to see changes."
    - Implementation: services/base/optimistic-lock.ts
 
@@ -1319,7 +1319,7 @@ DUPLICATE PREVENTION:
 1. Invoice Duplicate Detection:
    - Hash: SHA-256(tenant_id + client_id + total_amount + invoice_date)
    - Check before create: SELECT 1 FROM invoices WHERE duplicate_hash = ?
-   - If exists → show warning: "Similar invoice exists. Create anyway?"
+   - If exists -> show warning: "Similar invoice exists. Create anyway?"
    - Implementation: services/invoice/duplicate-detector.ts
 
 2. Payment Duplicate Detection:
@@ -1402,7 +1402,7 @@ ALL IMPLEMENTATIONS MUST:
 - Have unit of code in services/ (NOT in middleware or routes)
 
 ================================================================================
-🚫 FORBIDDEN PRACTICES
+FORBIDDEN PRACTICES
 ================================================================================
 
 NEVER:
@@ -1429,7 +1429,7 @@ NEVER:
 - Use string concatenation for SQL (use parameterized queries)
 - Trust user input (always validate + sanitize)
 - Skip RLS policies (every table must have default-deny)
-- Create test files (unit, integration, E2E) — tests excluded from this project
+- Create test files (unit, integration, E2E) - tests excluded from this project
 - Commit .env files
 - Commit node_modules
 - Commit build artifacts
@@ -1461,10 +1461,13 @@ ALWAYS:
 - Review every PR before merge
 
 ================================================================================
-🎯 IMPLEMENTATION PRIORITY (ORDER)
+IMPLEMENTATION PRIORITY (ORDER)
 ================================================================================
 
-Build in this order (10 chats total, as planned):
+Build in this order (10 chats total, as planned). NOTE: this list is
+historical. The authoritative build order is the 16-step plan in
+docs/PLAN/00_MASTER_EXECUTION_PLAN.md, see the EXECUTION PLAN
+OVERRIDE section at the end of this file:
 
 CHAT 1: Foundation
 - Database schema (migrations)
@@ -1570,12 +1573,12 @@ CHAT 10: Deploy & Final Polish
 - Final security audit
 
 ================================================================================
-📄 WHEN STARTING EACH CHAT:
+WHEN STARTING EACH CHAT:
 ================================================================================
 
 At the start of EACH chat, reference this document:
-"I am building KD SOLUTION IT per MASTER_PROMPT.md. 
-Current chat: [N] of 10. Scope: [description]. 
+"I am building KD SOLUTION IT per MASTER_PROMPT.md.
+Current chat: [N] of 10. Scope: [description].
 Continuing from where previous chat ended."
 
 At the end of EACH chat, create a handoff document:
@@ -1588,7 +1591,7 @@ At the end of EACH chat, create a handoff document:
 - Next chat's starting point"
 
 ================================================================================
-🎯 FINAL INSTRUCTION
+FINAL INSTRUCTION
 ================================================================================
 
 Build this platform systematically. For EVERY feature:
@@ -1611,11 +1614,81 @@ Build this platform systematically. For EVERY feature:
 17. Document (path comment, JSDoc for complex logic)
 
 NEVER skip steps. NEVER use "TODO". NEVER use "Coming Soon".
-The platform must be production-ready, enterprise-grade, 
+The platform must be production-ready, enterprise-grade,
 Amazon-acceptable quality from day one.
 
 Begin implementation.
 
 ================================================================================
 END OF MASTER PROMPT v2.0
+================================================================================
+
+================================================================================
+EXECUTION PLAN OVERRIDE (v2.1, supersedes the 10-chat list above)
+================================================================================
+
+The build is executed in 16 steps, one step per chat. The authoritative order,
+scope, sub-steps, gates, migration timestamp windows and file ownership live in
+docs/PLAN/ and must be read before starting any step.
+
+Authoritative files:
+- docs/PLAN/00_MASTER_EXECUTION_PLAN.md      (16 steps, dependencies, windows)
+- docs/PLAN/01_REQUIREMENTS_TRACEABILITY.md  (feature part to step mapping)
+- docs/PLAN/02_CONVENTIONS_AND_GUARDRAILS.md (rule block, commit and handoff)
+- docs/PLAN/03_FILE_OWNERSHIP_MATRIX.md      (one owner per file)
+- docs/PLAN/04_DEFINITION_OF_DONE_AND_GATES.md (definition of done, gates)
+- docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md (added requirements A1 to A10)
+- docs/PLAN/06_PROVIDER_DOCS_REGISTRY.md     (16 processors, docs, sandbox)
+- docs/PLAN/07_BRANCH_AND_GIT_WORKFLOW.md    (integration mainline, releases)
+- docs/PLAN/08_SUBSTEP_CHECKLISTS.md         (sub-step work orders)
+- docs/PLAN/chat-prompts/CHAT_01.md ... CHAT_16.md (paste-ready prompts)
+- docs/handoffs/                              (one handoff per chat)
+
+Added requirements that carry the same authority as the rules above:
+- A1 Documentation rule: fetch each processor's current official documentation
+  in the same session before writing its adapter. Never code from memory.
+- A2 Sixteen processors, one adapter file each, one registry file, sandbox
+  verified: Stripe, NMI, Adyen, Verifone (2Checkout), Braintree (PayPal),
+  BlueSnap, Square, Payoneer, FastSpring, Paddle, PayPro Global, PayPal
+  (standalone), Payarc/PaymentCloud, Rapyd, Authorize.Net, Custom.
+- A3 NMI dual mode: Collect.js default with single-use 24-hour tokens, plus a
+  Payment Component mode whose npm package is requested through the integrator
+  because package.json is integrator-owned; both modes share one server module
+  over the NMI REST API; one active mode per processor, switch only after a
+  passed test, every switch audited.
+- A4 Super admin API connect console: store, test, enable and disable any
+  processor from the dashboard with no documentation change and no redeploy;
+  credentials encrypted with AES-256-GCM using an environment master key,
+  never shown again after save; test must pass before enable; no processor
+  without adapter code; routing mismatch aborts the payment and never fails
+  over.
+- A5 Login lock: two consecutive failed password or 2FA attempts lock the
+  account for two hours; correct password, password reset and password change
+  do not lift the lock; owner email alert; unlock only by an authorized admin
+  after confirmed email contact with the owner, always audited; counters and
+  lock state persisted in the database; IP rate limiting; no account existence
+  leakage.
+- A6 Card rules: card data only in processor hosted fields; no PAN, expiry or
+  CVV ever reaches our code; after a successful card payment on an invoice the
+  same card is blocked on that invoice for 24 hours; two authentication
+  failures on a card token within 24 hours block the third attempt;
+  insufficient balance failures excluded; blacklist by token or processor
+  fingerprint; velocity limits configured in config/payment-limits.ts; USD
+  numeric(18,4) without JavaScript Number.
+- A7 Verification: request 3DS on every payment where available; when 3DS is
+  not completed, proceed only if billing postal code and payer IP country both
+  match the invoice data, otherwise hold for manual review; VPN, proxy and Tor
+  checks on the payment page; webhooks accepted only after signature
+  verification and processed idempotently.
+- A8 File storage: text and accounting data always in Supabase Postgres; files
+  to Google Drive when linked, otherwise Supabase Storage; AES-256-GCM before
+  upload; storage_provider recorded per file; runtime decision per company;
+  automatic failover; migration tool between providers.
+- A9 Branch policy: `integration` is the long-lived mainline; `main` is the
+  release mirror.
+- A10 Acceptance phrasing: later chats must answer from code and evidence, not
+  intent, for every added requirement.
+
+================================================================================
+END OF EXECUTION PLAN OVERRIDE
 ================================================================================
