@@ -18,7 +18,7 @@ handoff is written.
 | -------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------ |
 | 1.1      | Repository toolchain baseline: package.json, tsconfig.json, next.config.js, .prettierrc, .gitignore, husky hooks, lint-staged  | done    | to fill at handoff |
 | 1.2      | ESLint configuration: no-explicit-any error, no-console error, non-ASCII restricted syntax, import order, React and Next rules | done    | to fill at handoff |
-| 1.3      | Tailwind and token pipeline: tailwind.config.ts, PostCSS, components.json, CSS layer structure                                 | pending | -                  |
+| 1.3      | Tailwind and token pipeline: tailwind.config.ts, PostCSS, components.json, CSS layer structure                                 | done    | to fill at handoff |
 | 1.4      | Environment schema validation: lib/env/validate-env.ts, boot-time fail fast, typed access, .env.example                        | pending | -                  |
 | 1.5      | Check scripts A: english-only, no-todo, no-coming-soon, no-tests, path-comment                                                 | pending | -                  |
 | 1.6      | Check scripts B: no-console, forbidden-brands, migration-pairs, dead-links, secrets, any-types, money-math                     | pending | -                  |
