@@ -1,0 +1,715 @@
+{
+  "meta": {
+    "source": "config/design-tokens.ts",
+    "generator": "npm run tokens:export",
+    "owning_step": "step-01/1.14",
+    "format": "w3c-design-tokens-inspired",
+    "notes": [
+      "Generated file: never edit by hand, run npm run tokens:export instead.",
+      "Color values are HSL channel triples in the form \"hue saturation% lightness%\".",
+      "Every theme declares every color role; there is no partial theme.",
+      "border is a decorative divider: it always accompanies text or spacing that carries the same information, so it is not verified against the 3:1 boundary rule. The input role is the visible boundary of an editable control and is verified."
+    ]
+  },
+  "spacing": {
+    "unit_px": 4,
+    "scale": {
+      "1": {
+        "value": "4px",
+        "usage": "tightest inline gap, icon to label"
+      },
+      "2": {
+        "value": "8px",
+        "usage": "inline gap, compact padding inside controls"
+      },
+      "3": {
+        "value": "12px",
+        "usage": "form control padding, list row gaps"
+      },
+      "4": {
+        "value": "16px",
+        "usage": "default padding and gap between related blocks"
+      },
+      "6": {
+        "value": "24px",
+        "usage": "padding inside cards, gap between groups"
+      },
+      "8": {
+        "value": "32px",
+        "usage": "section spacing, page padding on desktop"
+      },
+      "12": {
+        "value": "48px",
+        "usage": "large section spacing"
+      },
+      "16": {
+        "value": "64px",
+        "usage": "page section separation on wide screens"
+      }
+    },
+    "support": {
+      "0": {
+        "value": "0px",
+        "usage": "reset padding or margin explicitly"
+      },
+      "5": {
+        "value": "20px",
+        "usage": "icon box and avatar size above the 16px step"
+      },
+      "9": {
+        "value": "36px",
+        "usage": "small control height, dense tables and toolbars"
+      },
+      "10": {
+        "value": "40px",
+        "usage": "default control height for inputs and buttons"
+      },
+      "11": {
+        "value": "44px",
+        "usage": "large control height, meets the 44px touch target"
+      },
+      "px": {
+        "value": "1px",
+        "usage": "hairline width for borders and dividers"
+      },
+      "0.5": {
+        "value": "2px",
+        "usage": "hairline offset inside a control"
+      },
+      "1.5": {
+        "value": "6px",
+        "usage": "compact control padding below the 8px step"
+      },
+      "2.5": {
+        "value": "10px",
+        "usage": "compact control padding between 8px and 12px"
+      },
+      "3.5": {
+        "value": "14px",
+        "usage": "compact control padding below the 16px step"
+      },
+      "gutter": {
+        "value": "16px",
+        "usage": "page and card gutter, named for intent"
+      },
+      "section": {
+        "value": "32px",
+        "usage": "vertical rhythm between page sections"
+      },
+      "touch": {
+        "value": "44px",
+        "usage": "minimum touch target for mobile, WCAG and iOS guidance"
+      }
+    }
+  },
+  "radius": {
+    "none": {
+      "value": "0px",
+      "usage": "sharp corners: table cells, nested panels"
+    },
+    "sm": {
+      "value": "calc(var(--radius) - 4px)",
+      "usage": "small controls, badges, tags"
+    },
+    "md": {
+      "value": "calc(var(--radius) - 2px)",
+      "usage": "inputs, buttons, menu items"
+    },
+    "lg": {
+      "value": "var(--radius)",
+      "usage": "default surface radius: cards, panels"
+    },
+    "xl": {
+      "value": "calc(var(--radius) + 4px)",
+      "usage": "large surfaces: modals, sheets"
+    },
+    "full": {
+      "value": "9999px",
+      "usage": "pills, avatars, circular icon buttons"
+    }
+  },
+  "shadow": {
+    "sm": {
+      "value": "var(--shadow-sm)",
+      "usage": "subtle lift: inputs, buttons on hover"
+    },
+    "md": {
+      "value": "var(--shadow-md)",
+      "usage": "raised content: cards, dropdowns"
+    },
+    "lg": {
+      "value": "var(--shadow-lg)",
+      "usage": "overlays: popovers, sticky bars"
+    },
+    "xl": {
+      "value": "var(--shadow-xl)",
+      "usage": "dialogs and sheets"
+    },
+    "2xl": {
+      "value": "var(--shadow-2xl)",
+      "usage": "full screen overlays and toasts"
+    }
+  },
+  "z_index": {
+    "hide": {
+      "value": -1,
+      "variable": "--z-hide",
+      "usage": "visually hidden helpers that must stay behind content"
+    },
+    "base": {
+      "value": 0,
+      "variable": "--z-base",
+      "usage": "normal document flow"
+    },
+    "raised": {
+      "value": 10,
+      "variable": "--z-raised",
+      "usage": "raised content inside a scroll container, for example a pinned row"
+    },
+    "docked": {
+      "value": 20,
+      "variable": "--z-docked",
+      "usage": "sticky bottom action bar, sticky table header, mobile bottom navigation"
+    },
+    "sticky": {
+      "value": 30,
+      "variable": "--z-sticky",
+      "usage": "sticky topbar and page header"
+    },
+    "sidebar": {
+      "value": 40,
+      "variable": "--z-sidebar",
+      "usage": "desktop sidebar and mobile drawer panel"
+    },
+    "skip-link": {
+      "value": 45,
+      "variable": "--z-skip-link",
+      "usage": "skip to content link when focused, above header and sidebar"
+    },
+    "overlay": {
+      "value": 50,
+      "variable": "--z-overlay",
+      "usage": "modal, sheet and drawer backdrop"
+    },
+    "modal": {
+      "value": 60,
+      "variable": "--z-modal",
+      "usage": "dialog, sheet and drawer content"
+    },
+    "dropdown": {
+      "value": 70,
+      "variable": "--z-dropdown",
+      "usage": "select, menu and command palette content opened inside a dialog"
+    },
+    "popover": {
+      "value": 80,
+      "variable": "--z-popover",
+      "usage": "popover content above a dropdown"
+    },
+    "tooltip": {
+      "value": 90,
+      "variable": "--z-tooltip",
+      "usage": "tooltip content above every panel"
+    },
+    "toast": {
+      "value": 100,
+      "variable": "--z-toast",
+      "usage": "toast and notification stack, always visible"
+    }
+  },
+  "typography": {
+    "minimum_body_text_px": 16,
+    "size": {
+      "xs": {
+        "size": "12px",
+        "lineHeight": "16px",
+        "letterSpacing": "0.02em",
+        "usage": "captions, badge counts, legal footnotes, timestamp metadata"
+      },
+      "sm": {
+        "size": "14px",
+        "lineHeight": "20px",
+        "letterSpacing": "0.01em",
+        "usage": "table cells, helper text, secondary metadata, compact controls"
+      },
+      "base": {
+        "size": "16px",
+        "lineHeight": "24px",
+        "letterSpacing": "0",
+        "usage": "body copy, form controls and every reading text; the platform minimum"
+      },
+      "lg": {
+        "size": "18px",
+        "lineHeight": "28px",
+        "letterSpacing": "0",
+        "usage": "lead paragraphs, card titles, dialog titles"
+      },
+      "xl": {
+        "size": "20px",
+        "lineHeight": "28px",
+        "letterSpacing": "-0.005em",
+        "usage": "section titles inside a page"
+      },
+      "2xl": {
+        "size": "24px",
+        "lineHeight": "32px",
+        "letterSpacing": "-0.01em",
+        "usage": "page titles, dashboard metric values"
+      },
+      "3xl": {
+        "size": "30px",
+        "lineHeight": "36px",
+        "letterSpacing": "-0.015em",
+        "usage": "marketing section headings"
+      },
+      "4xl": {
+        "size": "36px",
+        "lineHeight": "40px",
+        "letterSpacing": "-0.02em",
+        "usage": "public site hero heading on desktop"
+      },
+      "5xl": {
+        "size": "48px",
+        "lineHeight": "56px",
+        "letterSpacing": "-0.02em",
+        "usage": "public site hero heading on wide screens, one per page"
+      }
+    },
+    "weight": {
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "family": {
+      "sans": [
+        "var(--font-sans)",
+        "ui-sans-serif",
+        "system-ui",
+        "sans-serif"
+      ],
+      "mono": [
+        "var(--font-mono)",
+        "ui-monospace",
+        "monospace"
+      ]
+    }
+  },
+  "motion": {
+    "duration": {
+      "instant": {
+        "value": "0ms",
+        "reducedValue": "0ms",
+        "variable": "--duration-instant",
+        "usage": "state changes that must never animate: theme switch, table sort, tab underline"
+      },
+      "fast": {
+        "value": "120ms",
+        "reducedValue": "0ms",
+        "variable": "--duration-fast",
+        "usage": "hover, focus ring, checkbox and switch toggles, small state changes"
+      },
+      "base": {
+        "value": "200ms",
+        "reducedValue": "0ms",
+        "variable": "--duration-base",
+        "usage": "default for dropdowns, tooltips, toasts and inline reveals"
+      },
+      "slow": {
+        "value": "320ms",
+        "reducedValue": "0ms",
+        "variable": "--duration-slow",
+        "usage": "dialogs, sheets, drawers, mobile navigation and page transitions"
+      },
+      "slower": {
+        "value": "500ms",
+        "reducedValue": "0ms",
+        "variable": "--duration-slower",
+        "usage": "progress reveals and marketing motion, never for interactive feedback"
+      }
+    },
+    "easing": {
+      "standard": {
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "variable": "--ease-standard",
+        "usage": "default for every two-way transition: hover, expand, resize"
+      },
+      "enter": {
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "variable": "--ease-enter",
+        "usage": "elements appearing: dialog, dropdown, toast"
+      },
+      "exit": {
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "variable": "--ease-exit",
+        "usage": "elements leaving: close, dismiss, collapse"
+      },
+      "linear": {
+        "value": "linear",
+        "variable": "--ease-linear",
+        "usage": "continuous progress: upload bar, skeleton shimmer, spinner"
+      }
+    },
+    "reduced_motion": {
+      "strategy": "durations collapse to zero, layout and information unchanged",
+      "media_query": "(prefers-reduced-motion: reduce)"
+    }
+  },
+  "color": {
+    "themes": [
+      "light",
+      "dark",
+      "high-contrast-light",
+      "high-contrast-dark"
+    ],
+    "variables": {
+      "background": "--background",
+      "foreground": "--foreground",
+      "card": "--card",
+      "card-foreground": "--card-foreground",
+      "popover": "--popover",
+      "popover-foreground": "--popover-foreground",
+      "primary": "--primary",
+      "primary-foreground": "--primary-foreground",
+      "secondary": "--secondary",
+      "secondary-foreground": "--secondary-foreground",
+      "muted": "--muted",
+      "muted-foreground": "--muted-foreground",
+      "accent": "--accent",
+      "accent-foreground": "--accent-foreground",
+      "destructive": "--destructive",
+      "destructive-foreground": "--destructive-foreground",
+      "success": "--success",
+      "success-foreground": "--success-foreground",
+      "warning": "--warning",
+      "warning-foreground": "--warning-foreground",
+      "border": "--border",
+      "input": "--input",
+      "ring": "--ring"
+    },
+    "roles": {
+      "background": {
+        "kind": "surface",
+        "usage": "the page canvas behind every surface"
+      },
+      "foreground": {
+        "kind": "text",
+        "usage": "body and heading text on the page canvas"
+      },
+      "card": {
+        "kind": "surface",
+        "usage": "card, panel and table surface"
+      },
+      "card-foreground": {
+        "kind": "text",
+        "usage": "text on a card surface"
+      },
+      "popover": {
+        "kind": "surface",
+        "usage": "popover, dropdown and dialog surface"
+      },
+      "popover-foreground": {
+        "kind": "text",
+        "usage": "text on a popover surface"
+      },
+      "primary": {
+        "kind": "surface",
+        "usage": "brand action: primary button, active navigation, link text"
+      },
+      "primary-foreground": {
+        "kind": "text",
+        "usage": "text and icons on a primary surface"
+      },
+      "secondary": {
+        "kind": "surface",
+        "usage": "secondary button and low emphasis surface"
+      },
+      "secondary-foreground": {
+        "kind": "text",
+        "usage": "text and icons on a secondary surface"
+      },
+      "muted": {
+        "kind": "surface",
+        "usage": "muted surface: table header, code block, disabled field"
+      },
+      "muted-foreground": {
+        "kind": "text",
+        "usage": "secondary text: helper text, metadata, inactive icon"
+      },
+      "accent": {
+        "kind": "surface",
+        "usage": "hover and selected surface for menu items and rows"
+      },
+      "accent-foreground": {
+        "kind": "text",
+        "usage": "text and icons on an accent surface"
+      },
+      "destructive": {
+        "kind": "surface",
+        "usage": "danger action surface: delete, void, revoke"
+      },
+      "destructive-foreground": {
+        "kind": "text",
+        "usage": "text and icons on a danger surface"
+      },
+      "success": {
+        "kind": "surface",
+        "usage": "positive state surface: paid, approved, reconciled"
+      },
+      "success-foreground": {
+        "kind": "text",
+        "usage": "text and icons on a positive surface"
+      },
+      "warning": {
+        "kind": "surface",
+        "usage": "attention state surface: overdue, pending review, low balance"
+      },
+      "warning-foreground": {
+        "kind": "text",
+        "usage": "text and icons on an attention surface"
+      },
+      "border": {
+        "kind": "boundary",
+        "usage": "decorative divider and card outline; it never carries information alone"
+      },
+      "input": {
+        "kind": "boundary",
+        "usage": "form control outline, the visible boundary of an editable field"
+      },
+      "ring": {
+        "kind": "focus",
+        "usage": "keyboard focus indicator, never removed"
+      }
+    },
+    "values": {
+      "light": {
+        "background": "0 0% 100%",
+        "foreground": "222.2 47.4% 11.2%",
+        "card": "0 0% 100%",
+        "card-foreground": "222.2 47.4% 11.2%",
+        "popover": "0 0% 100%",
+        "popover-foreground": "222.2 47.4% 11.2%",
+        "primary": "221.2 83.2% 53.3%",
+        "primary-foreground": "210 40% 98%",
+        "secondary": "210 40% 96.1%",
+        "secondary-foreground": "222.2 47.4% 11.2%",
+        "muted": "210 40% 96.1%",
+        "muted-foreground": "215.4 16.3% 40%",
+        "accent": "210 40% 96.1%",
+        "accent-foreground": "222.2 47.4% 11.2%",
+        "destructive": "0 72.2% 45.4%",
+        "destructive-foreground": "210 40% 98%",
+        "success": "142.1 76.2% 28%",
+        "success-foreground": "355.7 100% 97.3%",
+        "warning": "32.1 94.6% 43.7%",
+        "warning-foreground": "0 0% 0%",
+        "border": "214.3 31.8% 91.4%",
+        "input": "215.4 16.3% 55%",
+        "ring": "221.2 83.2% 53.3%"
+      },
+      "dark": {
+        "background": "222.2 84% 4.9%",
+        "foreground": "210 40% 98%",
+        "card": "222.2 84% 4.9%",
+        "card-foreground": "210 40% 98%",
+        "popover": "222.2 84% 4.9%",
+        "popover-foreground": "210 40% 98%",
+        "primary": "217.2 91.2% 59.8%",
+        "primary-foreground": "222.2 47.4% 11.2%",
+        "secondary": "217.2 32.6% 17.5%",
+        "secondary-foreground": "210 40% 98%",
+        "muted": "217.2 32.6% 17.5%",
+        "muted-foreground": "215 20.2% 65.1%",
+        "accent": "217.2 32.6% 17.5%",
+        "accent-foreground": "210 40% 98%",
+        "destructive": "0 72% 60%",
+        "destructive-foreground": "0 0% 0%",
+        "success": "142.1 70.6% 45.3%",
+        "success-foreground": "144.9 80.4% 10%",
+        "warning": "32.1 94.6% 53.7%",
+        "warning-foreground": "0 0% 0%",
+        "border": "217.2 32.6% 17.5%",
+        "input": "217.2 32.6% 45%",
+        "ring": "217.2 91.2% 59.8%"
+      },
+      "high-contrast-light": {
+        "background": "0 0% 100%",
+        "foreground": "0 0% 0%",
+        "card": "0 0% 100%",
+        "card-foreground": "0 0% 0%",
+        "popover": "0 0% 100%",
+        "popover-foreground": "0 0% 0%",
+        "primary": "221.2 83.2% 32%",
+        "primary-foreground": "0 0% 100%",
+        "secondary": "210 40% 96.1%",
+        "secondary-foreground": "0 0% 0%",
+        "muted": "210 40% 96.1%",
+        "muted-foreground": "0 0% 25%",
+        "accent": "210 40% 96.1%",
+        "accent-foreground": "0 0% 0%",
+        "destructive": "0 84.2% 32%",
+        "destructive-foreground": "0 0% 100%",
+        "success": "142.1 76.2% 22%",
+        "success-foreground": "0 0% 100%",
+        "warning": "32.1 94.6% 50%",
+        "warning-foreground": "0 0% 0%",
+        "border": "0 0% 30%",
+        "input": "0 0% 0%",
+        "ring": "0 0% 0%"
+      },
+      "high-contrast-dark": {
+        "background": "0 0% 0%",
+        "foreground": "0 0% 100%",
+        "card": "0 0% 0%",
+        "card-foreground": "0 0% 100%",
+        "popover": "0 0% 0%",
+        "popover-foreground": "0 0% 100%",
+        "primary": "217.2 91.2% 72%",
+        "primary-foreground": "0 0% 0%",
+        "secondary": "0 0% 15%",
+        "secondary-foreground": "0 0% 100%",
+        "muted": "0 0% 15%",
+        "muted-foreground": "0 0% 85%",
+        "accent": "0 0% 15%",
+        "accent-foreground": "0 0% 100%",
+        "destructive": "0 90% 72%",
+        "destructive-foreground": "0 0% 0%",
+        "success": "142.1 70.6% 68%",
+        "success-foreground": "0 0% 0%",
+        "warning": "32.1 94.6% 68%",
+        "warning-foreground": "0 0% 0%",
+        "border": "0 0% 65%",
+        "input": "0 0% 100%",
+        "ring": "0 0% 100%"
+      }
+    },
+    "media_queries": {
+      "high_contrast": "(prefers-contrast: more)",
+      "forced_colors": "(forced-colors: active)"
+    }
+  },
+  "contrast": {
+    "minimums": {
+      "text": 4.5,
+      "focus": 3,
+      "boundary": 3
+    },
+    "high_contrast_text_minimum": 7,
+    "pairs": [
+      {
+        "foreground": "foreground",
+        "background": "background",
+        "kind": "text",
+        "usage": "body and heading text on the page canvas, the most used pair"
+      },
+      {
+        "foreground": "card-foreground",
+        "background": "card",
+        "kind": "text",
+        "usage": "text inside a card, panel or table surface"
+      },
+      {
+        "foreground": "popover-foreground",
+        "background": "popover",
+        "kind": "text",
+        "usage": "text inside a dropdown, popover or dialog"
+      },
+      {
+        "foreground": "secondary-foreground",
+        "background": "secondary",
+        "kind": "text",
+        "usage": "secondary button label and low emphasis badge text"
+      },
+      {
+        "foreground": "muted-foreground",
+        "background": "muted",
+        "kind": "text",
+        "usage": "helper text and table header text on a muted surface"
+      },
+      {
+        "foreground": "muted-foreground",
+        "background": "background",
+        "kind": "text",
+        "usage": "metadata rendered directly on the page canvas"
+      },
+      {
+        "foreground": "muted-foreground",
+        "background": "card",
+        "kind": "text",
+        "usage": "metadata and timestamps inside a card"
+      },
+      {
+        "foreground": "accent-foreground",
+        "background": "accent",
+        "kind": "text",
+        "usage": "menu item label and selected row text on a hover surface"
+      },
+      {
+        "foreground": "primary-foreground",
+        "background": "primary",
+        "kind": "text",
+        "usage": "primary button label and icon"
+      },
+      {
+        "foreground": "destructive-foreground",
+        "background": "destructive",
+        "kind": "text",
+        "usage": "danger button label and icon"
+      },
+      {
+        "foreground": "success-foreground",
+        "background": "success",
+        "kind": "text",
+        "usage": "positive badge label, for example a paid invoice"
+      },
+      {
+        "foreground": "warning-foreground",
+        "background": "warning",
+        "kind": "text",
+        "usage": "attention badge label, for example an overdue invoice"
+      },
+      {
+        "foreground": "primary",
+        "background": "background",
+        "kind": "text",
+        "usage": "link text and active navigation label on the page canvas"
+      },
+      {
+        "foreground": "destructive",
+        "background": "background",
+        "kind": "text",
+        "usage": "destructive link text such as a delete action"
+      },
+      {
+        "foreground": "success",
+        "background": "background",
+        "kind": "text",
+        "usage": "positive amount text, for example a reconciled balance"
+      },
+      {
+        "foreground": "ring",
+        "background": "background",
+        "kind": "focus",
+        "usage": "keyboard focus indicator against the page canvas, WCAG 1.4.11"
+      },
+      {
+        "foreground": "ring",
+        "background": "card",
+        "kind": "focus",
+        "usage": "keyboard focus indicator against a card surface, WCAG 1.4.11"
+      },
+      {
+        "foreground": "input",
+        "background": "background",
+        "kind": "boundary",
+        "usage": "editable field boundary against the page canvas, WCAG 1.4.11"
+      },
+      {
+        "foreground": "input",
+        "background": "card",
+        "kind": "boundary",
+        "usage": "editable field boundary inside a card, WCAG 1.4.11"
+      }
+    ]
+  }
+}

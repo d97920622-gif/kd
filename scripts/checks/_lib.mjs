@@ -268,3 +268,116 @@ export function findMatches(source, pattern) {
   }
   return results;
 }
+
+/**
+ * Parse a stylesheet into flat declarations with their nesting path.
+ *
+ * Returns one record per declaration: { path, property, value }, where path
+ * is the stack of block preludes that contain it, for example
+ * ['@layer base', '@media (prefers-contrast: more)', ':root'].
+ *
+ * The parser is deliberately small: comments are skipped, at-rules without a
+ * block are ignored, and nested blocks are tracked by brace depth. It is
+ * enough for the hand-written stylesheets in this repository and it keeps the
+ * checks independent of a CSS toolchain.
+ */
+export function parseCssDeclarations(text) {
+  const records = [];
+  const stack = [];
+  let buffer = '';
+  let inComment = false;
+  let index = 0;
+  while (index < text.length) {
+    const character = text[index];
+    if (inComment) {
+      if (character === '*' && text[index + 1] === '/') {
+        inComment = false;
+        index += 2;
+        continue;
+      }
+      index += 1;
+      continue;
+    }
+    if (character === '/' && text[index + 1] === '*') {
+      inComment = true;
+      index += 2;
+      continue;
+    }
+    if (character === '{') {
+      stack.push(buffer.trim());
+      buffer = '';
+      index += 1;
+      continue;
+    }
+    if (character === '}') {
+      stack.pop();
+      buffer = '';
+      index += 1;
+      continue;
+    }
+    if (character === ';') {
+      const statement = buffer.trim();
+      buffer = '';
+      if (statement.length > 0 && stack.length > 0 && !statement.startsWith('@')) {
+        const separator = statement.indexOf(':');
+        if (separator > 0) {
+          records.push({
+            path: [...stack],
+            property: statement.slice(0, separator).trim(),
+            value: statement.slice(separator + 1).trim(),
+          });
+        }
+      }
+      index += 1;
+      continue;
+    }
+    buffer += character;
+    index += 1;
+  }
+  return records;
+}
+
+/**
+ * Select the declarations of one block. `selector` must be the last prelude
+ * of the block path, and `media` either a substring that must appear in the
+ * path or null when the block must not be inside any @media at all.
+ * Returns a Map of property to value.
+ */
+export function selectCssBlock(records, { selector, media = null }) {
+  const wantedSelector = normalizeCssText(selector);
+  const wantedMedia = media === null ? null : normalizeCssText(media);
+  const result = new Map();
+  for (const record of records) {
+    if (normalizeCssText(record.path[record.path.length - 1]) !== wantedSelector) {
+      continue;
+    }
+    const insideMedia = record.path.some((entry) => entry.startsWith('@media'));
+    if (wantedMedia === null && insideMedia) {
+      continue;
+    }
+    if (
+      wantedMedia !== null &&
+      !record.path.some((entry) => normalizeCssText(entry).includes(wantedMedia))
+    ) {
+      continue;
+    }
+    result.set(record.property, record.value);
+  }
+  return result;
+}
+
+/** Collapse whitespace so a selector spanning several lines still matches. */
+export function normalizeCssText(value) {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * True when the stylesheet contains a block whose prelude matches the given
+ * at-rule substring, for example '@media (forced-colors: active)'. Returns
+ * the declarations of that block, so a caller can assert its content.
+ */
+export function selectCssAtRuleBlock(records, atRuleSubstring) {
+  return records.filter((record) =>
+    record.path.some((entry) => entry.startsWith('@media') && entry.includes(atRuleSubstring)),
+  );
+}

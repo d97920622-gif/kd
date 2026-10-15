@@ -12,6 +12,11 @@ package-lock.json
 next-env.d.ts
 .husky/_/
 
+# Generated design token export: produced byte-for-byte by npm run tokens:export
+# and verified by npm run verify. Prettier must not reformat it, or the export
+# check would fail on every run.
+config/design-tokens.json
+
 # Build output and dependencies
 .next/
 node_modules/

@@ -8,10 +8,19 @@
  *   3. Tailwind utilities
  *   4. base layer: design token variables, theme variants and element defaults
  *
- * Every semantic color is a CSS variable consumed by tailwind.config.ts.
- * Values are HSL channels so opacity modifiers work: bg-primary/50.
- * The complete palette, contrast pairs, high contrast and reduced motion
- * blocks are delivered by sub-steps 1.13 and 1.14 of step 1.
+ * Every value in this file comes from config/design-tokens.ts. This file
+ * declares variables; it never invents one. scripts/checks/color-contrast.mjs
+ * compares each declaration with the token module in both directions, so a
+ * value edited here alone fails npm run verify.
+ *
+ * Theme blocks:
+ *   :root                             light
+ *   .dark                             dark, full parity with light
+ *   @media (prefers-contrast: more)   high contrast, light and dark
+ *   @media (prefers-reduced-motion)   animation removed, interface intact
+ *   @media (forced-colors: active)    system palette, structure preserved
+ *
+ * Colors are HSL channel triples so opacity modifiers work: bg-primary/50.
  */
 
 @tailwind base;
@@ -20,6 +29,7 @@
 
 @layer base {
   :root {
+    /* Semantic colors: light theme (config/design-tokens.ts light). */
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
     --card: 0 0% 100%;
@@ -31,23 +41,30 @@
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215.4 16.3% 40%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 72.2% 50.6%;
+    --destructive: 0 72.2% 45.4%;
     --destructive-foreground: 210 40% 98%;
-    --success: 142.1 76.2% 36.3%;
+    --success: 142.1 76.2% 28%;
     --success-foreground: 355.7 100% 97.3%;
     --warning: 32.1 94.6% 43.7%;
-    --warning-foreground: 355.7 100% 97.3%;
+    --warning-foreground: 0 0% 0%;
     --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --input: 215.4 16.3% 55%;
     --ring: 221.2 83.2% 53.3%;
+
+    /* Base radius; the sm, md, lg and xl radius tokens derive from it. */
     --radius: 8px;
 
-    /* Shadow tokens (config/design-tokens.ts). The shadow color is a channel
-       triple so dark mode can strengthen the same shadow without touching a
-       component class. */
+    /* Font stacks. next/font overrides these on the html element in the
+       layout shells; the fallback keeps the platform stack complete when a
+       page renders without the layout. */
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Shadow tokens. The shadow color is a channel triple so dark mode can
+       strengthen the same shadow without touching a component class. */
     --shadow-color: 222 47% 11%;
     --shadow-sm: 0 1px 2px 0 hsl(var(--shadow-color) / 0.06);
     --shadow-md:
@@ -59,8 +76,8 @@
       0 4px 8px -4px hsl(var(--shadow-color) / 0.08);
     --shadow-2xl: 0 24px 48px -12px hsl(var(--shadow-color) / 0.18);
 
-    /* Z-index ladder (config/design-tokens.ts). CSS-level consumers use
-       these variables; components use the z-* utility classes. */
+    /* Z-index ladder. CSS-level consumers use these variables; components
+       use the z-* utility classes. */
     --z-hide: -1;
     --z-base: 0;
     --z-raised: 10;
@@ -75,14 +92,22 @@
     --z-tooltip: 90;
     --z-toast: 100;
 
-    /* Motion tokens (completed in sub-step 1.14). */
-    --transition-fast: 120ms;
-    --transition-base: 200ms;
-    --transition-slow: 320ms;
+    /* Motion tokens. Framer Motion and CSS transitions read the same values;
+       @media (prefers-reduced-motion: reduce) below zeroes the durations. */
+    --duration-instant: 0ms;
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
+    --duration-slower: 500ms;
     --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+    --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    --ease-linear: linear;
   }
 
   .dark {
+    /* Semantic colors: dark theme. Every role from the light block appears
+       here; scripts/checks/color-contrast.mjs fails when one is missing. */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -97,19 +122,20 @@
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Tonal danger surface: a vivid red with a dark label keeps the delete
+       button readable and the destructive link text readable on the canvas. */
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 0%;
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 144.9 80.4% 10%;
     --warning: 32.1 94.6% 53.7%;
-    --warning-foreground: 26 83.3% 14.1%;
+    --warning-foreground: 0 0% 0%;
     --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --radius: 8px;
+    --input: 217.2 32.6% 45%;
+    --ring: 217.2 91.2% 59.8%;
 
-    /* Dark surfaces need stronger shadows: the light-mode values are almost
-       invisible on a dark background. Color becomes pure black. */
+    /* Dark surfaces need stronger shadows: the light values are almost
+       invisible on a dark background. The color becomes pure black. */
     --shadow-color: 0 0% 0%;
     --shadow-sm: 0 1px 2px 0 hsl(var(--shadow-color) / 0.5);
     --shadow-md:
@@ -122,6 +148,104 @@
     --shadow-2xl: 0 24px 48px -12px hsl(var(--shadow-color) / 0.75);
   }
 
+  /* High contrast: the user asked for more contrast, so text pairs move to
+     the 7:1 floor in both themes while the role names stay identical. */
+  @media (prefers-contrast: more) {
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 0 0% 0%;
+      --card: 0 0% 100%;
+      --card-foreground: 0 0% 0%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 0 0% 0%;
+      --primary: 221.2 83.2% 32%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 0 0% 0%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 0 0% 25%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 0 0% 0%;
+      --destructive: 0 84.2% 32%;
+      --destructive-foreground: 0 0% 100%;
+      --success: 142.1 76.2% 22%;
+      --success-foreground: 0 0% 100%;
+      --warning: 32.1 94.6% 50%;
+      --warning-foreground: 0 0% 0%;
+      --border: 0 0% 30%;
+      --input: 0 0% 0%;
+      --ring: 0 0% 0%;
+    }
+
+    .dark {
+      --background: 0 0% 0%;
+      --foreground: 0 0% 100%;
+      --card: 0 0% 0%;
+      --card-foreground: 0 0% 100%;
+      --popover: 0 0% 0%;
+      --popover-foreground: 0 0% 100%;
+      --primary: 217.2 91.2% 72%;
+      --primary-foreground: 0 0% 0%;
+      --secondary: 0 0% 15%;
+      --secondary-foreground: 0 0% 100%;
+      --muted: 0 0% 15%;
+      --muted-foreground: 0 0% 85%;
+      --accent: 0 0% 15%;
+      --accent-foreground: 0 0% 100%;
+      --destructive: 0 90% 72%;
+      --destructive-foreground: 0 0% 0%;
+      --success: 142.1 70.6% 68%;
+      --success-foreground: 0 0% 0%;
+      --warning: 32.1 94.6% 68%;
+      --warning-foreground: 0 0% 0%;
+      --border: 0 0% 65%;
+      --input: 0 0% 100%;
+      --ring: 0 0% 100%;
+    }
+  }
+
+  /* Reduced motion: durations collapse to zero and animations stop repeating.
+     Layout, color, focus order and information stay exactly the same, so a
+     user who disabled motion loses movement, never content. */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --duration-instant: 0ms;
+      --duration-fast: 0ms;
+      --duration-base: 0ms;
+      --duration-slow: 0ms;
+      --duration-slower: 0ms;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Forced colors: the operating system replaces the palette, so this block
+     only guarantees structure survives. Borders become the system text color
+     and the focus ring becomes the system highlight, which is what keeps an
+     input, a card and a focused control visible at all. */
+  @media (forced-colors: active) {
+    *,
+    *::before,
+    *::after {
+      border-color: CanvasText;
+    }
+
+    :focus-visible {
+      outline-color: Highlight;
+    }
+
+    [data-disabled='true'] {
+      color: GrayText;
+    }
+  }
+
   * {
     @apply border-border;
   }
@@ -132,9 +256,16 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-base text-foreground;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
+  }
+
+  /* Focus ring on every interactive element. It is never removed and never
+     replaced by a color-only change, so keyboard users always see position. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }

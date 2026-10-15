@@ -2,11 +2,16 @@
 import { type Config } from 'tailwindcss';
 
 import {
+  DURATION_CLASS_MAP,
+  EASING_CLASS_MAP,
+  FONT_FAMILY_CLASS_MAP,
+  FONT_SIZE_CLASS_MAP,
+  FONT_WEIGHT_CLASS_MAP,
   RADIUS_CLASS_MAP,
   SHADOW_CLASS_MAP,
   SPACING_TOKENS,
   Z_INDEX_CLASS_MAP,
-} from './config/design-tokens';
+} from './config/design-tokens.ts';
 
 /**
  * Tailwind CSS configuration for KD SOLUTION IT.
@@ -15,11 +20,20 @@ import {
  * value is declared here, so there is exactly one place to change a token
  * and exactly one place for scripts/checks/design-tokens.mjs to verify.
  *
- * Spacing, radius, shadow and z-index are replaced rather than extended: the
- * default Tailwind steps that are not tokens do not exist, which turns a
- * mistyped step (p-7) into a visibly unstyled element instead of a silent
+ * The import carries the .ts extension on purpose. Without it the loader that
+ * evaluates this file resolves the specifier against every sibling of
+ * config/design-tokens.ts, including the generated config/design-tokens.json,
+ * and a silent switch to that file would disconnect the whole token system
+ * from Tailwind. scripts/checks/design-tokens.mjs fails any extensionless
+ * import of the token module for the same reason.
+ *
+ * Spacing, radius, shadow, z-index, typography, motion and weight are
+ * replaced rather than extended: the default Tailwind steps that are not
+ * tokens do not exist, which turns a mistyped step (p-7, text-md,
+ * duration-350) into a visibly unstyled element instead of a silent
  * off-scale value. Semantic colors stay bound to the CSS variables declared
- * in styles/globals.css.
+ * in styles/globals.css, which carry the light, dark and high contrast
+ * values from the same token module.
  */
 const config = {
   darkMode: ['class'],
@@ -52,6 +66,11 @@ const config = {
     borderRadius: RADIUS_CLASS_MAP,
     boxShadow: SHADOW_CLASS_MAP,
     zIndex: Z_INDEX_CLASS_MAP,
+    fontSize: FONT_SIZE_CLASS_MAP,
+    fontFamily: FONT_FAMILY_CLASS_MAP,
+    fontWeight: FONT_WEIGHT_CLASS_MAP,
+    transitionDuration: DURATION_CLASS_MAP,
+    transitionTimingFunction: EASING_CLASS_MAP,
     extend: {
       colors: {
         border: 'hsl(var(--border))',
@@ -95,10 +114,6 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-      },
-      fontFamily: {
-        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
       keyframes: {
         'accordion-down': {

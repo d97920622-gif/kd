@@ -13,7 +13,8 @@
  *   2. lint             eslint --max-warnings=0
  *   3. format:check     prettier --check .
  *   4. env:validate     environment schema against the current environment
- *   5..18               the fourteen rule checks in scripts/checks
+ *   5. tokens:export    config/design-tokens.json is current with the token module
+ *   6..21               the sixteen rule checks in scripts/checks
  *
  * The production build and the Lighthouse run are step gates, not part of
  * verify; they are executed separately and recorded in the step handoff.
@@ -33,6 +34,11 @@ const ENTRIES = [
     command: 'npx',
     args: ['tsx', '--env-file-if-exists=.env', 'lib/env/cli.ts'],
   },
+  {
+    name: 'tokens:export',
+    command: 'npx',
+    args: ['tsx', 'scripts/export-design-tokens.ts', '--check'],
+  },
   { name: 'check:english-only', command: 'node', args: ['scripts/checks/english-only.mjs'] },
   { name: 'check:no-todo', command: 'node', args: ['scripts/checks/no-todo.mjs'] },
   { name: 'check:no-coming-soon', command: 'node', args: ['scripts/checks/no-coming-soon.mjs'] },
@@ -40,6 +46,7 @@ const ENTRIES = [
   { name: 'check:path-comment', command: 'node', args: ['scripts/checks/path-comment.mjs'] },
   { name: 'check:i18n-strings', command: 'node', args: ['scripts/checks/i18n-strings.mjs'] },
   { name: 'check:design-tokens', command: 'node', args: ['scripts/checks/design-tokens.mjs'] },
+  { name: 'check:color-contrast', command: 'node', args: ['scripts/checks/color-contrast.mjs'] },
   { name: 'check:no-console', command: 'node', args: ['scripts/checks/no-console.mjs'] },
   {
     name: 'check:forbidden-brands',
