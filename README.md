@@ -16,7 +16,7 @@ accounting, built for the Asian market.
 | --- | --- |
 | `MASTER_PROMPT.md` | Binding specification: absolute rules, stack, schema rules, security layers |
 | `FEATURE_LIST.md` | Owner-supplied feature list (3,950 features, eleven parts). It is the only file allowed to contain non-ASCII characters |
-| `docs/PLAN/` | The execution plan: sixteen steps, sub-step work orders, guardrails, traceability, provider registry, chat prompts |
+| `docs/PLAN/` | The execution plan: sixteen steps, sub-step work orders, guardrails, traceability, provider registry, revision 2 additions, chat prompts |
 
 ## How the build is executed
 
@@ -42,20 +42,20 @@ is self-sufficient and states its scope, rules, gates and handoff duty.
 | --- | --- |
 | 1 | Foundation, governance, design system, layout architecture |
 | 2 | Database foundation, migrations, RLS, encryption, audit ledger |
-| 3 | Authentication, 2FA, session, login lock, VPN/proxy/Tor blocking |
-| 4 | Roles, permissions, approval engine, onboarding, settings, KYC, notifications, platform billing |
-| 5 | Invoicing core, documents, PDF engine, numbering |
-| 6 | CRM, catalog, inventory, suppliers, e-commerce sync, dashboards, reports, tax, batch |
+| 3 | Authentication, 2FA, passkeys, session registry, login lock, VPN/proxy/Tor blocking |
+| 4 | Roles, permissions, approval engine, approval inbox, enterprise access, onboarding, settings, KYC, notifications, platform billing |
+| 5 | Invoicing core, documents, PDF engine, numbering, editor experience |
+| 6 | CRM, catalog, inventory, suppliers, e-commerce sync, dashboards, reports, tax engine, batch |
 | 7 | Storage abstraction, file security, file records |
-| 8 | Payment framework core, card rules, 3DS policy, routing, super admin API console |
-| 9 | Sixteen processor adapters, NMI dual mode, sandbox validation |
-| 10 | Payment experience, wallet, merchant of record, payouts, disputes, consent evidence, subscriptions, BNPL |
-| 11 | Client portal, tokenized access, email journey, branding, white-label, document integrity |
-| 12 | Universal SMTP, WhatsApp, social, public API v1, webhooks, integrations, support |
-| 13 | Payroll, HR, expenses, double-entry accounting, financial statements, reports |
-| 14 | Super admin console, CMS, SEO, analytics, marketing, growth, platform intelligence |
-| 15 | Deep security, compliance, fraud, tracking, zero trust, conflict and duplicate finalization |
-| 16 | Deployment, CI/CD, cron, documentation, PWA, performance, backup and disaster recovery, launch |
+| 8 | Payment framework core, card rules, 3DS policy, advanced card risk, routing, super admin API console |
+| 9 | Sixteen processor adapters, NMI dual mode, advanced capabilities, sandbox validation |
+| 10 | Checkout design, payment experience, wallet, merchant of record, payouts, disputes, consent evidence, subscriptions, BNPL |
+| 11 | Client portal, token checkout page, tokenized access, email journey, branding, white-label, document integrity |
+| 12 | Universal SMTP, WhatsApp, social, public API v1, webhooks, integrations, support, channel transparency |
+| 13 | Payroll, HR, expenses, double-entry accounting, tax liability and remittance, financial statements, reports |
+| 14 | Super admin console, CMS, SEO, analytics, marketing, growth, platform intelligence, trust publishing |
+| 15 | Deep security, privacy experience, deception and anomaly, compliance, fraud, tracking, zero trust, conflict and duplicate finalization |
+| 16 | Deployment, CI/CD, cron, documentation, PWA security, performance, backup and disaster recovery, launch |
 
 ## Branch policy
 

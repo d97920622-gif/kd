@@ -143,3 +143,134 @@ answer all of the following from code and evidence, not from intent:
 3. Which audit action records it?
 4. Which verification command proves it?
 5. Which UI surface exposes or is protected by it?
+
+## A11. Checkout page (modern, attractive, secure, white-label)
+
+The checkout is a first-class product surface, not a form. It must satisfy all
+of the following:
+
+1. Layout. Two columns on desktop with a sticky order summary on the right; a
+   single column on mobile with a sticky pay bar respecting the safe area.
+   Express payment methods (wallets) appear above the card form, followed by a
+   labelled divider before card entry.
+2. Clarity. A step indicator shows where the payer is; every state has a
+   skeleton while loading, inline validation on blur, and a plain-language
+   result screen. Autosave keeps the checkout context so a dropped connection
+   does not lose progress.
+3. Branding. The checkout is themed entirely from tenant branding (logo,
+   colors, fonts) with no platform branding on entitled plans. Dark mode,
+   reduced motion, 320px layout and WCAG 2.1 AA are mandatory.
+4. Trust. Real trust content only: processor name, PCI statement, refund
+   policy auto-display, statement descriptor, seller contact, the
+   contact-seller-first notice, and the transaction reference on success.
+5. Money transparency. Subtotal, discount, tax line and total are always shown
+   separately. No hidden charge may appear after confirmation. The tax line is
+   produced by the Step 6 tax determination service and never recomputed on the
+   client.
+6. Fields. Only what is needed: email, name, billing address, postal code
+   (mandatory because of the 3DS rule in A7), country, optional business tax
+   registration number, coupon, note, and the consent checkbox whose text,
+   version, timestamp, IP and device fingerprint are stored immutably.
+7. Card data. Card number, expiry and CVV are entered only inside the
+   processor's own hosted fields. Our DOM and servers never read, store, log
+   or key-capture them.
+8. Saved methods. Returning payers may use their own tokenized saved method,
+   which is displayed as brand and last four digits only.
+9. Edge cases. Method switch and retry without losing the invoice, per-attempt
+   idempotency key, the same-card same-invoice 24-hour notice, the manual
+   review notice, expired and revoked links, partial payment, installment and
+   BNPL options, and multi-invoice selection.
+10. Performance and hardening. LCP under 2.5s, CLS under 0.1, iframe sandbox
+    attributes, CSP frame-src allowlist, Subresource Integrity, correct
+    autocomplete and input type attributes.
+
+## A12. Tax collection and remittance engine
+
+1. Tax profile per company: jurisdiction, tax registration number, filing
+   frequency, and the liability owner (platform when the platform is merchant
+   of record, owner when the owner is the merchant).
+2. Determination: place of supply, client country and state, product tax class,
+   B2B or B2C, reverse charge, exemption with expiry, zero-rated and out of
+   scope. Rates live in an effective-dated versioned table and are never
+   hardcoded. Every determination stores its reasoning for explainability.
+3. Collection: inclusive or exclusive amounts, per-line or invoice level,
+   rounding policy, credit note, refund and chargeback automatically reverse
+   the collected tax.
+4. Segregation: collected tax is held on segregated Tax Payable accounts per
+   jurisdiction and rate. It never enters revenue and never enters a spendable
+   balance.
+5. Remittance: tax period, return draft, review, approval chain (staff to CEO
+   to super_admin), remittance record with method, authority reference, date,
+   proof upload and USD FX freeze, journal entry Dr Tax Payable and Cr Bank,
+   bank reconciliation link, filed and closed states, evidence pack.
+6. Filing operations: filing calendar with deadline reminders, penalty and
+   interest tracking, accountant-ready export pack, and separate treatment of
+   the platform's own subscription tax.
+7. Mandatory document fields for tax invoices and credit notes per country,
+   exemption certificate register with expiry, and reverse-charge statements.
+
+## A13. Security modernization
+
+1. Passkeys and hardware keys (WebAuthn) as an additive, phishing-resistant
+   factor beside TOTP, with named credentials, recovery and audit.
+2. Trusted devices and a device centre: device registry, trust scoring,
+   revocation, new device alerts.
+3. Session registry: global session list, short-lived access token with
+   rotating refresh, mid-session IP or device change detection, self-service
+   account freeze with audit.
+4. Enterprise access: SAML and OIDC single sign-on, SCIM provisioning, tenant
+   IP allowlist, just-in-time access with expiry, break-glass with dual
+   approval and mandatory audit.
+5. Envelope key management: per-tenant data encryption keys, wrapped storage,
+   key usage audit, scheduled rotation, and crypto-shredding for offboarding.
+6. Central secret registry with owner, purpose, access audit and rotation
+   checklist.
+7. Network tokenization, 3DS2 exemption handling with documented fallback,
+   authorization holds, card-testing detection, and a processor fraud-tool
+   adapter that respects gateway-hosted risk decisions.
+8. Web hardening: Trusted Types, cooperating headers (COOP, COEP, CORP),
+   Permissions-Policy, Clear-Site-Data on logout, Subresource Integrity.
+9. Deception and anomaly: honeytokens and canaries, per-tenant behavioural
+   baselines, impossible travel detection, automated containment with a
+   notification and a working appeal path, continuous audit log integrity
+   verification, WORM export.
+10. Supply chain: SBOM, dependency pinning, signed commits and provenance,
+    DAST in the pipeline.
+11. Privacy: user and owner privacy dashboard with export and delete, consent
+    ledger, per-tenant data residency selection, cross-border transfer record,
+    sub-processor list, DPA page, security.txt, vulnerability disclosure page,
+    transparency report, accessibility statement.
+12. PWA: biometric app lock, encrypted offline queue, no PII in local storage
+    or caches, push alert channel.
+
+## A14. Usability and feature modernization
+
+1. Approval inbox with SLA countdown, filters and bulk actions.
+2. Saved views, undo, autosave and optimistic UI primitives used by every
+   module that edits records.
+3. Explainability messages for money and delivery outcomes: why a payment
+   failed or is held, what happens next, expected receipt time.
+4. Channel transparency: per-channel delivery, open, click, retry and failure
+   views for the owner and a simple view for the client.
+5. Owner security centre: security score, checklist, who-did-what digest and
+   permission review reminder.
+6. Client experience: one-tap pay, hub, receipt and statement download,
+   installment and BNPL options, contact-seller-first flow.
+7. Finance experience: AR aging automation, cash flow forecast, budget alerts,
+   bank reconciliation auto-match and the tax remittance workspace.
+8. Developer experience: sandbox keys, webhook replay, OpenAPI documentation.
+9. PWA install, offline draft, push notification.
+10. Status page with incident communication and an accessibility statement.
+11. Rule-based automation only (macros, templates, scheduled reports). No AI
+    provider of any kind is added.
+
+## A15. Revision precedence and no-regression rule
+
+- Revision 2 only adds. Nothing in Revision 1 is removed, weakened or renamed.
+- The twenty absolute rules and added requirements A1 to A10 remain in force
+  and take precedence if any wording ever appears to conflict.
+- Every new sub-step obeys the same definition of done, the same audit,
+  validation, sanitization, idempotency, locking, RLS and testing rules.
+- Placement, ownership boundaries and gates for these additions are in
+  `09_REVISION_2_ADDITIONS.md`; the work orders are in
+  `08_SUBSTEP_CHECKLISTS.md`.

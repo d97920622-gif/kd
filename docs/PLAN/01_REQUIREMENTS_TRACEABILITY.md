@@ -90,3 +90,37 @@ and any feature explicitly deferred to a later step with its destination step.
 At Step 16 the final audit sums all sections and must reach 3,950 features
 with zero unmapped features. Any deferral not recorded in this matrix is a
 defect.
+
+## 6. Revision 2 additions mapped to steps and sub-steps
+
+| Added requirement | Step | New sub-steps | Boundary note |
+| --- | --- | --- | --- |
+| A11 Checkout page design, content, edge cases, hardening | 10 | 10.3, 10.4, 10.5, 10.6 | Checkout components live in Step 10; Step 11 only composes them |
+| A11 token checkout composition and client explainability | 11 | 11.3, 11.10 | Step 11 never implements checkout state or payment logic |
+| A12 tax core, determination, documents and reporting | 6 | 6.10, 6.11, 6.12 | Rates and determination only; no money movement |
+| A12 tax liability ledger, remittance and filing | 13 | 13.11, 13.12, 13.13 | Ledger and remittance only; reads Step 6 determination data |
+| A12 merchant-of-record tax hold | 10 | inside 10.13 | MoR settlement only; reads the liability owner flag |
+| A12 tax reversal on refund and credit note | 6 with 5 and 10 | inside 5.9 and 10.9 | Reversal runs through the Step 6 service; never a direct row edit |
+| A13 passkeys, trusted devices, session registry, freeze | 3 | 3.5, 3.6, 3.7 | Additive to TOTP; login lock rules unchanged |
+| A13 enterprise access, security centre, approval inbox, message log | 4 | 4.3, 4.11, 4.12, and inside 4.9 | Step 15 owns privacy experience only |
+| A13 envelope keys, rotation, crypto-shredding, secret registry | 2 | 2.10, 2.11 | Consumers call the key vault API only |
+| A13 3DS2 exemptions, network tokenization, advanced card risk | 8 | 8.7, 8.8 | Acceptance decisions stay in 8.5 |
+| A13 per-processor advanced capabilities | 9 | 9.14 | Evidence recorded in `docs/PROVIDERS/<provider>.md` |
+| A13 privacy dashboard, consent ledger, residency, appeal path | 15 | 15.8 | Step 4 links to it, never duplicates |
+| A13 deception, anomaly, log integrity, WORM export | 15 | 15.9 | Uses the Step 2 audit ledger, never a second ledger |
+| A13 supply chain, SBOM, provenance | 15 | 15.10 | Step 16 verifies signatures in the pipeline |
+| A13 web hardening primitives | 1 | 1.12 | Step 15 extends, never replaces |
+| A13 PWA security and local data protection | 16 | 16.8 | Service worker owned by Step 16 |
+| A14 approval inbox | 4 | 4.3 | Uses the Step 4 approval engine |
+| A14 saved views, undo, autosave | 1 | 1.13 | Applied by Steps 5, 6, 13 |
+| A14 explainability messages | 1 and consumers | 1.13, 5.12, 10.4, 11.10 | One component, many contexts |
+| A14 channel transparency | 4 and 12 | inside 4.9, 12.8 | One message log, one console |
+| A14 owner security centre | 4 | 4.12 | Distinct from the Step 15 privacy dashboard |
+| A14 finance experiences (AR aging, forecast, budget alerts, reconciliation, tax workspace) | 6 and 13 | inside 6.9, 13.11 to 13.14 | No duplicate reporting engine |
+| A14 developer experience (sandbox keys, webhook replay, OpenAPI) | 12 | 12.5, 12.6 | Existing sub-steps extended |
+| A14 trust publishing (security.txt, disclosure, transparency, sub-processor, DPA, accessibility) | 14 | 14.11 | Privacy operations stay in Step 15 |
+| A15 precedence and no-regression rule | all | all | Revision 2 only adds |
+
+Feature accounting after Revision 2: the final audit in Step 16 counts the
+3,950 original features plus every Revision 2 sub-step, with zero unmapped
+entries.

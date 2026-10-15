@@ -19,6 +19,7 @@ conflicting code, and defines the exact instruction text for every chat.
 | `06_PROVIDER_DOCS_REGISTRY.md` | 16 payment processors, official docs, sandbox facts, adapter file names |
 | `07_BRANCH_AND_GIT_WORKFLOW.md` | `integration` mainline, commit convention, PR and release rules |
 | `08_SUBSTEP_CHECKLISTS.md` | Sub-step work orders for all 16 steps |
+| `09_REVISION_2_ADDITIONS.md` | Revision 2 placement, ownership boundaries, heavy-step notes, added gates |
 | `chat-prompts/CHAT_01.md` ... `CHAT_16.md` | Paste-ready instruction for each of the 16 chats |
 | `../handoffs/` | One handoff document per completed chat |
 

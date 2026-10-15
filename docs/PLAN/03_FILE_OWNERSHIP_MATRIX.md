@@ -73,3 +73,29 @@ Never create: a second currency util, a second sanitizer, a second logger,
 a second storage client, a second payment registry, a second approval path,
 a second audit writer, a second rate limiter, a second idempotency layer,
 a second token generator. If something similar exists, extend it.
+
+## 5. Revision 2 ownership additions and explicit exceptions
+
+Exceptions below override the general rows in section 1.
+
+| Path | Owner | Exception reason |
+| --- | --- | --- |
+| `lib/auth/sso/*`, `lib/auth/enterprise-access/*` | Step 4 | `lib/auth/*` belongs to Step 3, except approval, permissions and these enterprise access modules |
+| `lib/auth/webauthn.ts`, `lib/auth/trusted-device.ts`, `services/auth/device-service.ts`, `services/auth/session-service.ts` | Step 3 | Authentication and session trust |
+| `components/security/*`, `app/(dashboard)/settings/security/*` | Step 4 | Owner security centre and enterprise access UI |
+| `components/privacy/*`, `app/(dashboard)/settings/privacy/*` | Step 15 | Privacy experience, consent ledger, residency |
+| `lib/encryption/envelope.ts`, `lib/security/secret-registry.ts` | Step 2 | Key management and secret registry |
+| `services/tax/*`, `config/tax/*`, `app/api/tax/*` | Step 6 | Determination, rates, tax classes, tax documents, tax reporting |
+| `services/accounting/tax-remittance/*`, `app/api/accounting/tax-remittance/*` | Step 13 | Liability ledger, periods, returns, remittance, filing |
+| `services/payment/checkout/*`, `components/payment/*` | Step 10 | Checkout state, payment page logic and design system |
+| `app/(client-portal)/*`, `components/client/*` | Step 11 | Token routes and client pages that compose the Step 10 checkout |
+| `lib/payment/tokenization.ts`, `services/payment/three-ds-policy.ts`, `lib/payment/card-testing-detector.ts`, `lib/payment/velocity.ts` | Step 8 | Card acceptance, exemptions, tokenization, risk |
+| `services/notification/message-log-service.ts` and its table | Step 4 | Single message delivery event log for every channel |
+| `components/shared/explainability-message.tsx`, `lib/hooks/use-saved-views.ts`, `lib/hooks/use-undo.ts`, `lib/hooks/use-autosave.ts` | Step 1 | Single usability primitives used by every module |
+| `lib/security/deception/*` | Step 15 | Honeytokens, canaries and anomaly baselines |
+| `public/sw.js`, `public/manifest.json`, push subscription module | Step 16 | PWA shell, offline queue and push |
+
+Consumers may import these modules and call their exported functions. They may
+not copy their logic, create a second implementation, or write to their tables
+directly. The Revision 2 boundary table in
+`09_REVISION_2_ADDITIONS.md` section 2 is binding.

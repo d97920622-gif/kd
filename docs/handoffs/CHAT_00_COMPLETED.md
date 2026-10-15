@@ -55,3 +55,24 @@ Purpose: produce the plan only. No application code was written in this chat.
 
 - Open a new chat and paste `docs/PLAN/chat-prompts/CHAT_01.md`.
 - Do not paste more than one step prompt per chat.
+
+## 5. Revision 2 (added on owner request after the first planning pass)
+
+Added scope: the modern checkout page, the tax collection and remittance
+engine, the security modernization set and the usability modernization set.
+
+| File | Change |
+| --- | --- |
+| `docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md` | Added normative sections A11 to A15 |
+| `docs/PLAN/09_REVISION_2_ADDITIONS.md` | New file: placement, ownership boundaries, no-conflict table, heavy-step guidance, added gates |
+| `docs/PLAN/08_SUBSTEP_CHECKLISTS.md` | Rewritten as Revision 2; new sub-steps added and renumbered per step |
+| `docs/PLAN/00_MASTER_EXECUTION_PLAN.md` | Step titles updated; added sections 7 and 8 |
+| `docs/PLAN/01_REQUIREMENTS_TRACEABILITY.md` | Added section 6 mapping every Revision 2 requirement to steps and sub-steps |
+| `docs/PLAN/03_FILE_OWNERSHIP_MATRIX.md` | Added section 5 with new owners and explicit exceptions |
+| `docs/PLAN/04_DEFINITION_OF_DONE_AND_GATES.md` | Added section 3A referencing the Revision 2 gates |
+| `docs/PLAN/chat-prompts/CHAT_01.md` to `CHAT_16.md` | Each prompt carries an ADDED IN REVISION 2 block |
+| `README.md`, `docs/PLAN/README.md`, `docs/PLAN/chat-prompts/README.md` | Step titles and indexes updated |
+
+Nothing from the original specification was removed or weakened. The step
+count stays sixteen; heavy steps continue with the same prompt using the
+resume instruction.

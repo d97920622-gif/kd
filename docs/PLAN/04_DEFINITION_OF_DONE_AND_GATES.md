@@ -70,6 +70,14 @@ sub-step is still open and the chat continues.
 | 15 | Full security checklist from Part 9 and Part 11 signed off; zero tolerance automations verified with scripts; isolation fuzz clean |
 | 16 | Production deploy green; all 20 cron jobs registered and monitored; docs complete; traceability matrix at 3,950 features with zero unmapped |
 
+## 3A. Revision 2 gates
+
+The gates introduced by Revision 2 (checkout rendering and transparency, tax
+segregation and remittance evidence, passkey and lock compatibility, privacy
+appeal path, crypto-shredding proof, PWA local data proof, no-duplicate
+ownership check) are listed in `09_REVISION_2_ADDITIONS.md` section 5 and are
+mandatory in the owning step's handoff.
+
 ## 4. Evidence rules
 
 - Evidence is text captured into the handoff or a file under `docs/EVIDENCE/`.

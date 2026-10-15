@@ -14,20 +14,20 @@ chat inside one context window while every requirement stays covered.
 | --- | --- | --- | --- |
 | 1 | Foundation, Governance, Design System, Layout Architecture | Part 1 A-M; Part 9 K2/K3 (setup), Part 10 D (baseline docs) | - |
 | 2 | Database Foundation, Migrations, RLS, Encryption, Audit Ledger | Part 9 A/B/K, Part 11 C; FORBIDDEN/ALWAYS rules | 1 |
-| 3 | Authentication, 2FA, Session, Login Lock, VPN/Proxy/Tor | Part 2 A, Part 11 H; Added requirement 5 | 2 |
-| 4 | Roles, Permissions, Approval Engine, Onboarding, Settings, KYC, Notifications, Platform Billing | Part 2 B-L, Part 7 H, Part 11 A; Added requirement 5 (unlock workflow) | 3 |
-| 5 | Invoicing Core, Documents, PDF Engine, Numbering | Part 3 A-E, L, M | 4 |
-| 6 | CRM, Catalog, Inventory, Suppliers, E-commerce Sync, Dashboards, Reports, Tax, Batch | Part 3 F-K, L-N, O | 5 |
+| 3 | Authentication, 2FA, Passkeys, Session Registry, Login Lock, VPN/Proxy/Tor | Part 2 A, Part 11 H; Added requirement 5 | 2 |
+| 4 | Roles, Permissions, Approval Engine, Approval Inbox, Enterprise Access, Onboarding, Settings, KYC, Notifications, Platform Billing | Part 2 B-L, Part 7 H, Part 11 A; Added requirement 5 (unlock workflow) | 3 |
+| 5 | Invoicing Core, Documents, PDF Engine, Numbering, Editor Experience | Part 3 A-E, L, M | 4 |
+| 6 | CRM, Catalog, Inventory, Suppliers, E-commerce Sync, Dashboards, Reports, Tax Engine, Batch | Part 3 F-K, L-N, O | 5 |
 | 7 | Storage Abstraction (Google Drive primary / Supabase fallback), File Security, File Records | Rule 3; Part 9 E/N/O; Added requirement 8 | 2 |
-| 8 | Payment Framework Core, Card Security Rules, 3DS Policy, Routing, Super Admin API Console | Part 4 A1/L, Part 11 D/H; Added requirements 4, 6, 7 | 2, 4 |
-| 9 | 16 Processor Adapters, NMI Dual Mode, Sandbox Validation | Part 4 A2-A8; Added requirements 1, 2, 3 | 8 |
-| 10 | Payment Experience, Wallet, MoR, Payouts, Disputes, Consent Evidence, Subscriptions, BNPL | Part 4 B-M | 9 |
-| 11 | Client Portal, Tokenized Access, Email Journey, Tenant Branding, White-label, Document Integrity | Part 5 A-L | 10 |
-| 12 | Universal SMTP/Email, WhatsApp, Social, Public API v1, Webhooks, Integrations, Support | Part 2 B, Part 6 A-K | 11 |
-| 13 | Payroll, HR, Expenses, Double-entry Accounting, Financial Statements, Reports | Part 8 A-M | 12 |
-| 14 | Super Admin Console, CMS, Blog, SEO, Analytics, Marketing, Growth, Platform Intelligence | Part 7 A-M, Part 11 A/B/D/E; Part 9 S | 13 |
-| 15 | Deep Security, Compliance, Fraud, Tracking, Zero Trust/Zero Tolerance, Conflict and Duplicate Finalization | Part 9 A-S, Part 11 B-M | 14 |
-| 16 | Deployment, CI/CD, Cron, Docs, PWA, Performance, Backup/DR, Launch Readiness | Part 10 A-J, Part 9 J/M | 15 |
+| 8 | Payment Framework Core, Card Security Rules, 3DS Policy, Advanced Card Risk, Routing, Super Admin API Console | Part 4 A1/L, Part 11 D/H; Added requirements 4, 6, 7 | 2, 4 |
+| 9 | 16 Processor Adapters, NMI Dual Mode, Advanced Capabilities, Sandbox Validation | Part 4 A2-A8; Added requirements 1, 2, 3 | 8 |
+| 10 | Checkout Design, Payment Experience, Wallet, MoR, Payouts, Disputes, Consent Evidence, Subscriptions, BNPL | Part 4 B-M | 9 |
+| 11 | Client Portal, Token Checkout Page, Tokenized Access, Email Journey, Tenant Branding, White-label, Document Integrity | Part 5 A-L | 10 |
+| 12 | Universal SMTP/Email, WhatsApp, Social, Public API v1, Webhooks, Integrations, Support, Channel Transparency | Part 2 B, Part 6 A-K | 11 |
+| 13 | Payroll, HR, Expenses, Double-entry Accounting, Tax Liability and Remittance, Financial Statements, Reports | Part 8 A-M | 12 |
+| 14 | Super Admin Console, CMS, Blog, SEO, Analytics, Marketing, Growth, Platform Intelligence, Trust Publishing | Part 7 A-M, Part 11 A/B/D/E; Part 9 S | 13 |
+| 15 | Deep Security, Privacy Experience, Deception and Anomaly, Compliance, Fraud, Tracking, Zero Trust/Zero Tolerance, Conflict and Duplicate Finalization | Part 9 A-S, Part 11 B-M | 14 |
+| 16 | Deployment, CI/CD, Cron, Docs, PWA Security, Performance, Backup/DR, Launch Readiness | Part 10 A-J, Part 9 J/M | 15 |
 
 Steps run strictly in order. Parallelism is not allowed because shared modules
 (storage, money, audit, approval, routing) must exist before consumers.
@@ -103,3 +103,48 @@ A step is complete only when all of the following are true:
 - Never modify a completed step's behaviour to make a later step easier;
   extend it through the append protocol in `03_FILE_OWNERSHIP_MATRIX.md`.
 - Every chat ends by writing the handoff even if the step is unfinished.
+
+## 7. Revision 2 additions (checkout, tax, security and usability modernization)
+
+Revision 2 only adds. The twenty absolute rules, requirements A1 to A10 and
+every Revision 1 sub-step keep full force. Placement, ownership boundaries,
+gates and the no-conflict table live in `09_REVISION_2_ADDITIONS.md`; the
+normative requirements are sections A11 to A15 of
+`05_ADDITIONAL_REQUIREMENTS_SPEC.md`; the work orders are the single canonical
+list in `08_SUBSTEP_CHECKLISTS.md`.
+
+Added scope by step:
+
+| Step | Added scope |
+| --- | --- |
+| 1 | Web hardening primitives (Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI); usability primitives (saved views, undo, autosave, explainability message) |
+| 2 | Envelope keys per tenant with rotation and crypto-shredding; secret registry |
+| 3 | Passkeys and hardware keys; trusted devices and device centre; session registry, rotating refresh, self-service freeze |
+| 4 | Approval inbox; SSO and SCIM enterprise access, IP allowlist, just-in-time access, break-glass; owner security centre; message delivery event log |
+| 5 | Editor experience: autosave, undo, saved views, explainability |
+| 6 | Tax core, tax determination engine, tax documents and tax reporting |
+| 8 | 3DS2 exemptions and network tokenization; card-testing detection, authorization holds, processor fraud-tool adapter |
+| 9 | Per-processor advanced capability integration with documented evidence |
+| 10 | Checkout design system, content and trust layer, edge cases and retry, technical hardening; MoR tax hold; chargeback auto-defence |
+| 11 | Token checkout composition; client explainability and delivery transparency view |
+| 12 | Messaging transparency and compliance console |
+| 13 | Tax liability ledger, remittance workflow, filing operations and filing calendar |
+| 14 | Trust and transparency publishing (security.txt, disclosure, transparency report, sub-processor list, DPA, accessibility statement) |
+| 15 | Privacy dashboard, consent ledger, residency selection, appeal path; deception, anomaly and log integrity; SBOM and provenance |
+| 16 | PWA security: biometric app lock, encrypted offline queue, push alert channel |
+
+Migration windows are unchanged; new tables and policies are created inside the
+owning step's existing window.
+
+## 8. Expected chat usage per step
+
+The plan defines sixteen steps, presented as sixteen chat prompts. A step with
+more sub-steps may need more than one chat:
+
+| Step | Expected chats | Reason |
+| --- | --- | --- |
+| 1, 3, 4, 6, 10, 13 | 1 to 3 | Largest scope; continue with the same prompt using the resume instruction |
+| 2, 5, 7, 8, 9, 11, 12, 14, 15, 16 | 1 to 2 | Medium to large scope; continue with the same prompt if needed |
+
+The step count never changes and no work is duplicated; the resume instruction
+in each prompt continues from the first unchecked sub-step.

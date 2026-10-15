@@ -1688,6 +1688,12 @@ Added requirements that carry the same authority as the rules above:
   release mirror.
 - A10 Acceptance phrasing: later chats must answer from code and evidence, not
   intent, for every added requirement.
+- A11 to A15 Revision 2 (checkout page, tax collection and remittance, security
+  modernization, usability modernization, revision precedence). Normative text:
+  docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md sections A11 to A15. Placement,
+  ownership boundaries, no-conflict table and added gates:
+  docs/PLAN/09_REVISION_2_ADDITIONS.md. Sub-step work orders:
+  docs/PLAN/08_SUBSTEP_CHECKLISTS.md (the single canonical list).
 
 ================================================================================
 END OF EXECUTION PLAN OVERRIDE
