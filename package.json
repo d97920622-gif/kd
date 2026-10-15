@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "env:validate": "tsx --env-file-if-exists=.env lib/env/cli.ts",
     "prepare": "husky"
   },
   "lint-staged": {

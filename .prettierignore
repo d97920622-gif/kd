@@ -30,3 +30,7 @@ public/**/*.webp
 public/**/*.avif
 public/**/*.woff
 public/**/*.woff2
+
+# Environment templates have no Prettier parser
+.env.example
+.env
