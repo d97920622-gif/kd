@@ -1,0 +1,107 @@
+// path: lib/i18n/strings/en/common.ts
+/**
+ * App-wide English strings: actions, states, navigation words and generic
+ * UI vocabulary.
+ *
+ * Key naming (see docs/COPY_RULES.md): namespace.key, every segment lower
+ * case snake case, at most three levels, every leaf a non-empty ASCII string.
+ * Plural pairs use the _one and _other suffix convention.
+ *
+ * Later steps append keys to this namespace through the append protocol:
+ * add keys, never rename or remove them.
+ */
+export const common = {
+  action_save: 'Save',
+  action_save_changes: 'Save changes',
+  action_cancel: 'Cancel',
+  action_close: 'Close',
+  action_confirm: 'Confirm',
+  action_continue: 'Continue',
+  action_back: 'Back',
+  action_next: 'Next',
+  action_finish: 'Finish',
+  action_retry: 'Try again',
+  action_refresh: 'Refresh',
+  action_search: 'Search',
+  action_filter: 'Filter',
+  action_clear: 'Clear',
+  action_reset: 'Reset',
+  action_apply: 'Apply',
+  action_edit: 'Edit',
+  action_delete: 'Delete',
+  action_remove: 'Remove',
+  action_add: 'Add',
+  action_create: 'Create',
+  action_update: 'Update',
+  action_view: 'View',
+  action_download: 'Download',
+  action_upload: 'Upload',
+  action_print: 'Print',
+  action_export: 'Export',
+  action_copy: 'Copy',
+  action_copied: 'Copied',
+  action_undo: 'Undo',
+  action_dismiss: 'Dismiss',
+  action_learn_more: 'Learn more',
+  action_go_to_dashboard: 'Go to dashboard',
+
+  state_loading: 'Loading',
+  state_loading_content: 'Loading content',
+  state_saving: 'Saving',
+  state_sending: 'Sending',
+  state_processing: 'Processing',
+  state_error_title: 'Something went wrong',
+  state_error_message: 'We could not complete that request. Please try again.',
+  state_empty_title: 'Nothing here yet',
+  state_empty_message: 'There is nothing to show on this screen yet.',
+  state_success_title: 'Done',
+  state_success_message: 'Your changes were saved.',
+
+  label_required: 'Required',
+  label_optional: 'Optional',
+  label_search_placeholder: 'Search by name or reference',
+  label_select_all: 'Select all',
+  label_rows_per_page: 'Rows per page',
+  label_page_of: 'Page {page} of {total}',
+  label_showing_range: 'Showing {from} to {to} of {total}',
+  label_all: 'All',
+  label_none: 'None',
+  label_yes: 'Yes',
+  label_no: 'No',
+  label_status: 'Status',
+  label_created: 'Created',
+  label_updated: 'Updated',
+  label_actions: 'Actions',
+  label_details: 'Details',
+  label_filters: 'Filters',
+  label_sort: 'Sort',
+  label_more_options: 'More options',
+  label_close_dialog: 'Close this dialog',
+  label_open_menu: 'Open menu',
+  label_skip_to_content: 'Skip to main content',
+  label_navigation_main: 'Main navigation',
+  label_navigation_breadcrumb: 'Breadcrumb',
+  label_offline_banner: 'You are offline. Changes are saved when the connection returns.',
+
+  selected_count_one: '{count} item selected',
+  selected_count_other: '{count} items selected',
+  results_count_one: '{count} result',
+  results_count_other: '{count} results',
+
+  time_just_now: 'Just now',
+  time_minutes_ago_one: '{count} minute ago',
+  time_minutes_ago_other: '{count} minutes ago',
+  time_hours_ago_one: '{count} hour ago',
+  time_hours_ago_other: '{count} hours ago',
+  time_yesterday: 'Yesterday',
+  time_today: 'Today',
+  time_tomorrow: 'Tomorrow',
+
+  confirm_delete_title: 'Delete this record?',
+  confirm_delete_message: 'This action cannot be undone from this screen.',
+  confirm_leave_title: 'Leave without saving?',
+  confirm_leave_message: 'Unsaved changes will be lost.',
+
+  currency_usd_label: 'USD - United States dollar',
+  amount_display_note: 'Amounts are stored and calculated in USD.',
+} as const;

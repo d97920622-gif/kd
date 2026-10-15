@@ -62,13 +62,30 @@ export const SPEC_CORPUS_PATTERNS = [
 /** Mandatory script header keyword, used by the path-comment check. */
 export const PATH_COMMENT_KEYWORD = 'path:';
 
+/**
+ * All repository files a check should scan: tracked files plus untracked
+ * files that are not ignored. Including untracked files means a brand-new
+ * file is checked before it is ever committed, so a problem cannot reach a
+ * commit that the pre-commit hook would have caught anyway. Ignored paths
+ * (node_modules, .next, build output, .env) never appear.
+ */
 export function listTrackedFiles() {
-  const output = execFileSync('git', ['ls-files', '-z'], {
-    cwd: REPO_ROOT,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  return output.split('\0').filter((entry) => entry.length > 0);
+  const output = execFileSync(
+    'git',
+    ['ls-files', '-z', '--cached', '--others', '--exclude-standard'],
+    {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    },
+  );
+  const seen = new Set();
+  for (const entry of output.split('\0')) {
+    if (entry.length > 0) {
+      seen.add(entry);
+    }
+  }
+  return [...seen];
 }
 
 export function matchesAny(file, patterns) {

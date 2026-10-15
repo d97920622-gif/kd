@@ -29,6 +29,7 @@
     "check:no-coming-soon": "node scripts/checks/no-coming-soon.mjs",
     "check:no-tests": "node scripts/checks/no-tests.mjs",
     "check:path-comment": "node scripts/checks/path-comment.mjs",
+    "check:i18n-strings": "node scripts/checks/i18n-strings.mjs",
     "check:no-console": "node scripts/checks/no-console.mjs",
     "check:forbidden-brands": "node scripts/checks/forbidden-brands.mjs",
     "check:migration-pairs": "node scripts/checks/migration-pairs.mjs",
