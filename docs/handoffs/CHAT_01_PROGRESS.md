@@ -21,7 +21,7 @@ handoff is written.
 | 1.3      | Tailwind and token pipeline: tailwind.config.ts, PostCSS, components.json, CSS layer structure                                 | done    | to fill at handoff |
 | 1.4      | Environment schema validation: lib/env/validate-env.ts, boot-time fail fast, typed access, .env.example                        | done    | to fill at handoff |
 | 1.5      | Check scripts A: english-only, no-todo, no-coming-soon, no-tests, path-comment                                                 | done    | to fill at handoff |
-| 1.6      | Check scripts B: no-console, forbidden-brands, migration-pairs, dead-links, secrets, any-types, money-math                     | pending | -                  |
+| 1.6      | Check scripts B: no-console, forbidden-brands, migration-pairs, dead-links, secrets, any-types, money-math                     | done    | to fill at handoff |
 | 1.7      | Verify runner: npm run verify, report format, pre-commit and commit-msg wiring, CI-ready exit codes                            | pending | -                  |
 
 Segment 1A gate: every check script runs on the current tree without false

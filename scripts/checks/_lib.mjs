@@ -234,13 +234,16 @@ export function reportResult(checkName, findings, successSummary) {
   process.exitCode = 1;
 }
 
-/** Collect every match of a global regex with position information. */
+/**
+ * Collect every match of a global regex with position information.
+ * Capture groups are returned in `groups`, so callers can extract values.
+ */
 export function findMatches(source, pattern) {
   const results = [];
   pattern.lastIndex = 0;
   let match = pattern.exec(source);
   while (match !== null) {
-    results.push({ text: match[0], index: match.index });
+    results.push({ text: match[0], index: match.index, groups: match.slice(1) });
     if (match[0].length === 0) {
       pattern.lastIndex += 1;
     }
