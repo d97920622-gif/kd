@@ -1,0 +1,32 @@
+# path: .prettierignore
+# Prettier never touches the owner-supplied specification corpus, generated
+# files or lockfiles. Every other text file in the repository is formatted.
+
+# Owner-supplied specification (read-only, never reformatted)
+FEATURE_LIST.md
+MASTER_PROMPT.md
+docs/PLAN/
+
+# Generated and lockfiles
+package-lock.json
+next-env.d.ts
+.husky/_/
+
+# Build output and dependencies
+.next/
+node_modules/
+out/
+build/
+dist/
+coverage/
+
+# Binary assets
+public/**/*.png
+public/**/*.jpg
+public/**/*.jpeg
+public/**/*.gif
+public/**/*.ico
+public/**/*.webp
+public/**/*.avif
+public/**/*.woff
+public/**/*.woff2

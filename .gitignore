@@ -52,3 +52,14 @@ Thumbs.db
 tmp/
 temp/
 *.tsbuildinfo
+
+# Secrets and certificates (never commit, in any format)
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Local quality report output
+lighthouse/
+verify-report.txt

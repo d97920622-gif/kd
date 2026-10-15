@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# path: .husky/pre-commit
+# Pre-commit quality gate for KD SOLUTION IT.
+# Baseline wired in sub-step 1.1; the full verify aggregation replaces the
+# individual calls in sub-step 1.7 of step 1.
+#
+# 1. lint-staged runs ESLint and Prettier on staged files. It is guarded
+#    until the ESLint configuration file exists (added in sub-step 1.2).
+# 2. tsc --noEmit must pass with zero errors before anything is committed.
+
+if [ -f .eslintrc.json ]; then
+  npx lint-staged || exit 1
+fi
+
+npm run typecheck || exit 1
+
+exit 0
