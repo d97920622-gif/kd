@@ -90,6 +90,30 @@ passes on the current route set. Status: pending.
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
 
+## Working rhythm (owner instruction, effective 2026-10-16)
+
+From this point every sub-step runs under the permission-gated rhythm:
+
+1. Execute exactly one sub-step.
+2. Run `npm run verify` and fix every failure.
+3. Commit only that sub-step, one sub-step per commit.
+4. Update this progress file.
+5. Stop and print the three-line prompt: DONE, NEXT, CONTINUE.
+6. Wait for the owner to type `continue` before starting the next sub-step.
+   Never cross a segment gate.
+
+The next chat starts at sub-step 1.8 (segment 1B) and follows the same
+rhythm from its first sub-step.
+
+## Session notes
+
+- 2026-10-16: the build environment's working copy was restored from a fresh
+  clone of the repository and the local branch was moved back to its base
+  commit. No work was lost: all nine segment 1A commits were present on
+  `origin/arena/b7780282-kd`, the local branch was restored to that tip
+  (35b1869) and the working tree matched the commit exactly. Dependencies
+  were reinstalled and `npm run verify` returned PASS at 16 of 16 checks.
+
 ## Blockers
 
 None recorded.
