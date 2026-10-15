@@ -32,14 +32,33 @@ tells the agent to read `docs/handoffs/CHAT_NN_PROGRESS.md` and continue from
 the first unchecked sub-step, so no work is repeated and no file is written
 twice.
 
+## Segment model for the heavy steps
+
+Each prompt covers its whole step. Steps 1, 3, 4, 6, 10 and 13 are divided into
+four segments, and a chat executes exactly one segment:
+
+| Step | Segments | Sub-steps | Chats |
+| --- | --- | --- | --- |
+| 1 | 1A to 1D | 1.1 to 1.32 | 4 |
+| 3 | 3A to 3D | 3.1 to 3.22 | 4 |
+| 4 | 4A to 4D | 4.1 to 4.24 | 4 |
+| 6 | 6A to 6D | 6.1 to 6.30 | 4 |
+| 10 | 10A to 10D | 10.1 to 10.32 | 4 |
+| 13 | 13A to 13D | 13.1 to 13.34 | 4 |
+| all other steps | single segment | as listed in the prompt | 1 to 2 |
+
+Rules: execute one segment, run the segment gate, update
+`docs/handoffs/CHAT_NN_PROGRESS.md` and `CHAT_NN_COMPLETED.md`, state the
+segment status line, then stop. Paste the same prompt again for the next
+segment. Full rules are in `docs/PLAN/10_SEGMENT_GUIDE.md`.
+
 ## Revision 2 note
 
 Every prompt carries an ADDED IN REVISION 2 block that points to
 `docs/PLAN/09_REVISION_2_ADDITIONS.md`. That file lists the added sub-steps for
 the step and the ownership boundaries that prevent duplicate or conflicting
-code. Steps 1, 3, 4, 6, 10 and 13 carry extra sub-steps and may need a
-continuation chat; paste the same prompt again and follow its RESUME
-INSTRUCTION.
+code. Steps 1, 3, 4, 6, 10 and 13 are split into four segments each; paste the
+same prompt again and follow its RESUME INSTRUCTION and segment rules.
 
 ## Reminders for every chat
 

@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_03.md
-# CHAT 03 OF 16 -- Authentication, 2FA, Passkeys, Session Registry, Login Lock, VPN/Proxy/Tor
+# CHAT 03 OF 16 -- Authentication, 2FA, Passkeys, Session Registry, Login Lock, VPN/Proxy/Tor (4 segments)
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 2 complete.
@@ -24,50 +24,46 @@ READ FIRST, in this order, inside the repository:
 8. docs/PLAN/08_SUBSTEP_CHECKLISTS.md, section "STEP 03".
 9. docs/handoffs/CHAT_02_COMPLETED.md.
 
-SCOPE FOR THIS CHAT:
-- 3.1 Supabase browser, server and admin clients; middleware auth; session
-  cookie policy HttpOnly, Secure, SameSite=Strict; session id rotation on
-  login; configurable session timeout (default 24 hours).
-- 3.2 Signup: Cloudflare Turnstile, honeypot field, email verification,
-  disposable email blocklist, VPN, proxy and Tor blocking, signup rate limits,
-  audit entry.
-- 3.3 Login lock engine, exactly as required: two consecutive failed attempts
-  (wrong password or wrong 2FA code) lock the account for 2 hours; while
-  locked, correct password does not log in; password reset is blocked;
-  changing the password does not lift the lock; the owner receives an email
-  alert when a lock starts; unlock is possible only by an admin or admin_staff
-  holding the unlock permission and only after confirming email contact with
-  the owner; every unlock writes an audit entry with actor, target, reason and
-  timestamp; failure counters and lock state live in the database so a server
-  restart preserves them; IP-based rate limiting runs in parallel; error
-  messages never reveal whether an account exists.
-- 3.4 2FA TOTP: enrollment with QR code, verification, ten one-time backup
-  codes, recovery flow, mandatory for every account-holding role, step-up
-  helper used by later steps for gateway, payout, KYC and admin actions.
-- 3.5 Passkeys and hardware keys: WebAuthn registration and authentication
-  ceremonies, additive factor beside TOTP, phishing-resistant prompt, named
-  credentials, recovery and re-enrollment, audit entries.
-- 3.6 Trusted devices and device centre: device registry, trust scoring,
-  revocation, new device alerts, device list UI with four states.
-- 3.7 Session registry and continuous verification: global session list,
-  short-lived access with rotating refresh token, mid-session IP or device
-  change detection, self-service account freeze and unfreeze with audit.
-- 3.8 OAuth Google and GitHub with encrypted token storage, account linking
-  rules, session fixation prevention, new device alerts, session revoke and a
-  device and session list.
-- 3.9 Password controls: minimum 12 characters with upper, lower, number and
-  special; HIBP k-anonymity breach check; history of last five passwords;
-  reset flow that honors an active lock.
-- 3.10 Network trust: lib/security/vpn-proxy-detector.ts, ip-reputation.ts,
-  geo rules, corporate IP whitelist managed by super_admin, enforcement matrix
-  for signup and login now, with hooks consumed later by payment, KYC and
-  admin.
-- 3.11 Auth surfaces: API routes with Zod, sanitization, CSRF double submit,
-  correlation id, audit entries, typed errors; pages for login, signup,
-  forgot password, reset password, verify email, 2FA challenge, passkey,
-  locked account, device centre, session list and security settings, each with
-  loading, error, empty and success states, 320px support, dark mode and
-  WCAG 2.1 AA.
+SEGMENT EXECUTION MODEL: this prompt covers the whole step, which is executed as
+segments 3A to 3D, one segment per chat. In this chat, find your
+current segment in docs/handoffs/CHAT_03_PROGRESS.md, execute only that segment,
+and stop at its segment gate. Then paste this same prompt in a new chat for the
+next segment. Segment rules: docs/PLAN/10_SEGMENT_GUIDE.md.
+
+SCOPE FOR THIS STEP (all segments; do not implement later steps):
+### SEGMENT 3A -- Auth foundations (chat 1 of 4)
+- 3.1 Supabase clients: browser, server and admin, with the service role kept server-only.
+- 3.2 Session policy: HttpOnly plus Secure plus SameSite=Strict cookie, session id rotation on login, configurable timeout with a default of 24 hours.
+- 3.3 Auth middleware: route protection, tenant resolution, redirect rules, no PII in URLs.
+- 3.4 CSRF double-submit on auth routes and credential payload sanitization.
+- 3.5 Auth rate limits: per IP and per account counters, response headers, typed RateLimitError.
+Segment gate: session rotation proven on login; forged CSRF requests rejected.
+
+### SEGMENT 3B -- Signup, login, login lock (chat 2 of 4)
+- 3.6 Signup flow: Turnstile verification, honeypot field, email verification, disposable email blocklist, audit entry.
+- 3.7 Login flow: credential check, generic error messages, no account existence leakage, IP rate limit.
+- 3.8 Login lock engine core: consecutive failure counters for password and 2FA, 2-hour lock, database persistence that survives restart.
+- 3.9 Lock enforcement: correct password denied, password reset blocked, password change does not unlock, session issuance blocked.
+- 3.10 Lock notification: owner email alert on lock start with device and IP context, generic user-facing copy.
+- 3.11 Unlock workflow: authorized admin or admin_staff only, confirmed owner contact required, audit entry with actor, target, reason and timestamp.
+Segment gate: lock state survives a server restart with the database assertion recorded; no endpoint reveals account existence.
+
+### SEGMENT 3C -- Factors and credentials (chat 3 of 4)
+- 3.12 2FA TOTP: enrollment with QR code, verification, ten one-time backup codes, recovery flow, mandatory per role.
+- 3.13 Step-up helper for sensitive actions (gateway, payout, KYC, admin) with challenge TTL and audit.
+- 3.14 Passkeys and hardware keys: WebAuthn registration and authentication, additive factor beside TOTP, named credentials, recovery and re-enrollment, audit entries.
+- 3.15 Password controls: minimum 12 characters with complexity, HIBP k-anonymity check, history of last five, reset flow that honors an active lock.
+- 3.16 OAuth: Google and GitHub, encrypted token storage, account linking rules, session fixation prevention.
+Segment gate: passkey and TOTP coexist without weakening the login lock; step-up enforced and audited.
+
+### SEGMENT 3D -- Devices, sessions, network trust, surfaces (chat 4 of 4)
+- 3.17 Trusted devices and device centre: registry, trust scoring, revocation, new device alerts, UI with four states.
+- 3.18 Session registry: global session list, short-lived access with rotating refresh, mid-session IP or device change detection, self-service freeze and unfreeze with audit.
+- 3.19 Network trust: vpn-proxy-detector, ip-reputation, geo rules, corporate IP whitelist, enforcement matrix definition.
+- 3.20 Network enforcement: VPN, proxy and Tor blocked on signup, flagged with step-up 2FA on login, audit entries.
+- 3.21 Auth surfaces A: login, signup, forgot password, reset password, verify email pages with four states, 320px, dark mode, WCAG AA.
+- 3.22 Auth surfaces B: 2FA challenge, passkey, locked account, device centre, session list, security settings, handoff.
+Segment gate: all auth endpoints rate limited and audited; accessibility and 320px checks recorded.
 
 FEATURE SOURCES: FEATURE_LIST.md Part 2 section A (auth system, OAuth, 2FA,
 session management, login security) and Part 11 section H (VPN and IP
@@ -75,7 +71,7 @@ security).
 
 ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
 sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
-starting. Added sub-steps 3.5 passkeys and hardware keys, 3.6 trusted devices and device centre, 3.7 session registry and self-service freeze. Revision 2 only adds; the twenty absolute rules and
+starting. Added sub-steps 3.14 passkeys, 3.17 trusted devices and device centre, 3.18 session registry and self-service freeze, in segments 3C and 3D. Revision 2 only adds; the twenty absolute rules and
 requirements A1 to A10 keep full force. Respect the ownership boundary table in
 that file so no code is duplicated or conflicting.
 
@@ -100,7 +96,14 @@ COMMIT AND PUSH POLICY: commit and push only to the branch this session is
 already on. Never create, rename or switch branches.
 
 END OF CHAT, MANDATORY: write docs/handoffs/CHAT_03_COMPLETED.md and report
-sub-steps completed, evidence and the next starting point.
+sub-steps completed, evidence and the next starting point. Also record the segment status: complete with the next segment named,
+or partial with the exact sub-step to resume from.
+
+SEGMENT RULE: execute exactly one segment per chat. Never start the next segment
+in the same chat. At the end of a segment, run npm run verify, record the segment
+gate evidence, update the progress file, and state the segment status line:
+"Segment NNX complete; next segment NNX+1" or "Segment NNX partial; resume at
+sub-step NN.YY".
 
 RESUME INSTRUCTION: read docs/handoffs/CHAT_03_PROGRESS.md, continue from the
 first unchecked sub-step, never re-implement an existing passing file.

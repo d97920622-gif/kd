@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_04.md
-# CHAT 04 OF 16 -- Roles, Permissions, Approval Engine, Approval Inbox, Enterprise Access, Onboarding, Settings, KYC, Notifications, Platform Billing
+# CHAT 04 OF 16 -- Roles, Permissions, Approval Engine, Approval Inbox, Enterprise Access, Onboarding, Settings, KYC, Notifications, Platform Billing (4 segments)
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 3 complete.
@@ -19,49 +19,52 @@ engine, onboarding, settings, KYC service, notifications, platform billing).
 7. docs/PLAN/08_SUBSTEP_CHECKLISTS.md section "STEP 04".
 8. docs/handoffs/CHAT_03_COMPLETED.md.
 
-SCOPE FOR THIS CHAT:
-- 4.1 Roles and permissions: super_admin > ceo > admin_staff > owner > staff,
-  clients tokenized with no login; admin_staff sub-roles kyc_reviewer,
-  payment_processor, support_agent, content_manager, compliance_officer,
-  fraud_analyst, finance_analyst; config/permissions.ts matrix; server and
-  client guards; nav role filtering completed; the accountant, affiliate and
-  reseller roles must not exist anywhere.
-- 4.2 Approval engine: approval_requests table, L1 staff, L2 CEO, L3
-  super_admin; SLA with auto-escalation; delegation with super_admin fallback;
-  dual approval for critical actions; bulk approval; full approval history;
-  approval dashboards per role; audit entry for every decision; every managed
-  action routes through this single engine.
-- 4.3 Approval inbox: unified pending queue per role, bulk approve and reject
-  with confirmation, SLA countdown, filters by module and requester, audit.
-- 4.4 Super admin first-run setup wizard and platform configuration.
-- 4.5 Owner onboarding wizard: company creation, profile, industry presets,
-  branding, invoice defaults, first-run experience, entitlement-aware steps.
-- 4.6 Company profile and settings: profile, branding settings, invoice
-  settings, custom domain, tenant security policy, notification preferences,
-  one-click backup request.
-- 4.7 Team management: staff invites, granular permission assignment,
-  staff activity monitoring, owner-controlled staff security, staff draft to
-  owner approval send workflow.
-- 4.8 KYC: document upload through the storage abstraction, review console for
-  kyc_reviewer, KYC gate map for gated features, statuses, re-verification,
-  notifications, audit.
-- 4.9 Notifications: in-app center, preferences, event matrix, realtime
-  updates, digest, the email dispatch interface consumed by step 12, and the
-  message delivery event log that every channel writes into.
-- 4.10 Platform billing: plan management, subscription lifecycle, coupons,
-  entitlement engine, dunning, platform invoices and billing UI.
-- 4.11 Enterprise access: SAML and OIDC single sign-on adapter, SCIM
-  provisioning, tenant IP allowlist, just-in-time access with expiry,
-  break-glass with dual approval and mandatory audit.
-- 4.12 Owner security centre: security score and checklist, who-did-what
-  digest, permission review reminder, session and device review links.
-- 4.13 Tenant settings surfaces: gateway configuration shell and payout
-  partner settings using only the generic names "Global Payout Partners" and
-  "Local Payment Methods via Licensed Partners".
+SEGMENT EXECUTION MODEL: this prompt covers the whole step, which is executed as
+segments 4A to 4D, one segment per chat. In this chat, find your
+current segment in docs/handoffs/CHAT_04_PROGRESS.md, execute only that segment,
+and stop at its segment gate. Then paste this same prompt in a new chat for the
+next segment. Segment rules: docs/PLAN/10_SEGMENT_GUIDE.md.
+
+SCOPE FOR THIS STEP (all segments; do not implement later steps):
+### SEGMENT 4A -- Roles, permissions, approval engine (chat 1 of 4)
+- 4.1 Roles: super_admin, ceo, admin_staff, owner and staff definitions plus the seven admin_staff sub-roles; forbidden roles absent everywhere.
+- 4.2 Permission matrix: config/permissions.ts with module and action granularity, entitlement awareness.
+- 4.3 Guards: server-side authorization, client-side visibility, cross-tenant 404 policy.
+- 4.4 Approval engine core: approval_requests, L1/L2/L3 levels, SLA and auto-escalation, delegation, dual approval, bulk approval, full history.
+- 4.5 Approval inbox UI: unified queue, filters by module and requester, SLA countdown, bulk approve and reject with confirmation, audit.
+Segment gate: permission matrix SQL assertion passes; approval chain enforced on every managed action.
+
+### SEGMENT 4B -- Onboarding, company settings, team (chat 2 of 4)
+- 4.6 Super admin first-run setup wizard and platform configuration.
+- 4.7 Owner onboarding wizard, industry presets, first-run experience, entitlement-aware steps.
+- 4.8 Company profile and branding settings with live preview.
+- 4.9 Invoice settings, custom domain setup and tenant security policy.
+- 4.10 Team management: invites, granular permission assignment, member lifecycle.
+- 4.11 Staff activity monitoring, staff security controls and permission review hooks.
+- 4.12 Staff draft to owner approval send workflow with audit.
+Segment gate: onboarding completes end to end on a fresh tenant; staff cannot send without owner approval.
+
+### SEGMENT 4C -- KYC, notifications, message log (chat 3 of 4)
+- 4.13 KYC upload through the storage abstraction, statuses and re-verification.
+- 4.14 KYC review console for kyc_reviewer, gate map, notifications and audit.
+- 4.15 Notification center: in-app list, read state, realtime updates, four states.
+- 4.16 Notification preferences, event matrix, digest scheduling and the email dispatch interface consumed by step 12.
+- 4.17 Message delivery event log service and table that every channel writes into.
+Segment gate: KYC gate blocks gated features until approved; the message log receives entries from notification dispatch.
+
+### SEGMENT 4D -- Platform billing, enterprise access, security centre (chat 4 of 4)
+- 4.18 Platform billing: plan management and subscription lifecycle.
+- 4.19 Coupons, entitlement engine and dunning.
+- 4.20 Platform invoices and the owner billing UI.
+- 4.21 Enterprise access A: SAML and OIDC single sign-on adapter, domain verification, just-in-time provisioning rules.
+- 4.22 Enterprise access B: SCIM provisioning, tenant IP allowlist, just-in-time access with expiry, break-glass with dual approval and mandatory audit.
+- 4.23 Owner security centre: security score and checklist, who-did-what digest, permission review reminder, session and device review links.
+- 4.24 Tenant settings surfaces: gateway configuration shell, payout partner settings with generic naming, handoff.
+Segment gate: entitlements correct after a plan change; break-glass use audited and notified.
 
 ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
 sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
-starting. Added sub-step 4.3 approval inbox, 4.11 enterprise access (SSO, SCIM, IP allowlist, just-in-time, break-glass), 4.12 owner security centre, and the message delivery event log inside 4.9. Revision 2 only adds; the twenty absolute rules and
+starting. Added sub-step 4.5 approval inbox in segment 4A, the message delivery event log as sub-step 4.17 in segment 4C, and enterprise access plus the owner security centre as sub-steps 4.21, 4.22 and 4.23 in segment 4D. Revision 2 only adds; the twenty absolute rules and
 requirements A1 to A10 keep full force. Respect the ownership boundary table in
 that file so no code is duplicated or conflicting.
 
@@ -89,7 +92,14 @@ already on. Never create, rename or switch branches.
 
 END OF CHAT, MANDATORY: write docs/handoffs/CHAT_04_COMPLETED.md with scope,
 sub-steps, files, migrations, env vars, decisions, evidence and the next
-starting point.
+starting point. Also record the segment status: complete with the next segment named,
+or partial with the exact sub-step to resume from.
+
+SEGMENT RULE: execute exactly one segment per chat. Never start the next segment
+in the same chat. At the end of a segment, run npm run verify, record the segment
+gate evidence, update the progress file, and state the segment status line:
+"Segment NNX complete; next segment NNX+1" or "Segment NNX partial; resume at
+sub-step NN.YY".
 
 RESUME INSTRUCTION: read docs/handoffs/CHAT_04_PROGRESS.md, continue from the
 first unchecked sub-step, never re-implement an existing passing file.

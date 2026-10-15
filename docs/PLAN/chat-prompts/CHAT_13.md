@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_13.md
-# CHAT 13 OF 16 -- Payroll, HR, Expenses, Double-entry Accounting, Tax Liability and Remittance, Statements, Reports
+# CHAT 13 OF 16 -- Payroll, HR, Expenses, Double-entry Accounting, Tax Liability and Remittance, Statements, Reports (4 segments)
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 12 complete.
@@ -17,52 +17,62 @@ FEATURE_LIST.md Part 8 sections A to M. 3. docs/PLAN/
 (step 13 gates). 7. docs/PLAN/08_SUBSTEP_CHECKLISTS.md section "STEP 13".
 8. docs/handoffs/CHAT_12_COMPLETED.md.
 
-SCOPE FOR THIS CHAT:
-- 13.1 Payroll core: employee profiles, pay structures, allowances and
-  deductions, tax calculation per jurisdiction with presets, pay runs with
-  approval, payslip generation, duplicate detection on tenant, employee and
-  pay period.
-- 13.2 Payroll finance: payout integration through the payout engine,
-  accounting integration, compliance documents, reports, employee
-  self-service portal over token links.
-- 13.3 HR lite: organization structure, onboarding and offboarding checklists,
-  performance notes, leave and absence management with balances and approval.
-- 13.4 Expenses: CRUD, receipt capture with OCR, categories, policies,
-  approvals, recurring expenses, reimbursements, expense reports, duplicate
-  hash detection on receipt hash, amount and date.
-- 13.5 Accounting core: chart of accounts templates, account management,
-  manual journal entries, posting rules, period awareness, duplicate detection
-  on post using a hash of sorted accounts, amount and date.
-- 13.6 Automated journals generated from invoices, payments, expenses, payroll
-  and fixed assets; period locks; trial balance; full audit trail.
-- 13.7 Financial statements: profit and loss, balance sheet, cash flow,
-  statement of equity, comparatives by period, drill-down to source documents,
-  export to PDF and CSV.
-- 13.8 Bank reconciliation at accounting grade: statement import, matching
-  engine with rules, unmatched queues, adjustment entries, reconciliation
-  reports, audit.
-- 13.9 Fixed assets with depreciation schedules and disposal; budgets with
-  allocation, tracking and variance alerts; multi-book and multi-entity with
-  consolidation; accounting standards configuration.
-- 13.10 Period management and close checklist; tax filing preparation; tax
-  reports; accounting-grade audit features.
-- 13.11 Tax liability ledger: segregated Tax Payable accounts per jurisdiction
-  and rate, collected tax never entering revenue or a spendable balance, tax
-  periods, return draft built from Step 6 determination data, reconciliation
-  assertion.
-- 13.12 Tax remittance workflow: approval chain staff to CEO to super_admin,
-  remittance record with method, authority reference, date, proof upload and
-  USD FX freeze, journal entry Dr Tax Payable and Cr Bank, bank reconciliation
-  link, filed and closed states, evidence pack.
-- 13.13 Tax filing operations: filing calendar with deadline reminders,
-  penalty and interest tracking, accountant-ready export pack, platform
-  self-billing tax treatment for subscriptions.
-- 13.14 Financial intelligence: cash flow forecasting, BI dashboards, and at
-  least fifteen reports with scheduling, saved views and sharing.
+SEGMENT EXECUTION MODEL: this prompt covers the whole step, which is executed as
+segments 13A to 13D, one segment per chat. In this chat, find your
+current segment in docs/handoffs/CHAT_13_PROGRESS.md, execute only that segment,
+and stop at its segment gate. Then paste this same prompt in a new chat for the
+next segment. Segment rules: docs/PLAN/10_SEGMENT_GUIDE.md.
+
+SCOPE FOR THIS STEP (all segments; do not implement later steps):
+### SEGMENT 13A -- Payroll (chat 1 of 4)
+- 13.1 Employee profiles with documents stored through the storage abstraction.
+- 13.2 Pay structures: allowances, deductions and display currency rules.
+- 13.3 Payroll tax calculation per jurisdiction with presets.
+- 13.4 Pay runs with the approval chain and lock after approval.
+- 13.5 Payslip generation and encrypted archive with content hash.
+- 13.6 Payroll duplicate detection on tenant, employee and pay period, plus payout integration.
+- 13.7 Payroll accounting integration and payroll reports.
+- 13.8 Employee self-service portal over token links.
+Segment gate: payroll totals reconcile to payslips and to the ledger.
+
+### SEGMENT 13B -- HR and expenses (chat 2 of 4)
+- 13.9 Organization structure and positions.
+- 13.10 Onboarding and offboarding checklists.
+- 13.11 Performance notes and leave management with balances and approval.
+- 13.12 Expense CRUD with categories and cost centers.
+- 13.13 Receipt capture with OCR and smart entry.
+- 13.14 Expense policies and approval routing.
+- 13.15 Recurring expenses and reimbursements.
+- 13.16 Expense reports and duplicate hash detection.
+Segment gate: expense posting produces balanced journals; duplicate detection raises typed errors.
+
+### SEGMENT 13C -- Accounting core and reconciliation (chat 3 of 4)
+- 13.17 Chart of accounts templates and account management.
+- 13.18 Manual journal entries with posting rules and duplicate detection.
+- 13.19 Automated journals from invoices, payments, expenses, payroll and fixed assets.
+- 13.20 Period locks and trial balance.
+- 13.21 Bank reconciliation A: statement import and matching engine with rules.
+- 13.22 Bank reconciliation B: unmatched queues, adjustments and reconciliation reports.
+- 13.23 Fixed assets and depreciation schedules with disposal.
+- 13.24 Budgets with allocation, tracking and variance alerts.
+- 13.25 Multi-book, multi-entity and consolidation with accounting standards configuration.
+Segment gate: debits equal credits after every posting; period close is irreversible and audited.
+
+### SEGMENT 13D -- Statements, tax remittance, intelligence (chat 4 of 4)
+- 13.26 Profit and loss with comparatives and drill-down.
+- 13.27 Balance sheet with comparatives and drill-down.
+- 13.28 Cash flow statement, statement of equity and exports.
+- 13.29 Period close checklist, tax filing preparation and accounting-grade audit features.
+- 13.30 Tax liability ledger: segregated Tax Payable accounts per jurisdiction and rate, tax periods, return draft from Step 6 determination data and reconciliation assertion.
+- 13.31 Tax return review and approval with variance explanation.
+- 13.32 Tax remittance workflow: remittance record with method, authority reference, date, proof and USD FX freeze, journal entry Dr Tax Payable and Cr Bank, bank reconciliation link, filed and closed states and evidence pack.
+- 13.33 Filing operations: filing calendar with deadline reminders, penalty and interest tracking, accountant-ready export pack and platform self-billing tax treatment.
+- 13.34 Financial intelligence: cash flow forecasting, BI dashboards and fifteen plus reports with scheduling and saved views, handoff.
+Segment gate: no return can be marked filed without an approved remittance record containing method, authority reference, date and proof; statements reconcile to the trial balance.
 
 ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
 sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
-starting. Added sub-steps 13.11 tax liability ledger, 13.12 tax remittance workflow, 13.13 tax filing operations. Revision 2 only adds; the twenty absolute rules and
+starting. Added sub-steps 13.30 tax liability ledger, 13.32 tax remittance workflow and 13.33 filing operations, in segment 13D. Revision 2 only adds; the twenty absolute rules and
 requirements A1 to A10 keep full force. Respect the ownership boundary table in
 that file so no code is duplicated or conflicting.
 
@@ -90,7 +100,14 @@ already on. Never create, rename or switch branches.
 
 END OF CHAT, MANDATORY: write docs/handoffs/CHAT_13_COMPLETED.md with scope,
 sub-steps, files, migrations, env vars, decisions, evidence and the next
-starting point.
+starting point. Also record the segment status: complete with the next segment named,
+or partial with the exact sub-step to resume from.
+
+SEGMENT RULE: execute exactly one segment per chat. Never start the next segment
+in the same chat. At the end of a segment, run npm run verify, record the segment
+gate evidence, update the progress file, and state the segment status line:
+"Segment NNX complete; next segment NNX+1" or "Segment NNX partial; resume at
+sub-step NN.YY".
 
 RESUME INSTRUCTION: read docs/handoffs/CHAT_13_PROGRESS.md, continue from the
 first unchecked sub-step, never re-implement an existing passing file.
