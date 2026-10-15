@@ -1,0 +1,139 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2022": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": ["@typescript-eslint", "import"],
+  "extends": ["next/core-web-vitals", "prettier"],
+  "rules": {
+    "no-console": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@/**",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "Literal[value=/[^\\u0000-\\u007F]/]",
+        "message": "Rule 1: English only. Non-ASCII characters are forbidden in source literals."
+      },
+      {
+        "selector": "TemplateElement[value.raw=/[^\\u0000-\\u007F]/]",
+        "message": "Rule 1: English only. Non-ASCII characters are forbidden in template literals."
+      },
+      {
+        "selector": "JSXText[value=/[^\\u0000-\\u007F]/]",
+        "message": "Rule 1: English only. Non-ASCII characters are forbidden in JSX text."
+      },
+      {
+        "selector": "Identifier[name=/[^\\u0000-\\u007F]/]",
+        "message": "Rule 1: English only. Non-ASCII characters are forbidden in identifiers."
+      }
+    ],
+    "no-irregular-whitespace": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "openai",
+            "message": "Rule 4: the AI provider layer is excluded from this platform."
+          }
+        ],
+        "patterns": [
+          {
+            "group": [
+              "@anthropic-ai/*",
+              "@google/generative-ai",
+              "jest",
+              "vitest",
+              "@playwright/test",
+              "playwright",
+              "mocha",
+              "cypress",
+              "@testing-library/*"
+            ],
+            "message": "Rule 4: test frameworks and AI providers are excluded from this platform."
+          }
+        ]
+      }
+    ],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "inline-type-imports"
+      }
+    ],
+    "react/no-danger": "error",
+    "eqeqeq": ["error", "always"],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-debugger": "error",
+    "no-alert": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "object-shorthand": ["error", "always"],
+    "@next/next/no-html-link-for-pages": ["error", "app"]
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "out/",
+    "build/",
+    "dist/",
+    "coverage/",
+    ".husky/",
+    "next-env.d.ts",
+    "package-lock.json"
+  ]
+}
