@@ -30,6 +30,14 @@ authentication model, request and response shapes for the calls implemented,
 webhook signature mechanism, test cards or test account facts, and any
 deviation found from docs/PLAN/06_PROVIDER_DOCS_REGISTRY.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_08_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_09_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT, one adapter file per processor:
 - 9.1 Documentation protocol executed for all sixteen processors.
 - 9.2 Shared server module completion; every adapter routes its server calls

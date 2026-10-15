@@ -23,6 +23,14 @@ current segment in docs/handoffs/CHAT_13_PROGRESS.md, execute only that segment,
 and stop at its segment gate. Then paste this same prompt in a new chat for the
 next segment. Segment rules: docs/PLAN/10_SEGMENT_GUIDE.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_12_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_13_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS STEP (all segments; do not implement later steps):
 ### SEGMENT 13A -- Payroll (chat 1 of 4)
 - 13.1 Employee profiles with documents stored through the storage abstraction.

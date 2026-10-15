@@ -19,6 +19,14 @@ migration window is 20260401000000 to 20260401999999). 5. docs/PLAN/
 8. docs/PLAN/08_SUBSTEP_CHECKLISTS.md section "STEP 07".
 9. docs/handoffs/CHAT_06_COMPLETED.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_06_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_07_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT:
 - 7.1 files table with storage_provider, company integration flags, provider
   capabilities, content hash, key version, retention metadata.

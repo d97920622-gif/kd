@@ -18,6 +18,14 @@ window is 20260601000000 to 20260601999999). 4. docs/PLAN/
 7. docs/PLAN/08_SUBSTEP_CHECKLISTS.md section "STEP 11".
 8. docs/handoffs/CHAT_10_COMPLETED.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_10_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_11_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT:
 - 11.1 Token engine: HMAC-SHA256 signed 128-bit random tokens, per-document
   links, plan-based expiry (7, 30, 90 or 365 days), revoke, re-issue, optional

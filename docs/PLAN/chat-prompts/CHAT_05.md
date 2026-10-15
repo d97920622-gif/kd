@@ -17,6 +17,14 @@ practices). 2. FEATURE_LIST.md Part 3 sections A to E, L and M. 3. docs/PLAN/
 7. docs/PLAN/08_SUBSTEP_CHECKLISTS.md section "STEP 05".
 8. docs/handoffs/CHAT_04_COMPLETED.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_04_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_05_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT:
 - 5.1 Invoice schema: migrations, RLS, duplicate_hash, version, audit trigger,
   types/invoice.ts, Zod schemas.

@@ -23,6 +23,14 @@ services/duplicate, SECURITY_MODEL.md, COMPLIANCE.md). 7. docs/PLAN/
 08_SUBSTEP_CHECKLISTS.md section "STEP 15".
 9. docs/handoffs/CHAT_14_COMPLETED.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_14_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_15_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT:
 - 15.1 Tenant isolation hardening: RLS audit, cross-tenant access returns 404
   never 403 and never data, storage isolation, IDOR sweep across every

@@ -28,6 +28,12 @@ current segment in docs/handoffs/CHAT_01_PROGRESS.md, execute only that segment,
 and stop at its segment gate. Then paste this same prompt in a new chat for the
 next segment. Segment rules: docs/PLAN/10_SEGMENT_GUIDE.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the repository
+you opened contains MASTER_PROMPT.md, FEATURE_LIST.md and docs/PLAN/ with the
+sixteen chat prompts. If any of those are missing, stop and report that the chat
+was started from a branch that does not contain the plan; do not create plan
+files yourself and do not start coding.
+
 SCOPE FOR THIS STEP (all segments; do not implement later steps):
 ### SEGMENT 1A -- Toolchain and quality gates (chat 1 of 4)
 - 1.1 Repository toolchain baseline: package.json scripts, tsconfig.json strict options, next.config.js, .prettierrc, .gitignore, husky hooks, lint-staged.

@@ -19,6 +19,14 @@ window is 20260816000000 to 20260816999999). 4. docs/PLAN/
 8. docs/PLAN/08_SUBSTEP_CHECKLISTS.md section "STEP 16".
 9. docs/handoffs/CHAT_15_COMPLETED.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_15_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_16_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT:
 - 16.1 Netlify production configuration, headers and redirects, ISR and cache
   headers, edge functions, environment management, preview deploys, domain and

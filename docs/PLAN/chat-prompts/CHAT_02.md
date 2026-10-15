@@ -22,6 +22,14 @@ READ FIRST, in this order, inside the repository:
 7. docs/PLAN/08_SUBSTEP_CHECKLISTS.md, section "STEP 02".
 8. docs/handoffs/CHAT_01_COMPLETED.md.
 
+BASE BRANCH CHECK (run this before anything else): confirm that the branch this
+chat started from already contains the previous chat's work. For a new step,
+docs/handoffs/CHAT_01_COMPLETED.md must exist. For a continuation of the
+same step, docs/handoffs/CHAT_02_PROGRESS.md must exist. If they are missing,
+stop immediately and report that the chat was started from the wrong base
+branch (the owner must select the mainline branch that holds the completed
+work); do not recreate earlier files and do not start coding.
+
 SCOPE FOR THIS CHAT:
 - 2.1 Migration framework: ordered runner, checksum verification, up and down
   pairs, seeds runner, `npm run db:migrate`, `npm run db:rollback -- <ts>`.
