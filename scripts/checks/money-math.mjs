@@ -11,8 +11,13 @@
  * The identifier heuristic is deliberately conservative: names that carry a
  * counting or paging word (count, items, limit, page, size and similar) are
  * treated as measurements, not money, so "paymentCount + 1" is not a
- * finding while "paymentAmount + 1" is. The exempt module is the single
- * sanctioned money implementation.
+ * finding while "paymentAmount + 1" is.
+ *
+ * Sanctioned module: exactly one file implements money arithmetic and must
+ * carry the annotation line "money-math-guard: sanctioned". The annotation is
+ * checked in both directions, so it is not an escape hatch:
+ *   - a sanctioned path without the annotation fails the check;
+ *   - the annotation in any other file fails the check.
  */
 import {
   findMatches,
@@ -24,7 +29,13 @@ import {
 } from './_lib.mjs';
 
 const SELF = 'scripts/checks/money-math.mjs';
-const EXEMPT_FILES = [SELF, 'lib/utils/currency.ts'];
+const EXEMPT_FILES = [SELF];
+
+/** The single file allowed to perform monetary arithmetic (Rule 2). */
+const SANCTIONED_FILES = ['lib/utils/currency.ts'];
+
+/** Exact annotation line a sanctioned module must carry. */
+const SANCTIONED_ANNOTATION = 'money-math-guard: sanctioned';
 
 const MONEY_WORDS =
   'amount|total|price|cost|fee|balance|subtotal|tax|discount|revenue|payout|salary|wage|earning|money|usd|payment|credit|debit|rate';
@@ -60,15 +71,51 @@ const RULES = [
     label: 'fixed point formatting of a money value',
     pattern: new RegExp(`\\b${MONEY_NAME}\\s*\\.\\s*(?:toFixed|toPrecision)\\s*\\(`, 'gi'),
   },
+  {
+    // A money variable assigned from an expression that uses a JavaScript
+    // operator. The sanctioned module has no such expression, because the
+    // Decimal API carries the arithmetic in named methods.
+    label: 'arithmetic in a money assignment',
+    pattern: new RegExp(`\\b${MONEY_NAME}\\s*=(?!=)[^=\\n]*[-+*/%]`, 'gi'),
+  },
 ];
 
 function isScript(file) {
   return /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(file);
 }
 
+function annotationFindings(file, text) {
+  const declared = text.includes(SANCTIONED_ANNOTATION);
+  const sanctioned = SANCTIONED_FILES.includes(file);
+  if (sanctioned && !declared) {
+    return [
+      {
+        file,
+        line: 1,
+        column: 1,
+        message: `sanctioned money module must carry the annotation "${SANCTIONED_ANNOTATION}"`,
+      },
+    ];
+  }
+  if (!sanctioned && declared) {
+    return [
+      {
+        file,
+        line: 1,
+        column: 1,
+        message: `the "${SANCTIONED_ANNOTATION}" annotation is only permitted in the sanctioned money module`,
+      },
+    ];
+  }
+  return [];
+}
+
 function scanText(file, text) {
+  const findings = annotationFindings(file, text);
+  if (SANCTIONED_FILES.includes(file)) {
+    return findings;
+  }
   const stripped = stripCommentsAndStrings(text);
-  const findings = [];
   for (const rule of RULES) {
     for (const match of findMatches(stripped, rule.pattern)) {
       const { line, column } = positionOf(text, match.index);
@@ -91,6 +138,7 @@ function main() {
     if (EXEMPT_FILES.includes(file) || !isScript(file)) {
       continue;
     }
+    // The sanctioned module is scanned for its annotation, not for arithmetic.
     const text = readTextFile(file);
     if (text === null) {
       continue;

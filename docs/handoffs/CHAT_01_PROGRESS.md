@@ -46,7 +46,7 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------ |
 | 1.8      | Structured logger: JSON lines, levels, correlation id, redaction hook, zero console usage                                                        | done    | to fill at handoff |
 | 1.9      | Error library: typed error classes, error codes, response envelope builder, no detail leakage                                                    | done    | to fill at handoff |
-| 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | pending | -                  |
+| 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | done    | to fill at handoff |
 | 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | pending | -                  |
 | 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | pending | -                  |
 | 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | pending | -                  |
