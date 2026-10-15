@@ -3,7 +3,7 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1B (core libraries and design system) -- not started
+Current segment: 1B (core libraries and design system) -- in progress
 Segment 1A: complete
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
@@ -42,18 +42,18 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 
 ## SEGMENT 1B -- Core libraries and design system (chat 2 of 4)
 
-| Sub-step | Description                                                                                                                                      | Status  | Commit |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ------ |
-| 1.8      | Structured logger: JSON lines, levels, correlation id, redaction hook, zero console usage                                                        | pending | -      |
-| 1.9      | Error library: typed error classes, error codes, response envelope builder, no detail leakage                                                    | pending | -      |
-| 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | pending | -      |
-| 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | pending | -      |
-| 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | pending | -      |
-| 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | pending | -      |
-| 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | pending | -      |
-| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | pending | -      |
-| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | pending | -      |
-| 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | pending | -      |
+| Sub-step | Description                                                                                                                                      | Status  | Commit             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------ |
+| 1.8      | Structured logger: JSON lines, levels, correlation id, redaction hook, zero console usage                                                        | done    | to fill at handoff |
+| 1.9      | Error library: typed error classes, error codes, response envelope builder, no detail leakage                                                    | pending | -                  |
+| 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | pending | -                  |
+| 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | pending | -                  |
+| 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | pending | -                  |
+| 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | pending | -                  |
+| 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | pending | -                  |
+| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | pending | -                  |
+| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | pending | -                  |
+| 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | pending | -                  |
 
 Segment 1B gate: component gallery renders every primitive in light, dark,
 high contrast and reduced motion; no hardcoded color or spacing outside
@@ -102,8 +102,8 @@ From this point every sub-step runs under the permission-gated rhythm:
 6. Wait for the owner to type `continue` before starting the next sub-step.
    Never cross a segment gate.
 
-The next chat starts at sub-step 1.8 (segment 1B) and follows the same
-rhythm from its first sub-step.
+The next chat starts at the first unchecked sub-step and follows the same
+rhythm from there.
 
 ## Session notes
 
@@ -113,6 +113,15 @@ rhythm from its first sub-step.
   `origin/arena/b7780282-kd`, the local branch was restored to that tip
   (35b1869) and the working tree matched the commit exactly. Dependencies
   were reinstalled and `npm run verify` returned PASS at 16 of 16 checks.
+
+## Segment boundary note (owner decision, 2026-10-16)
+
+The plan runs one segment per chat. The owner explicitly instructed the
+session to continue with sub-step 1.8 in the same chat, so segment 1B was
+started here by owner decision. The record stays accurate: segment 1A closed
+with its gate passed, and segment 1B continues under the permission-gated
+rhythm (one sub-step per commit, verify between sub-steps, stop for
+confirmation).
 
 ## Blockers
 
