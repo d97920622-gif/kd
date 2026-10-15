@@ -18,6 +18,14 @@ accounting, built for the Asian market.
 | `FEATURE_LIST.md` | Owner-supplied feature list (3,950 features, eleven parts). It is the only file allowed to contain non-ASCII characters |
 | `docs/PLAN/` | The execution plan: sixteen steps, sub-step work orders, segment guide, guardrails, traceability, provider registry, revision 2 additions, chat prompts |
 
+## Start here
+
+1. Read `docs/PLAN/11_USAGE_HANDBOOK.md`.
+2. Do the one-time setup: create the `integration` branch from the planning
+   work, set it as the repository default branch, protect it, and point Netlify
+   at it.
+3. Then follow the per-chat loop below.
+
 ## How the build is executed
 
 The project is built in sixteen steps, one step per chat:
@@ -82,7 +90,8 @@ Partners").
 
 ## Documentation
 
-- `docs/PLAN/` build plan, guardrails, traceability, provider registry.
+- `docs/PLAN/11_USAGE_HANDBOOK.md` operating guide: branch setup, branch selection per chat, per-chat loop, review checklist, troubleshooting.
+- `docs/PLAN/` build plan, guardrails, traceability, provider registry, segment guide.
 - `docs/handoffs/` one handoff per completed chat.
 - `docs/ADR/` architecture decision records (created from step 1).
 - `docs/PROVIDERS/` per-processor verified documentation records (created from

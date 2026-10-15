@@ -94,3 +94,14 @@ single chat can complete them without errors.
 
 Nothing was removed. The step count stays sixteen; the six heavy steps simply
 run as four chats each with small, individually verifiable sub-steps.
+
+## 7. Revision 4 (usage handbook and branch-check guard)
+
+| File | Change |
+| --- | --- |
+| `docs/PLAN/11_USAGE_HANDBOOK.md` | New file: A to Z operating guide, one-time branch setup, branch selection table, per-chat loop, copy-paste blocks, owner review checklist, mistake-prevention matrix, troubleshooting, release sequence, secret checklist, document quick reference, do-not-do list |
+| `docs/PLAN/chat-prompts/CHAT_01.md` to `CHAT_16.md` | Each prompt begins with a BASE BRANCH CHECK that stops the chat when it was started from a branch without the plan or without the previous completed work |
+| `README.md`, `docs/PLAN/README.md`, `docs/PLAN/chat-prompts/README.md` | Pointers to the handbook and the one-time branch setup |
+
+No specification content was changed. This revision only adds operating rules
+that prevent wrong-branch starts and lost work.

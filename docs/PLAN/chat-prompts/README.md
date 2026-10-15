@@ -1,6 +1,11 @@
 // path: docs/PLAN/chat-prompts/README.md
 # Chat Prompts Index
 
+Before the first chat, read `docs/PLAN/11_USAGE_HANDBOOK.md` for the one-time
+branch setup (`integration` as mainline and default branch) and the per-chat
+loop. Every prompt now begins with a BASE BRANCH CHECK that stops the chat if it
+was started from a branch without the completed work.
+
 How to use: open a new chat for the step you are on, open the matching file
 below, and paste everything between its BEGIN PASTE and END PASTE markers.
 Each prompt is self-sufficient: it names the files to read, the scope, the
