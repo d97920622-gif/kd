@@ -1,14 +1,25 @@
 // path: tailwind.config.ts
 import { type Config } from 'tailwindcss';
 
+import {
+  RADIUS_CLASS_MAP,
+  SHADOW_CLASS_MAP,
+  SPACING_TOKENS,
+  Z_INDEX_CLASS_MAP,
+} from './config/design-tokens';
+
 /**
- * Tailwind CSS pipeline baseline for KD SOLUTION IT.
+ * Tailwind CSS configuration for KD SOLUTION IT.
  *
- * Sub-step 1.3 establishes the pipeline, the single breakpoint system and the
- * semantic color plumbing that binds every utility class to a CSS variable in
- * styles/globals.css. The full spacing, radius, shadow, z-index, typography
- * and contrast scales are declared in sub-steps 1.13 and 1.14; nothing in the
- * application may hardcode a color or spacing value outside these tokens.
+ * Every scale in this file comes from config/design-tokens.ts. No scale
+ * value is declared here, so there is exactly one place to change a token
+ * and exactly one place for scripts/checks/design-tokens.mjs to verify.
+ *
+ * Spacing, radius, shadow and z-index are replaced rather than extended: the
+ * default Tailwind steps that are not tokens do not exist, which turns a
+ * mistyped step (p-7) into a visibly unstyled element instead of a silent
+ * off-scale value. Semantic colors stay bound to the CSS variables declared
+ * in styles/globals.css.
  */
 const config = {
   darkMode: ['class'],
@@ -37,6 +48,10 @@ const config = {
         '2xl': '1400px',
       },
     },
+    spacing: SPACING_TOKENS,
+    borderRadius: RADIUS_CLASS_MAP,
+    boxShadow: SHADOW_CLASS_MAP,
+    zIndex: Z_INDEX_CLASS_MAP,
     extend: {
       colors: {
         border: 'hsl(var(--border))',
@@ -80,14 +95,6 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-      },
-      borderRadius: {
-        none: '0px',
-        sm: 'calc(var(--radius) - 4px)',
-        md: 'calc(var(--radius) - 2px)',
-        lg: 'var(--radius)',
-        xl: 'calc(var(--radius) + 4px)',
-        full: '9999px',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],

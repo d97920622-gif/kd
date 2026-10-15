@@ -44,6 +44,42 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 8px;
+
+    /* Shadow tokens (config/design-tokens.ts). The shadow color is a channel
+       triple so dark mode can strengthen the same shadow without touching a
+       component class. */
+    --shadow-color: 222 47% 11%;
+    --shadow-sm: 0 1px 2px 0 hsl(var(--shadow-color) / 0.06);
+    --shadow-md:
+      0 2px 4px -1px hsl(var(--shadow-color) / 0.08), 0 1px 2px -1px hsl(var(--shadow-color) / 0.06);
+    --shadow-lg:
+      0 8px 16px -4px hsl(var(--shadow-color) / 0.1), 0 2px 4px -2px hsl(var(--shadow-color) / 0.06);
+    --shadow-xl:
+      0 16px 32px -8px hsl(var(--shadow-color) / 0.12),
+      0 4px 8px -4px hsl(var(--shadow-color) / 0.08);
+    --shadow-2xl: 0 24px 48px -12px hsl(var(--shadow-color) / 0.18);
+
+    /* Z-index ladder (config/design-tokens.ts). CSS-level consumers use
+       these variables; components use the z-* utility classes. */
+    --z-hide: -1;
+    --z-base: 0;
+    --z-raised: 10;
+    --z-docked: 20;
+    --z-sticky: 30;
+    --z-sidebar: 40;
+    --z-skip-link: 45;
+    --z-overlay: 50;
+    --z-modal: 60;
+    --z-dropdown: 70;
+    --z-popover: 80;
+    --z-tooltip: 90;
+    --z-toast: 100;
+
+    /* Motion tokens (completed in sub-step 1.14). */
+    --transition-fast: 120ms;
+    --transition-base: 200ms;
+    --transition-slow: 320ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   }
 
   .dark {
@@ -71,6 +107,19 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
     --radius: 8px;
+
+    /* Dark surfaces need stronger shadows: the light-mode values are almost
+       invisible on a dark background. Color becomes pure black. */
+    --shadow-color: 0 0% 0%;
+    --shadow-sm: 0 1px 2px 0 hsl(var(--shadow-color) / 0.5);
+    --shadow-md:
+      0 2px 4px -1px hsl(var(--shadow-color) / 0.6), 0 1px 2px -1px hsl(var(--shadow-color) / 0.4);
+    --shadow-lg:
+      0 8px 16px -4px hsl(var(--shadow-color) / 0.65),
+      0 2px 4px -2px hsl(var(--shadow-color) / 0.45);
+    --shadow-xl:
+      0 16px 32px -8px hsl(var(--shadow-color) / 0.7), 0 4px 8px -4px hsl(var(--shadow-color) / 0.5);
+    --shadow-2xl: 0 24px 48px -12px hsl(var(--shadow-color) / 0.75);
   }
 
   * {

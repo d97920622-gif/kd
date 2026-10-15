@@ -13,7 +13,7 @@
  *   2. lint             eslint --max-warnings=0
  *   3. format:check     prettier --check .
  *   4. env:validate     environment schema against the current environment
- *   5..17               the thirteen rule checks in scripts/checks
+ *   5..18               the fourteen rule checks in scripts/checks
  *
  * The production build and the Lighthouse run are step gates, not part of
  * verify; they are executed separately and recorded in the step handoff.
@@ -39,6 +39,7 @@ const ENTRIES = [
   { name: 'check:no-tests', command: 'node', args: ['scripts/checks/no-tests.mjs'] },
   { name: 'check:path-comment', command: 'node', args: ['scripts/checks/path-comment.mjs'] },
   { name: 'check:i18n-strings', command: 'node', args: ['scripts/checks/i18n-strings.mjs'] },
+  { name: 'check:design-tokens', command: 'node', args: ['scripts/checks/design-tokens.mjs'] },
   { name: 'check:no-console', command: 'node', args: ['scripts/checks/no-console.mjs'] },
   {
     name: 'check:forbidden-brands',
