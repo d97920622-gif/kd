@@ -1,6 +1,8 @@
 // path: lib/env/validate-env.ts
 import { z } from 'zod';
 
+import { AppError } from '../errors/app-error';
+
 /**
  * Environment schema validation with boot-time fail fast.
  *
@@ -17,9 +19,11 @@ import { z } from 'zod';
  * the Next.js production build phase, where the deployment environment does
  * not need runtime secrets to compile the application.
  *
- * Sub-step 1.9 introduces the platform error catalogue; this boot error stays
- * a thin, dependency-free subclass so the very first line of the boot path
- * cannot fail for an unrelated reason.
+ * EnvValidationError extends AppError (lib/errors, sub-step 1.9) so the
+ * platform has one error hierarchy with one code per condition. The import
+ * is limited to the base class, which itself depends only on the error code
+ * catalogue, so validation can never fail for a reason unrelated to the
+ * environment it is checking.
  */
 
 /** Every variable the platform reads, in documentation order. */
@@ -98,14 +102,21 @@ export interface EnvIssue {
 }
 
 /** Thrown at boot when the environment does not satisfy the schema. */
-export class EnvValidationError extends Error {
+export class EnvValidationError extends AppError {
   readonly issues: readonly EnvIssue[];
 
   constructor(issues: readonly EnvIssue[]) {
-    super('Environment validation failed');
-    this.name = 'EnvValidationError';
+    super('env_validation_failed', 'The service configuration is incomplete.', {
+      internalMessage: describeIssues(issues),
+      exposeMessage: false,
+    });
     this.issues = issues;
   }
+}
+
+/** Internal, value-free description of the failing keys. */
+function describeIssues(issues: readonly EnvIssue[]): string {
+  return `env validation failed: ${issues.map((issue) => `${issue.key} ${issue.message}`).join('; ')}`;
 }
 
 /** True while Next.js runs the production build compiler. */
