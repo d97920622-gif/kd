@@ -51,6 +51,91 @@ release merges.
 Set the Netlify production branch to `integration`. Preview deploys come from
 the session branch pull requests automatically.
 
+## 2A. Three ways to run the one-time setup (pick one)
+
+The three commands from section 2.1 are git commands, so they run in a
+terminal or in a browser-based terminal, never in a chat message box. Choose
+the route that fits your situation.
+
+### Route A -- GitHub web interface only (no terminal, no installation)
+
+1. Open the repository on GitHub.
+2. Click the branch selector (it currently shows `arena/457d65a6-kd`).
+3. Click View all branches, then New branch.
+4. Source: `arena/457d65a6-kd`. Branch name: `integration`. Click Create.
+5. Settings, General, Default branch, switch to `integration`, confirm.
+6. Settings, Branches, add a protection rule for `integration` (require a pull
+   request, require status checks once CI exists, no force push, no delete).
+7. Open your hosting project and set the production branch to `integration`.
+8. Leave `arena/457d65a6-kd` in place; it is the safety copy of the plan.
+
+### Route B -- Browser terminal with GitHub Codespaces (no installation)
+
+1. Open the repository on GitHub, click Code, then Codespaces, then Create
+   codespace on `arena/457d65a6-kd`.
+2. In the Codespace editor open the terminal panel: Terminal, New Terminal.
+3. Paste the three commands from section 2.1 and press Enter after each one.
+4. When the push finishes, go back to GitHub and continue from step 5 of
+   Route A.
+5. Stop the codespace when done; it is only used for this one-time setup.
+
+### Route C -- Your own computer (Windows, macOS or Linux)
+
+1. Install git if it is not installed: on Windows install Git for Windows,
+   which provides the Git Bash terminal; on macOS run `xcode-select --install`;
+   on Linux install the `git` package.
+2. Open a terminal: Windows Git Bash or PowerShell, macOS Terminal, or your
+   Linux shell.
+3. Create a working folder and clone the repository:
+
+```bash
+mkdir kd-work
+cd kd-work
+git clone https://github.com/d97920622-gif/kd.git
+cd kd
+```
+
+4. Run the three commands from section 2.1:
+
+```bash
+git fetch origin
+git checkout -b integration origin/arena/457d65a6-kd
+git push -u origin integration
+```
+
+5. Verify:
+
+```bash
+git branch -a
+git log --oneline -3
+```
+
+The output must show a local `integration` branch and the three planning
+commits: `08041a9`, `f73201f` and `44a1a0b`.
+
+6. Sign in once if git asks for credentials: use the GitHub login prompt or a
+   personal access token with repository write scope.
+7. Continue from step 5 of Route A for the GitHub settings.
+
+### What not to do
+
+- Do not run these commands inside a chat message; a chat is not a terminal.
+- Do not delete `arena/457d65a6-kd`; keep it as a backup of the planning work.
+- Do not create `integration` from `main` or from an empty state; its source
+  must be `arena/457d65a6-kd`, which contains the plan and the prompts.
+- Do not let the build chats create or rename branches; they only commit and
+  push their own session branch.
+
+### Verification after the setup
+
+| Check | Expected result |
+| --- | --- |
+| GitHub, branches list | `integration` exists and is marked as the default branch |
+| GitHub, `integration` tree | `MASTER_PROMPT.md`, `FEATURE_LIST.md` and `docs/PLAN/` with sixteen prompts are present |
+| GitHub, protection rule | Pull request required, force push and deletion blocked |
+| Hosting project | Production branch is `integration` |
+| New chat in the workspace | The branch selector shows `integration` as the base |
+
 ## 3. Which branch to select in a new chat
 
 | Situation | Begin the chat from | Why |
