@@ -22,6 +22,11 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "env:validate": "tsx --env-file-if-exists=.env lib/env/cli.ts",
+    "check:english-only": "node scripts/checks/english-only.mjs",
+    "check:no-todo": "node scripts/checks/no-todo.mjs",
+    "check:no-coming-soon": "node scripts/checks/no-coming-soon.mjs",
+    "check:no-tests": "node scripts/checks/no-tests.mjs",
+    "check:path-comment": "node scripts/checks/path-comment.mjs",
     "prepare": "husky"
   },
   "lint-staged": {
