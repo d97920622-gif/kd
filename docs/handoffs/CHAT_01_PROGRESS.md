@@ -4,6 +4,7 @@
 
 Status: in progress
 Current segment: 1B (core libraries and design system) -- in progress
+Last completed sub-step: 1.13 (design tokens A) at 2f25ca8. Next sub-step: 1.14 (design tokens B).
 Segment 1A: complete
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
@@ -49,7 +50,7 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 | 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | done    | to fill at handoff |
 | 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | done    | to fill at handoff |
 | 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | done    | to fill at handoff |
-| 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | pending | -                  |
+| 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | done    | 2f25ca8            |
 | 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | pending | -                  |
 | 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | pending | -                  |
 | 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | pending | -                  |
@@ -89,6 +90,42 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.13 evidence -- design tokens A
+
+Delivered: config/design-tokens.ts (spacing, radius, shadow and z-index ladders
+plus state and motion variables), tailwind.config.ts wired to those exports by
+identifier, the --shadow-* and --z-* variables declared in :root and .dark in
+styles/globals.css, and scripts/checks/design-tokens.mjs as the 18th verify
+entry (package.json, scripts/verify.mjs and the README script row updated).
+
+Negative probes, each reverted after the run:
+
+- p-[13px], z-[9999] and bg-[#ff0000] in a className and in a cn() argument:
+  one arbitrary-value finding per bracket value, with duplicates suppressed.
+- Hex color in a TS module, an rgb() literal and an inline style with a raw
+  margin, color and hex value: raw-value and inline-style findings. The same
+  style block with opacity, fontWeight, order and zIndex var(--z-modal) passed,
+  so unitless and tokenized properties are not false positives.
+- theme.spacing and theme.zIndex replaced by inline literal scales, and the
+  token import removed: "must be the SPACING_TOKENS/Z_INDEX_CLASS_MAP
+  identifier" plus "must import its scales from ./config/design-tokens".
+- Ladder mutations: a duplicate z-index value, a layer moved below its
+  predecessor, a renamed spacing step keeping the old value, and a wrong
+  spacing value. All reported, and the stylesheet then reported the mismatch
+  between --z-popover and the mutated ladder.
+- styles/globals.css mutations: --shadow-xl and --z-modal deleted, a bogus
+  --z-debug-overlay added. Missing and unknown variables both reported.
+- Positive control: a component using cn(), a conditional class, a template
+  literal class, token classes and a var(--z-modal) inline value passed with a
+  non-zero class-list counter.
+
+Compiled-CSS proof: npx tailwindcss produced p-4 = 16px, px-2.5 = 10px,
+h-10 = 40px and z-modal = 60. The off-scale steps p-7, h-7, h-12, gap-7 and
+shadow-3xl do not exist because the scales replace Tailwind's defaults instead
+of extending them.
+
+npm run verify at 2f25ca8: RESULT PASS (18 of 18 checks passed).
 
 ## Working rhythm (owner instruction, effective 2026-10-16)
 
@@ -149,5 +186,5 @@ None recorded.
   SECRET_ENV_KEYS, PRODUCTION_REQUIRED_KEYS) when a sub-step adds variables.
 - LICENSE and package.json `license` are UNLICENSED until sub-step 1.31.
 - Tailwind theme extension points are ready in tailwind.config.ts (colors
-  already bound to CSS variables in styles/globals.css); sub-steps 1.13 and
-  1.14 fill the token scales there.
+  already bound to CSS variables in styles/globals.css); 1.13 filled spacing,
+  radius, shadow and z-index; 1.14 fills colour, typography and motion.
