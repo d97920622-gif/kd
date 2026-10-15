@@ -1,4 +1,5 @@
 // path: README.md
+
 # KD SOLUTION IT
 
 Enterprise multi-tenant SaaS platform for invoicing, payments, payroll and
@@ -12,11 +13,84 @@ accounting, built for the Asian market.
 
 ## Specification sources
 
-| File | Role |
-| --- | --- |
-| `MASTER_PROMPT.md` | Binding specification: absolute rules, stack, schema rules, security layers |
-| `FEATURE_LIST.md` | Owner-supplied feature list (3,950 features, eleven parts). It is the only file allowed to contain non-ASCII characters |
-| `docs/PLAN/` | The execution plan: sixteen steps, sub-step work orders, segment guide, guardrails, traceability, provider registry, revision 2 additions, chat prompts |
+| File               | Role                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MASTER_PROMPT.md` | Binding specification: absolute rules, stack, schema rules, security layers                                                                             |
+| `FEATURE_LIST.md`  | Owner-supplied feature list (3,950 features, eleven parts). It is the only file allowed to contain non-ASCII characters                                 |
+| `docs/PLAN/`       | The execution plan: sixteen steps, sub-step work orders, segment guide, guardrails, traceability, provider registry, revision 2 additions, chat prompts |
+
+## Local development setup
+
+1. Install Node.js 20 or newer (the build sandbox runs Node 22) and npm 10 or
+   newer.
+2. Run `npm install`. This installs dependencies and activates the Git hooks
+   (husky installs `.husky/pre-commit` and `.husky/commit-msg`).
+3. Run `cp .env.example .env` and fill the local values. `.env` is gitignored
+   and must never be committed.
+4. Run `npm run dev` for the development server on http://localhost:3000.
+5. Run `npm run verify` before every commit. The same command is the CI gate.
+
+## Toolchain
+
+| Area       | Choice                                                                 |
+| ---------- | ---------------------------------------------------------------------- |
+| Runtime    | Node.js 20+ (LTS) with npm                                             |
+| Framework  | Next.js 15, App Router, React Server Components                        |
+| Language   | TypeScript 5 in strict mode, zero `any`                                |
+| Styling    | Tailwind CSS 3 with CSS variable design tokens in `styles/globals.css` |
+| Components | shadcn/ui on Radix primitives, single icon set (Lucide)                |
+| Validation | Zod on the client and on the server, one schema per entity             |
+| Money      | decimal.js, USD only, numeric(18,4) in the database                    |
+| Quality    | ESLint, Prettier, husky, lint-staged and the check scripts below       |
+
+## Quality gates and scripts
+
+`npm run verify` is the single gate. It runs the type checker, the linter,
+the formatter check, the environment validation and all twelve rule checks in
+a fixed order, prints one PASS or FAIL line per entry, and exits with code 0
+only when everything passed. The pre-commit hook runs lint-staged and then
+`npm run verify`, so a failing gate can never be committed.
+
+| Script                           | Purpose                                                         |
+| -------------------------------- | --------------------------------------------------------------- |
+| `npm run dev`                    | Development server.                                             |
+| `npm run build`                  | Production build.                                               |
+| `npm run start`                  | Start the production build.                                     |
+| `npm run lint`                   | ESLint with zero warnings allowed.                              |
+| `npm run lint:fix`               | ESLint with automatic fixes.                                    |
+| `npm run format`                 | Prettier write over the repository.                             |
+| `npm run format:check`           | Prettier check, used by verify.                                 |
+| `npm run typecheck`              | TypeScript compiler in check mode.                              |
+| `npm run env:validate`           | Validates the environment against `lib/env/validate-env.ts`.    |
+| `npm run verify`                 | Every gate in one command, CI-ready exit code.                  |
+| `npm test`                       | Alias of `npm run verify`; the platform ships no test runner.   |
+| `npm run check:english-only`     | ASCII-only scan; `FEATURE_LIST.md` is the documented exemption. |
+| `npm run check:no-todo`          | No unfinished-work markers in any file.                         |
+| `npm run check:no-coming-soon`   | No unfinished-launch or filler wording in any file.             |
+| `npm run check:no-tests`         | No test file, test directory or test framework dependency.      |
+| `npm run check:path-comment`     | First line of every source file declares its path.              |
+| `npm run check:no-console`       | The console object is forbidden outside process streams.        |
+| `npm run check:forbidden-brands` | The Rule 5 partner naming convention is enforced.               |
+| `npm run check:migration-pairs`  | Every migration has a rollback file with the same timestamp.    |
+| `npm run check:dead-links`       | Internal links and nav entries resolve to real routes.          |
+| `npm run check:secrets`          | No credential, key or token is committed.                       |
+| `npm run check:any-types`        | The `any` type is forbidden in TypeScript sources.              |
+| `npm run check:money-math`       | No JavaScript numeric arithmetic on monetary values.            |
+
+### Documented exemptions
+
+Checks scan git-tracked files only. Three exemption lists exist, and nothing
+outside them is exempt:
+
+1. English-only: `FEATURE_LIST.md`, the owner-supplied specification. The
+   exemption is recorded in `docs/ADR/ADR-0002-english-only-exception.md`.
+2. Content phrases (unfinished-work markers, launch wording and the partner
+   brand list): the governance corpus that restates the rules, which is
+   `FEATURE_LIST.md`, `MASTER_PROMPT.md`, `README.md`, `docs/PLAN/**` and
+   `docs/handoffs/**`, plus each check script's own pattern definitions.
+3. Path comments: owner-supplied and generated files (`MASTER_PROMPT.md`,
+   `FEATURE_LIST.md`, `LICENSE`, `next-env.d.ts`, JSON and lockfiles), binary
+   assets, and files that cannot carry a comment.
 
 ## Start here
 
@@ -49,24 +123,24 @@ is self-sufficient and states its scope, rules, gates and handoff duty.
 
 ## Step map
 
-| Step | Title |
-| --- | --- |
-| 1 | Foundation, governance, design system, layout architecture |
-| 2 | Database foundation, migrations, RLS, encryption, audit ledger |
-| 3 | Authentication, 2FA, passkeys, session registry, login lock, VPN/proxy/Tor blocking |
-| 4 | Roles, permissions, approval engine, approval inbox, enterprise access, onboarding, settings, KYC, notifications, platform billing |
-| 5 | Invoicing core, documents, PDF engine, numbering, editor experience |
-| 6 | CRM, catalog, inventory, suppliers, e-commerce sync, dashboards, reports, tax engine, batch |
-| 7 | Storage abstraction, file security, file records |
-| 8 | Payment framework core, card rules, 3DS policy, advanced card risk, routing, super admin API console |
-| 9 | Sixteen processor adapters, NMI dual mode, advanced capabilities, sandbox validation |
-| 10 | Checkout design, payment experience, wallet, merchant of record, payouts, disputes, consent evidence, subscriptions, BNPL |
-| 11 | Client portal, token checkout page, tokenized access, email journey, branding, white-label, document integrity |
-| 12 | Universal SMTP, WhatsApp, social, public API v1, webhooks, integrations, support, channel transparency |
-| 13 | Payroll, HR, expenses, double-entry accounting, tax liability and remittance, financial statements, reports |
-| 14 | Super admin console, CMS, SEO, analytics, marketing, growth, platform intelligence, trust publishing |
-| 15 | Deep security, privacy experience, deception and anomaly, compliance, fraud, tracking, zero trust, conflict and duplicate finalization |
-| 16 | Deployment, CI/CD, cron, documentation, PWA security, performance, backup and disaster recovery, launch |
+| Step | Title                                                                                                                                  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Foundation, governance, design system, layout architecture                                                                             |
+| 2    | Database foundation, migrations, RLS, encryption, audit ledger                                                                         |
+| 3    | Authentication, 2FA, passkeys, session registry, login lock, VPN/proxy/Tor blocking                                                    |
+| 4    | Roles, permissions, approval engine, approval inbox, enterprise access, onboarding, settings, KYC, notifications, platform billing     |
+| 5    | Invoicing core, documents, PDF engine, numbering, editor experience                                                                    |
+| 6    | CRM, catalog, inventory, suppliers, e-commerce sync, dashboards, reports, tax engine, batch                                            |
+| 7    | Storage abstraction, file security, file records                                                                                       |
+| 8    | Payment framework core, card rules, 3DS policy, advanced card risk, routing, super admin API console                                   |
+| 9    | Sixteen processor adapters, NMI dual mode, advanced capabilities, sandbox validation                                                   |
+| 10   | Checkout design, payment experience, wallet, merchant of record, payouts, disputes, consent evidence, subscriptions, BNPL              |
+| 11   | Client portal, token checkout page, tokenized access, email journey, branding, white-label, document integrity                         |
+| 12   | Universal SMTP, WhatsApp, social, public API v1, webhooks, integrations, support, channel transparency                                 |
+| 13   | Payroll, HR, expenses, double-entry accounting, tax liability and remittance, financial statements, reports                            |
+| 14   | Super admin console, CMS, SEO, analytics, marketing, growth, platform intelligence, trust publishing                                   |
+| 15   | Deep security, privacy experience, deception and anomaly, compliance, fraud, tracking, zero trust, conflict and duplicate finalization |
+| 16   | Deployment, CI/CD, cron, documentation, PWA security, performance, backup and disaster recovery, launch                                |
 
 ## Branch policy
 

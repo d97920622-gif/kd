@@ -14,18 +14,19 @@ handoff is written.
 
 ## SEGMENT 1A -- Toolchain and quality gates (chat 1 of 4)
 
-| Sub-step | Description                                                                                                                    | Status  | Commit             |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------ |
-| 1.1      | Repository toolchain baseline: package.json, tsconfig.json, next.config.js, .prettierrc, .gitignore, husky hooks, lint-staged  | done    | to fill at handoff |
-| 1.2      | ESLint configuration: no-explicit-any error, no-console error, non-ASCII restricted syntax, import order, React and Next rules | done    | to fill at handoff |
-| 1.3      | Tailwind and token pipeline: tailwind.config.ts, PostCSS, components.json, CSS layer structure                                 | done    | to fill at handoff |
-| 1.4      | Environment schema validation: lib/env/validate-env.ts, boot-time fail fast, typed access, .env.example                        | done    | to fill at handoff |
-| 1.5      | Check scripts A: english-only, no-todo, no-coming-soon, no-tests, path-comment                                                 | done    | to fill at handoff |
-| 1.6      | Check scripts B: no-console, forbidden-brands, migration-pairs, dead-links, secrets, any-types, money-math                     | done    | to fill at handoff |
-| 1.7      | Verify runner: npm run verify, report format, pre-commit and commit-msg wiring, CI-ready exit codes                            | pending | -                  |
+| Sub-step | Description                                                                                                                    | Status | Commit             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------ |
+| 1.1      | Repository toolchain baseline: package.json, tsconfig.json, next.config.js, .prettierrc, .gitignore, husky hooks, lint-staged  | done   | to fill at handoff |
+| 1.2      | ESLint configuration: no-explicit-any error, no-console error, non-ASCII restricted syntax, import order, React and Next rules | done   | to fill at handoff |
+| 1.3      | Tailwind and token pipeline: tailwind.config.ts, PostCSS, components.json, CSS layer structure                                 | done   | to fill at handoff |
+| 1.4      | Environment schema validation: lib/env/validate-env.ts, boot-time fail fast, typed access, .env.example                        | done   | to fill at handoff |
+| 1.5      | Check scripts A: english-only, no-todo, no-coming-soon, no-tests, path-comment                                                 | done   | to fill at handoff |
+| 1.6      | Check scripts B: no-console, forbidden-brands, migration-pairs, dead-links, secrets, any-types, money-math                     | done   | to fill at handoff |
+| 1.7      | Verify runner: npm run verify, report format, pre-commit and commit-msg wiring, CI-ready exit codes                            | done   | to fill at handoff |
 
 Segment 1A gate: every check script runs on the current tree without false
-positives; all scripts documented in README.md. Status: pending.
+positives; all scripts documented in README.md. Status: passing (evidence in
+CHAT_01_COMPLETED.md).
 
 ## SEGMENT 1B -- Core libraries and design system (chat 2 of 4)
 

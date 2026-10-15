@@ -22,6 +22,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "env:validate": "tsx --env-file-if-exists=.env lib/env/cli.ts",
+    "verify": "node scripts/verify.mjs",
+    "test": "npm run verify",
     "check:english-only": "node scripts/checks/english-only.mjs",
     "check:no-todo": "node scripts/checks/no-todo.mjs",
     "check:no-coming-soon": "node scripts/checks/no-coming-soon.mjs",
