@@ -4,7 +4,7 @@
 
 Status: in progress
 Current segment: 1B (core libraries and design system) -- in progress
-Last completed sub-step: 1.14 (design tokens B) at 6eb05dd. Next sub-step: 1.15 (shadcn/ui primitives A).
+Last completed sub-step: 1.15 (shadcn/ui primitives A) at cdba8d2. Next sub-step: 1.16 (shadcn/ui primitives B).
 Segment 1A: complete
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
@@ -52,7 +52,7 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 | 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | done    | to fill at handoff |
 | 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | done    | 2f25ca8            |
 | 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | done    | 6eb05dd            |
-| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | pending | -                  |
+| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | done    | cdba8d2            |
 | 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | pending | -                  |
 | 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | pending | -                  |
 
@@ -90,6 +90,79 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.15 evidence -- shadcn/ui primitives A
+
+Delivered eight primitives in components/ui: button (six variants, four
+sizes, asChild), input, textarea, label, checkbox, radio group, select and
+switch, plus the ui string namespace for accessible names that have no
+visible text. Dependencies added: the six Radix packages, class-variance-
+authority and lucide-react.
+
+Review-grade decisions recorded in the files themselves:
+
+- Touch targets. Default and lg controls are 44px and 48px tall and the icon
+  button is 44x44. The sm step (36px) exists for pointer-driven dense
+  toolbars. A control whose visible shape must stay small gets its 44x44
+  pointer target from a pseudo-element whose content is the empty string, so
+  the target grows while the box, the check mark and the switch track look
+  unchanged.
+- Text sizes. Text a user types or reads as content is 16px, because an input
+  below 16px makes iOS Safari zoom the viewport on focus. Button labels are
+  14px: a button never receives text input and never triggers that zoom.
+- Focus. No primitive sets outline-none anywhere. The indicator comes from the
+  global :focus-visible rule, which the contrast check already holds at 3:1 in
+  all four themes against both the page and the card surface.
+- Select layering uses the z-dropdown layer, above a modal, because a select is
+  often opened inside a dialog. The content width and maximum height come from
+  the variables Radix measures, never from a raw pixel value.
+- Radix Select emits the combobox pattern (role combobox, aria-expanded,
+  aria-autocomplete) rather than aria-haspopup, and renders a hidden native
+  select so the value still submits inside a plain form. Both were verified in
+  the rendered markup rather than assumed.
+
+Two defects found by the evidence runs, both fixed in the code:
+
+- aria-invalid:border-destructive produced no CSS at all. Tailwind 3.4 ships
+  aria variants for busy, checked, disabled, expanded, hidden, pressed,
+  readonly, required and selected, and invalid is not one of them, so the
+  invalid styling was silently dead. The primitives now use the arbitrary
+  variant aria-[invalid=true]:border-destructive, which compiles to
+  [aria-invalid="true"] and matches what React renders.
+- The first probe run asserted an aria-haspopup attribute the library does not
+  emit, which would have shipped a wrong claim in the handoff; the assertion
+  now matches the real contract.
+
+Evidence:
+
+- Class compilation probe: 121 class tokens collected from the eight files with
+  the TypeScript API, compiled with Tailwind against exactly those files as
+  content. Every token produced CSS, so no class name is a typo or an
+  off-scale step. Sixteen declaration expectations verified, including h-11
+  equals 44px, size-11 equals 44x44, the checkbox hit area is inset -14px, the
+  switch hit area is -10px vertically, the switch thumb travels 20px, the
+  textarea floor is 64px, aria-[invalid=true] borders with destructive, the
+  empty-content pseudo-element renders, and the select content sits at z-index 70. Negative controls confirm p-7, min-h-20, text-mdup, h-13 and gap-7
+  generate no CSS at all.
+- Render probe: 70 assertions over server-rendered markup. Button type,
+  variants, sizes, asChild and disabled; input type passthrough, autocomplete,
+  aria-invalid, disabled and the 16px text; textarea rows and resize policy;
+  label for attribute; checkbox role, aria-checked false/true/mixed and
+  data-state; radiogroup role with two radio items and checked state; switch
+  role with both states; select combobox role, aria-expanded, the hidden native
+  select and the catalogue placeholder text. Catalogue scroll_up and scroll_down
+  resolve.
+- Rule probes: a literal aria-label in select.tsx fails check:i18n-strings with
+  two findings; p-[13px] and bg-[#ff0000] in checkbox.tsx fail
+  check:design-tokens with three findings. Both reverted.
+
+Note for 1.16: the segment gate asks for a component gallery route that renders
+every primitive in light, dark, high contrast and reduced motion. The route is
+not created in 1.15 and belongs to 1.16 or 1.17, and the select content cannot
+be server-rendered because Radix renders it in a portal, so the gallery is what
+will show it.
+
+npm run verify at cdba8d2: RESULT PASS (20 of 20 checks passed).
 
 ## Sub-step 1.14 evidence -- design tokens B
 
