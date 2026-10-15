@@ -4,7 +4,7 @@
 
 Status: in progress
 Current segment: 1B (core libraries and design system) -- in progress
-Last completed sub-step: 1.13 (design tokens A) at 2f25ca8. Next sub-step: 1.14 (design tokens B).
+Last completed sub-step: 1.14 (design tokens B) at 6eb05dd. Next sub-step: 1.15 (shadcn/ui primitives A).
 Segment 1A: complete
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
@@ -51,7 +51,7 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 | 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | done    | to fill at handoff |
 | 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | done    | to fill at handoff |
 | 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | done    | 2f25ca8            |
-| 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | pending | -                  |
+| 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | done    | 6eb05dd            |
 | 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | pending | -                  |
 | 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | pending | -                  |
 | 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | pending | -                  |
@@ -90,6 +90,72 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.14 evidence -- design tokens B
+
+Delivered: typography (nine sizes with line height and tracking, four weights,
+two font stacks), motion (five durations with a reduced-motion value each and
+four easing curves), the palette as 23 semantic roles in four themes (light,
+dark, high-contrast light, high-contrast dark), the WCAG contrast contract as
+19 enforced pairs, the token JSON export, and two new verify entries.
+
+Palette defects the new check found and forced a fix for, all in the shipped
+values rather than in the check:
+
+- light muted-foreground on the muted surface was 4.34:1, below AA. The token
+  is now 215.4 16.3% 40% (5.58:1).
+- light success surface carried near-white text at 3.00:1 and the warning
+  surface at 2.91:1. Success is now 142.1 76.2% 28% with its near-white label
+  at 4.72:1, and the warning surface takes a black label at 6.58:1.
+- dark destructive as link text on the canvas was 2:1: a dark red cannot be
+  both a danger surface under light text and danger text on a near-black
+  canvas. The dark theme now uses the tonal pattern, a vivid red 0 72% 60%
+  with a black label, which satisfies both directions.
+- light and dark input boundaries were 1.23:1 and 1.37:1 against the canvas,
+  below the 3:1 requirement for the visible boundary of a control. They are
+  now 215.4 16.3% 55% and 217.2 32.6% 45%.
+- dark ring against the canvas was 2.98:1, just under the 3:1 focus
+  requirement. The dark ring is now the dark primary, 5.44:1.
+
+A silent configuration failure was found and closed while proving the wiring.
+Once config/design-tokens.json existed, the extensionless import
+'./config/design-tokens' in tailwind.config.ts resolved to that JSON file
+inside Tailwind's own config loader: every named import became undefined,
+Tailwind fell back to its default scales, and nothing failed - the config
+looked correct because it still imported by identifier. The import in
+tailwind.config.ts and scripts/export-design-tokens.ts now carries the .ts
+extension, tsconfig enables allowImportingTsExtensions, and
+check:design-tokens fails any extensionless import of the token module. Proof:
+with the extension, @apply p-4 text-base z-modal duration-fast in a probe
+stylesheet compiles to padding 16px, font-size 16px with line-height 24px,
+z-index 60 and transition-duration 120ms.
+
+Negative probes, each reverted after the run, 24 of 24 caught:
+
+- Contrast: a light text pair below 4.5:1, a high contrast text pair below
+  7:1, an HSL triple replaced by a hex value, a role missing from a theme
+  (parity), a stylesheet value edited alone, a color variable outside the role
+  list, and a dark block missing a role.
+- Typography: body size reduced to 14px, a required step renamed, a line
+  height below its font size, and a non-ascending scale.
+- Motion: reducedValue no longer 0ms, a duration in seconds, a missing easing
+  curve, an invented easing value, durations not zeroed in the reduced motion
+  block, a renamed reduced motion media query, a forced colors border rule
+  replaced, and a focus ring color that is not Highlight.
+- Wiring and export: an inline fontSize literal, a missing
+  transitionDuration wiring, a removed motion variable, an invented z-index
+  layer, and a stale config/design-tokens.json.
+
+Positive control: a probe component using only token classes passes, and
+config/design-tokens.json is byte-identical on regeneration.
+
+Design decisions recorded in the token module: large text may use 3:1, but
+every text pair is verified at 4.5:1 so the display sizes keep headroom; the
+border role is a documented decorative divider, while the input role carries
+the 3:1 control boundary requirement; high contrast text pairs must reach 7:1
+in both themes.
+
+npm run verify at 6eb05dd: RESULT PASS (20 of 20 checks passed).
 
 ## Sub-step 1.13 evidence -- design tokens A
 
@@ -187,4 +253,7 @@ None recorded.
 - LICENSE and package.json `license` are UNLICENSED until sub-step 1.31.
 - Tailwind theme extension points are ready in tailwind.config.ts (colors
   already bound to CSS variables in styles/globals.css); 1.13 filled spacing,
-  radius, shadow and z-index; 1.14 fills colour, typography and motion.
+  radius, shadow and z-index; 1.14 filled colour (four themes), typography and
+  motion and added the token JSON export. Component primitives in 1.15 and
+  1.16 must use role classes only (bg-primary, text-muted-foreground,
+  border-input) and text steps from the typography scale.
