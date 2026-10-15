@@ -17,9 +17,12 @@
  *
  * 3. No arbitrary Tailwind values in application code. A class such as
  *    p-[13px] or z-[9999] is rejected. Bracket values that reference a token
- *    through a CSS variable (var(--...)) or that define one (--name: ...)
- *    are allowed, because they consume the token system rather than bypass
- *    it.
+ *    through a CSS variable (var(--...)), that define one (--name: ...), or
+ *    that are the empty content of a pseudo-element (content-[''], which
+ *    renders nothing and only widens a pointer target) are allowed, because
+ *    they consume the token system rather than bypass it. A bracket in the
+ *    variant position, such as data-[state=checked]:bg-primary, is a state
+ *    selector and is not a value at all.
  *
  * 4. No raw color or spacing literals in application code: hex colors,
  *    rgb()/hsl() literals and inline style values are rejected outside the
@@ -382,13 +385,37 @@ function checkTailwindConfig(file, text) {
   return findings;
 }
 
-/** Bracket values that consume the token system instead of bypassing it. */
+/**
+ * Bracket values that consume the token system instead of bypassing it:
+ *
+ *   var(--token)      an existing CSS variable, for example the Radix
+ *                     measured width of a select trigger;
+ *   --name: value     a variable definition inside a bracket;
+ *   '' or ""          the empty content of a pseudo-element, used to give a
+ *                     small control a larger pointer target. It carries no
+ *                     design value: nothing is rendered.
+ */
 function isAllowedBracketValue(inner) {
   const trimmed = inner.trim();
   if (trimmed.startsWith('--')) {
     return true;
   }
+  if (trimmed === "''" || trimmed === '""') {
+    return true;
+  }
   return trimmed.includes('var(--');
+}
+
+/**
+ * True when a bracket is a variant selector rather than a value: the
+ * character right after the closing bracket is a colon, as in
+ * data-[state=checked]:bg-primary or [&_svg]:size-4. A bracket in the variant
+ * position selects a state and cannot carry a raw design value, so it is not
+ * inspected; a bracket at the end of the utility is a value and must be a
+ * token reference.
+ */
+function isVariantBracket(text, matchIndex, matchLength) {
+  return text[matchIndex + matchLength] === ':';
 }
 
 /**
@@ -507,14 +534,15 @@ function checkArbitraryValues(file, text) {
     let match = ARBITRARY_VALUE_PATTERN.exec(entry.text);
     while (match !== null) {
       const inner = match[1];
-      if (!isAllowedBracketValue(inner)) {
+      const isVariant = isVariantBracket(entry.text, match.index, match[0].length);
+      if (!isVariant && !isAllowedBracketValue(inner)) {
         const offset = entry.start + findOffsetInRaw(entry, match[0]);
         const { line, column } = positionOf(text, offset);
         findings.push({
           file,
           line,
           column,
-          message: `arbitrary Tailwind value [${inner}] is not a token; add a token to config/design-tokens.ts`,
+          message: `arbitrary Tailwind value [${inner}] is not a token; add a token to config/design-tokens.ts or reference a CSS variable`,
         });
       }
       match = ARBITRARY_VALUE_PATTERN.exec(entry.text);

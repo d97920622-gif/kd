@@ -19,15 +19,17 @@
  */
 import { common } from './en/common';
 import { errors } from './en/errors';
+import { ui } from './en/ui';
 import { validation } from './en/validation';
 
 export const en = {
   common,
   errors,
+  ui,
   validation,
 } as const;
 
 /** Shape of the English catalogue, used to derive the key union. */
 export type EnglishCatalogue = typeof en;
 
-export { common, errors, validation };
+export { common, errors, ui, validation };

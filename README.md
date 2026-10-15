@@ -32,16 +32,16 @@ accounting, built for the Asian market.
 
 ## Toolchain
 
-| Area       | Choice                                                                 |
-| ---------- | ---------------------------------------------------------------------- |
-| Runtime    | Node.js 20+ (LTS) with npm                                             |
-| Framework  | Next.js 15, App Router, React Server Components                        |
-| Language   | TypeScript 5 in strict mode, zero `any`                                |
-| Styling    | Tailwind CSS 3 with CSS variable design tokens in `styles/globals.css` |
-| Components | shadcn/ui on Radix primitives, single icon set (Lucide)                |
-| Validation | Zod on the client and on the server, one schema per entity             |
-| Money      | decimal.js, USD only, numeric(18,4) in the database                    |
-| Quality    | ESLint, Prettier, husky, lint-staged and the check scripts below       |
+| Area       | Choice                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| Runtime    | Node.js 20+ (LTS) with npm                                                                     |
+| Framework  | Next.js 15, App Router, React Server Components                                                |
+| Language   | TypeScript 5 in strict mode, zero `any`                                                        |
+| Styling    | Tailwind CSS 3 with CSS variable design tokens in `styles/globals.css`                         |
+| Components | shadcn/ui on Radix primitives, class-variance-authority for variants, single icon set (Lucide) |
+| Validation | Zod on the client and on the server, one schema per entity                                     |
+| Money      | decimal.js, USD only, numeric(18,4) in the database                                            |
+| Quality    | ESLint, Prettier, husky, lint-staged and the check scripts below                               |
 
 ## Quality gates and scripts
 
@@ -95,6 +95,39 @@ outside them is exempt:
 3. Path comments: owner-supplied and generated files (`MASTER_PROMPT.md`,
    `FEATURE_LIST.md`, `LICENSE`, `next-env.d.ts`, JSON and lockfiles), binary
    assets, and files that cannot carry a comment.
+
+## Component library state
+
+`components/ui/` holds the shadcn/ui primitives built on Radix. Every class
+comes from the design tokens, so light, dark, high contrast light and high
+contrast dark are complete without a conditional style, and `npm run verify`
+fails on a raw color, a raw size or an arbitrary value.
+
+| Primitive   | File                            | Notes                                                                                       |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| Button      | `components/ui/button.tsx`      | Variants default, destructive, outline, secondary, ghost, link; sizes sm, default, lg, icon |
+| Input       | `components/ui/input.tsx`       | 44px tall, 16px text so iOS never zooms on focus, destructive boundary when invalid         |
+| Textarea    | `components/ui/textarea.tsx`    | Starts at the 64px token, vertical resize only                                              |
+| Label       | `components/ui/label.tsx`       | Radix association, dims with a disabled control through the peer variants                   |
+| Checkbox    | `components/ui/checkbox.tsx`    | Role checkbox, checked and indeterminate states, 44x44 pointer target                       |
+| Radio group | `components/ui/radio-group.tsx` | Roving tabindex and arrow key navigation, 44x44 pointer target                              |
+| Select      | `components/ui/select.tsx`      | Combobox with listbox, keyboard and type-ahead navigation, hidden native select for forms   |
+| Switch      | `components/ui/switch.tsx`      | Role switch, thumb travel of one token step, 44px vertical pointer target                   |
+
+Three rules the primitives follow, each one enforced rather than promised:
+
+1. **Touch targets.** Interactive controls are at least 44x44. A control whose
+   visible shape must stay small (a 16px checkbox or radio, a 24px switch
+   track) gets its pointer target from a pseudo-element that renders nothing at
+   all, so the target grows and nothing visible changes.
+2. **Focus is never removed.** No primitive sets `outline-none`; the focus
+   indicator comes from the global `:focus-visible` rule, and the contrast
+   check proves it reaches 3:1 against both the page and the card surface in
+   every theme.
+3. **Display text comes from the catalogue.** A part of a control that has no
+   visible text, such as the icon-only scroll button of a select, carries an
+   accessible name from `lib/i18n/strings/en/ui.ts`. A literal string in an
+   `aria-label` fails `check:i18n-strings`.
 
 ## Start here
 
