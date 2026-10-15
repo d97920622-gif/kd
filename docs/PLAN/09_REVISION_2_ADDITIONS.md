@@ -66,37 +66,47 @@ never be implemented again on the left side.
 Ordering note that avoids an impossible dependency: the message delivery event
 log is created in Step 4 (highest consumer is the notification module), so
 Step 11 can read it and Step 12 can extend it later. Nothing in Step 11 depends
-on a Step 12 table.
+on a Step 12 table. The message delivery event log lives in sub-step 4.17
+(segment 4C).
 
 ## 3. New sub-steps by step (canonical detail lives in 08)
 
 | Step | New or reordered sub-steps | Focus |
 | --- | --- | --- |
-| 1 | 1.12, 1.13 | Web hardening primitives; usability primitives |
+| 1 | 1.26, 1.27 (segment 1D) | Web hardening primitives; usability primitives |
 | 2 | 2.10, 2.11 | Envelope keys and rotation; secret registry |
-| 3 | 3.5, 3.6, 3.7 | Passkeys; trusted devices and device centre; session registry and freeze |
-| 4 | 4.3, 4.11, 4.12 | Approval inbox; enterprise access; owner security centre |
+| 3 | 3.14, 3.17, 3.18 (segments 3C and 3D) | Passkeys; trusted devices and device centre; session registry and freeze |
+| 4 | 4.5, 4.21, 4.22, 4.23 (segments 4A and 4D) | Approval inbox; enterprise access; owner security centre |
 | 5 | 5.12 | Editor experience: autosave, undo, saved views, explainability |
-| 6 | 6.10, 6.11, 6.12 | Tax core; determination engine; tax documents and reporting |
+| 6 | 6.24 to 6.28 (segment 6D) | Tax core; determination engine; tax documents and reporting |
 | 8 | 8.7, 8.8 | 3DS2 exemptions and network tokenization; advanced card risk and holds |
 | 9 | 9.14 | Per-processor advanced capability integration |
-| 10 | 10.3, 10.4, 10.5, 10.6 | Checkout design system; content and trust; edge cases and retry; technical hardening |
+| 10 | 10.1 to 10.10 (segment 10A) | Checkout shell and design system; content and trust; edge cases and retry; technical hardening |
 | 11 | 11.3, 11.10 | Token checkout composition; client explainability and support |
 | 12 | 12.8 | Messaging transparency and compliance console |
-| 13 | 13.11, 13.12, 13.13 | Tax liability ledger; remittance workflow; filing operations |
+| 13 | 13.30, 13.32, 13.33 (segment 13D) | Tax liability ledger; remittance workflow; filing operations |
 | 14 | 14.11 | Trust and transparency publishing |
 | 15 | 15.8, 15.9 | Privacy experience; deception, anomaly and log integrity |
 | 16 | 16.8 | PWA security and local data protection |
 
+## 3A. Revision 3 sub-step numbering
+
+Steps 1, 3, 4, 6, 10 and 13 were divided further in Revision 3 and are now
+executed as four segments each (1A to 1D and so on). The sub-step numbers in
+this file are the Revision 3 numbers and match
+`08_SUBSTEP_CHECKLISTS.md`; segment rules are in `10_SEGMENT_GUIDE.md`. Steps
+2, 5, 7, 8, 9, 11, 12, 14, 15 and 16 keep their Revision 2 numbering.
+
 ## 4. Execution notes for heavy steps
 
-Steps 6, 10, 11 and 13 carry more sub-steps than one chat usually fits. This
-is expected and handled by the resume protocol:
+Steps 1, 3, 4, 6, 10 and 13 carry more sub-steps than one chat usually fits and
+are therefore executed as four segments each (see `10_SEGMENT_GUIDE.md`):
 
+- One chat executes one segment and stops at that segment gate.
 - The step prompt stays the same; paste the same file again in a new chat.
 - The new chat reads `docs/handoffs/CHAT_NN_PROGRESS.md`, finds the first
-  unchecked sub-step, and continues there. No sub-step is repeated and no file
-  is written twice.
+  unchecked sub-step of the next segment, and continues there. No sub-step is
+  repeated and no file is written twice.
 
 ## 5. Gates added by Revision 2
 

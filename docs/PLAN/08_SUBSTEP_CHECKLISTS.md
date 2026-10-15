@@ -1,10 +1,25 @@
 // path: docs/PLAN/08_SUBSTEP_CHECKLISTS.md
-# Sub-step Work Orders (all 16 steps) -- Revision 2
+# Sub-step Work Orders (all 16 steps) -- Revision 3
 
 Each line is one commit. `[ ]` becomes `[x]` in
 `docs/handoffs/CHAT_NN_PROGRESS.md` as the sub-step passes its gates.
 Target paths are the expected primary files; extra files are allowed only
 inside the area owned by the step.
+
+Revision 3 change log (finer granularity for the six heavy steps):
+
+- Steps 1, 3, 4, 6, 10 and 13 are split into four segments each, marked by
+  `### SEGMENT NX` headings, and their sub-steps are divided further so that a
+  single sub-step stays small (one commit, one clear deliverable, one gate).
+  A chat executes one segment, stops at that segment gate, writes the progress
+  and handoff files, and the next chat continues with the following segment
+  using the same chat prompt.
+- Sub-step numbers for steps 1, 3, 4, 6, 10 and 13 changed because of that
+  split. Cross references in `01_REQUIREMENTS_TRACEABILITY.md` and
+  `09_REVISION_2_ADDITIONS.md` were updated to the Revision 3 numbers.
+- Steps 2, 5, 7, 8, 9, 11, 12, 14, 15 and 16 keep their Revision 2 numbering
+  and run as before.
+- Segment rules, stop and start conditions are defined in `10_SEGMENT_GUIDE.md`.
 
 Revision 2 change log (see `09_REVISION_2_ADDITIONS.md`):
 
@@ -29,22 +44,51 @@ Revision 2 change log (see `09_REVISION_2_ADDITIONS.md`):
 - Step 16: added 16.8 PWA security.
 - Steps 7 kept its original numbering.
 
-## STEP 01 -- Foundation, Governance, Design System, Layout Architecture
+## STEP 01 -- Foundation, Governance, Design System, Layout Architecture (segments 1A to 1D)
 
-- [ ] 1.1 Toolchain: `package.json`, `tsconfig.json` (strict, noImplicitAny, strictNullChecks, noUnusedLocals, noUnusedParameters), `next.config.js`, `tailwind.config.ts`, `.eslintrc.json`, `.prettierrc`, `.gitignore`, `.env.example`, `components.json`, husky hooks, lint-staged
-- [ ] 1.2 Quality gates: `scripts/check-*.sh` (english-only, no-todo, no-coming-soon, no-tests, path-comment, no-console, forbidden-brands, migration-pairs, rls-coverage, schema-standards, dead-links, secrets, any-types, money-math) plus `npm run verify`
-- [ ] 1.3 Core libraries: `lib/logger/structured-logger.ts`, `lib/errors/*`, `lib/env/*`, `lib/utils/currency.ts` (decimal.js, USD only), `lib/utils/date.ts`, `lib/utils/formatting.ts`, `lib/utils/slug.ts`, `lib/utils/hash.ts`, `lib/i18n/strings/en.ts`
-- [ ] 1.4 Design tokens: `styles/globals.css`, `config/design-tokens.ts`, spacing, radius, shadow, z-index, typography, motion tokens, dark mode, high contrast, reduced motion, design token JSON export
-- [ ] 1.5 Brand system: `components/branding/*`, logo variants, favicon pack 16/32/180/192/512, apple touch icon, PWA manifest icons, default OG image, brand voice guide, asset library page
-- [ ] 1.6 shadcn/ui base set: `components/ui/*` with four states, form primitives with React Hook Form and Zod resolver, toast, sheet, dialog, table, tabs, tooltip, skeleton
-- [ ] 1.7 Layouts and shells: public, auth, dashboard, admin, client portal layouts; `components/layout/*` sidebar, topbar, mobile drawer, bottom nav, sticky action bar, breadcrumbs, footer, offline banner
-- [ ] 1.8 Navigation: `config/nav-map.ts` single source with reserved growth blocks, role filter hook, command palette, keyboard shortcuts page, dead-link checker wiring
-- [ ] 1.9 Page states and polish: skeleton library, error boundary, empty state, success states, 320px utilities, accessibility primitives, Framer Motion providers, page transitions, stagger, confetti, illustration baseline
-- [ ] 1.10 Public site skeleton with real English copy: homepage, about, features, pricing, contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline
-- [ ] 1.11 Platform plumbing: `middleware.ts`, `instrumentation.ts`, security headers and CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet
-- [ ] 1.12 Web hardening primitives: Trusted Types policy, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data on logout, Subresource Integrity baseline for third-party scripts, header matrix tests, `docs/ADR/ADR-0006-web-hardening-baseline.md`
-- [ ] 1.13 Usability primitives: `lib/hooks/use-saved-views.ts`, `lib/hooks/use-undo.ts`, `lib/hooks/use-autosave.ts`, optimistic update helpers, `components/shared/explainability-message.tsx` with the string catalogue, empty and error copy conventions
-- [ ] 1.14 Governance: `.github/workflows/ci.yml`, CODEOWNERS, PR template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE, ADR-0001 to ADR-0007, README update, `docs/handoffs/CHAT_01_COMPLETED.md`
+### SEGMENT 1A -- Toolchain and quality gates (expected chat 1 of 4)
+- [ ] 1.1 Repository toolchain baseline: `package.json` scripts, `tsconfig.json` strict options (noImplicitAny, strictNullChecks, noUnusedLocals, noUnusedParameters), `next.config.js`, `.prettierrc`, `.gitignore`, husky hooks, lint-staged
+- [ ] 1.2 ESLint configuration: `no-explicit-any` as error, `no-console` as error, non-ASCII restricted syntax, import order, React and Next rules
+- [ ] 1.3 Tailwind and token pipeline: `tailwind.config.ts`, PostCSS, `components.json`, CSS layer structure
+- [ ] 1.4 Environment schema validation: `lib/env/validate-env.ts`, boot-time fail fast, typed environment access, `.env.example` documented entries
+- [ ] 1.5 Check scripts A: `check:english-only`, `check:no-todo`, `check:no-coming-soon`, `check:no-tests`, `check:path-comment`
+- [ ] 1.6 Check scripts B: `check:no-console`, `check:forbidden-brands`, `check:migration-pairs`, `check:dead-links`, `check:secrets`, `check:any-types`, `check:money-math`
+- [ ] 1.7 Verify runner: `npm run verify` aggregation, report format, pre-commit and commit-msg wiring, CI-ready exit codes
+Segment gate: every check script runs on the current tree without false positives; all scripts documented in `README.md`.
+
+### SEGMENT 1B -- Core libraries and design system (expected chat 2 of 4)
+- [ ] 1.8 Structured logger: JSON lines, levels, correlation id propagation, redaction hook, zero `console` usage
+- [ ] 1.9 Error library: typed error classes, error codes, response envelope builder, no internal detail leakage
+- [ ] 1.10 USD money utilities: decimal.js wrappers, parse, format, add, subtract, multiply, divide, rounding policy, money-math guard annotation
+- [ ] 1.11 Utility set: `date` (UTC), `formatting`, `slug`, `hash` (SHA-256 and HMAC), id helpers
+- [ ] 1.12 i18n string catalogue: `lib/i18n/strings/en.ts` structure, key naming, copy rules, no hardcoded UI strings
+- [ ] 1.13 Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale
+- [ ] 1.14 Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export
+- [ ] 1.15 shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch
+- [ ] 1.16 shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge
+- [ ] 1.17 Form primitives: React Hook Form with Zod resolver, four states, `aria-live` errors, disabled and loading submit
+Segment gate: component gallery route renders every primitive in light, dark, high contrast and reduced motion; no hardcoded color or spacing value exists outside tokens.
+
+### SEGMENT 1C -- Brand, layout, navigation (expected chat 3 of 4)
+- [ ] 1.18 Brand assets: logo variants light/dark/icon, favicon pack 16/32/180/192/512, apple touch icon, PWA icons, default OG image, brand voice guide
+- [ ] 1.19 Layout shells: public and auth layouts with skip links, focus order, print base
+- [ ] 1.20 Layout shells: dashboard, admin and client portal layouts with role-aware framing
+- [ ] 1.21 Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar
+- [ ] 1.22 Navigation source: `config/nav-map.ts` with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring
+- [ ] 1.23 Command palette and keyboard shortcuts page with focus management and ARIA labels
+Segment gate: navigation renders correctly for every role; dead-link check passes on the current route set.
+
+### SEGMENT 1D -- States, hardening, public site, governance (expected chat 4 of 4)
+- [ ] 1.24 Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives
+- [ ] 1.25 Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling
+- [ ] 1.26 Web hardening primitives: Trusted Types policy, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data on logout, SRI baseline, header matrix tests, `docs/ADR/ADR-0006-web-hardening-baseline.md`
+- [ ] 1.27 Usability primitives: `use-saved-views`, `use-undo`, `use-autosave`, optimistic update helpers, explainability message component and string catalogue
+- [ ] 1.28 Public site pages A: homepage, features, pricing, about with real English copy and metadata
+- [ ] 1.29 Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline
+- [ ] 1.30 Platform plumbing: `middleware.ts`, `instrumentation.ts`, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet
+- [ ] 1.31 Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE
+- [ ] 1.32 Governance B: ADR-0001 to ADR-0007, README update, `docs/handoffs/CHAT_01_COMPLETED.md`
+Segment gate: production build passes; Lighthouse at least 90 on the homepage; dead-link audit clean; `npm run verify` fully green.
 
 ## STEP 02 -- Database Foundation, Migrations, RLS, Encryption, Audit Ledger
 
@@ -63,35 +107,79 @@ Revision 2 change log (see `09_REVISION_2_ADDITIONS.md`):
 - [ ] 2.13 Governance data: data_classification, retention policies, dsar tables, soft delete and restore helpers, backup metadata
 - [ ] 2.14 Seeds and types: plans, permissions, countries, currencies, tax presets, super_admin bootstrap, `types/database.ts` generation, handoff
 
-## STEP 03 -- Authentication, 2FA, Passkeys, Session Registry, Login Lock, VPN/Proxy/Tor
+## STEP 03 -- Authentication, 2FA, Passkeys, Session Registry, Login Lock, VPN/Proxy/Tor (segments 3A to 3D)
 
-- [ ] 3.1 Supabase clients and middleware auth, session cookie policy, session id rotation on login, session timeout configuration
-- [ ] 3.2 Signup: Turnstile, honeypot, email verification, disposable email blocklist, VPN and proxy and Tor block, signup rate limits, audit
-- [ ] 3.3 Login lock engine: two consecutive failures lock 2 hours, DB-persisted counters, reset blocked while locked, password change does not unlock, owner email alert, unlock workflow with owner contact confirmation and audit, generic error messages, IP rate limit
-- [ ] 3.4 2FA TOTP: enrollment with QR, verification, 10 one-time backup codes, recovery, mandatory per role, step-up helper for sensitive actions
-- [ ] 3.5 Passkeys and hardware keys: `lib/auth/webauthn.ts`, registration and authentication ceremonies, additive factor beside TOTP, phishing-resistant prompt, named credentials, recovery and re-enrollment, audit entries
-- [ ] 3.6 Trusted devices and device centre: `lib/auth/trusted-device.ts`, device registry, trust scoring, device revocation, new device alerts, device list UI with four states
-- [ ] 3.7 Session registry and continuous verification: `services/auth/session-service.ts`, global session list, short-lived access with rotating refresh token, mid-session IP or device change detection, self-service account freeze and unfreeze with audit
-- [ ] 3.8 OAuth: Google and GitHub, encrypted token storage, account linking rules, session fixation prevention, new device alerts, session revoke and device list
-- [ ] 3.9 Password controls: policy minimum 12 chars with complexity, HIBP k-anonymity check, history of last 5, reset flow that honors the lock
-- [ ] 3.10 Network trust: `lib/security/vpn-proxy-detector.ts`, `ip-reputation.ts`, geo rules, corporate IP whitelist, enforcement matrix for signup, login, payment, KYC, admin
-- [ ] 3.11 Auth surfaces: API routes with Zod, sanitization, CSRF, audit; auth pages login, signup, forgot, reset, verify email, 2FA, passkey, locked account, device centre, session list, security settings with four states and a11y; handoff
+### SEGMENT 3A -- Auth foundations (expected chat 1 of 4)
+- [ ] 3.1 Supabase clients: browser, server, admin (service role kept server-only)
+- [ ] 3.2 Session policy: HttpOnly plus Secure plus SameSite=Strict cookie, session id rotation on login, configurable timeout (default 24 hours)
+- [ ] 3.3 Auth middleware: route protection, tenant resolution, redirect rules, no PII in URLs
+- [ ] 3.4 CSRF double-submit on auth routes and credential payload sanitization
+- [ ] 3.5 Auth rate limits: per IP and per account counters, response headers, typed `RateLimitError`
+Segment gate: session rotation proven on login; forged CSRF requests rejected.
 
-## STEP 04 -- Roles, Permissions, Approval Engine, Approval Inbox, Enterprise Access, Onboarding, Settings, KYC, Notifications, Platform Billing
+### SEGMENT 3B -- Signup, login, login lock (expected chat 2 of 4)
+- [ ] 3.6 Signup flow: Turnstile verification, honeypot field, email verification, disposable email blocklist, audit entry
+- [ ] 3.7 Login flow: credential check, generic error messages, no account existence leakage, IP rate limit
+- [ ] 3.8 Login lock engine core: consecutive failure counters for password and 2FA, 2-hour lock, database persistence that survives restart
+- [ ] 3.9 Lock enforcement: correct password denied, password reset blocked, password change does not unlock, session issuance blocked
+- [ ] 3.10 Lock notification: owner email alert on lock start with device and IP context, generic user-facing copy
+- [ ] 3.11 Unlock workflow: authorized admin or admin_staff only, confirmed owner contact required, audit entry with actor, target, reason and timestamp
+Segment gate: lock state survives a server restart (database assertion recorded); no endpoint reveals account existence.
 
-- [ ] 4.1 Roles and permissions: `lib/auth/roles.ts`, `lib/auth/permissions.ts`, `config/permissions.ts`, server and client guards, admin_staff sub-roles, nav role filtering completion
-- [ ] 4.2 Approval engine: approval_requests, L1/L2/L3 levels, SLA and auto-escalation, delegation, dual approval, bulk approval, history view, audit
-- [ ] 4.3 Approval inbox: unified pending queue per role, bulk approve and reject with confirmation, SLA countdown, filters by module and requester, audit
-- [ ] 4.4 Super admin first-run setup wizard and platform configuration
-- [ ] 4.5 Owner onboarding wizard, industry presets, first-run experience, entitlements-aware steps
-- [ ] 4.6 Company profile and settings: branding settings, invoice settings, custom domain, tenant security policy, notification preferences, one-click backup
-- [ ] 4.7 Team management: staff invites, granular permissions, activity monitoring, staff security controls, staff draft to owner approval workflow
-- [ ] 4.8 KYC system: document upload through storage interface, review console, gate map, statuses, re-verification, notifications, audit
-- [ ] 4.9 Notifications: in-app center, preferences, event matrix, realtime updates, digest, email dispatch interface for step 12, and the message delivery event log (`services/notification/message-log-service.ts` plus its table) that every channel writes into
-- [ ] 4.10 Platform billing: plan management, subscription lifecycle, coupons, entitlement engine, dunning, platform invoices and billing UI
-- [ ] 4.11 Enterprise access: `lib/auth/sso/*` SAML and OIDC adapter, SCIM provisioning, tenant IP allowlist, just-in-time access with expiry, break-glass with dual approval and mandatory audit
-- [ ] 4.12 Owner security centre: `components/security/*`, `app/(dashboard)/settings/security/*`, security score and checklist, who-did-what digest, permission review reminder, session and device review links
-- [ ] 4.13 Tenant settings surfaces: gateway configuration shell, payout partner settings with generic naming, security enforcement per role; handoff
+### SEGMENT 3C -- Factors and credentials (expected chat 3 of 4)
+- [ ] 3.12 2FA TOTP: enrollment with QR code, verification, ten one-time backup codes, recovery flow, mandatory per role
+- [ ] 3.13 Step-up helper for sensitive actions (gateway, payout, KYC, admin) with challenge TTL and audit
+- [ ] 3.14 Passkeys and hardware keys: WebAuthn registration and authentication, additive factor beside TOTP, named credentials, recovery and re-enrollment, audit entries
+- [ ] 3.15 Password controls: minimum 12 characters with complexity, HIBP k-anonymity check, history of last five, reset flow that honors an active lock
+- [ ] 3.16 OAuth: Google and GitHub, encrypted token storage, account linking rules, session fixation prevention
+Segment gate: passkey and TOTP coexist without weakening the login lock; step-up enforced and audited.
+
+### SEGMENT 3D -- Devices, sessions, network trust, surfaces (expected chat 4 of 4)
+- [ ] 3.17 Trusted devices and device centre: registry, trust scoring, revocation, new device alerts, UI with four states
+- [ ] 3.18 Session registry: global session list, short-lived access with rotating refresh, mid-session IP or device change detection, self-service freeze and unfreeze with audit
+- [ ] 3.19 Network trust: `vpn-proxy-detector`, `ip-reputation`, geo rules, corporate IP whitelist, enforcement matrix definition
+- [ ] 3.20 Network enforcement: VPN, proxy and Tor blocked on signup, flagged with step-up 2FA on login, audit entries
+- [ ] 3.21 Auth surfaces A: login, signup, forgot password, reset password, verify email pages with four states, 320px, dark mode, WCAG AA
+- [ ] 3.22 Auth surfaces B: 2FA challenge, passkey, locked account, device centre, session list, security settings, handoff
+Segment gate: all auth endpoints rate limited and audited; accessibility and 320px checks recorded.
+
+## STEP 04 -- Roles, Permissions, Approval Engine, Approval Inbox, Enterprise Access, Onboarding, Settings, KYC, Notifications, Platform Billing (segments 4A to 4D)
+
+### SEGMENT 4A -- Roles, permissions, approval engine (expected chat 1 of 4)
+- [ ] 4.1 Roles: super_admin, ceo, admin_staff, owner, staff definitions plus the seven admin_staff sub-roles; forbidden roles absent everywhere
+- [ ] 4.2 Permission matrix: `config/permissions.ts` with module and action granularity, entitlement awareness
+- [ ] 4.3 Guards: server-side authorization, client-side visibility, cross-tenant 404 policy
+- [ ] 4.4 Approval engine core: approval_requests, L1/L2/L3 levels, SLA and auto-escalation, delegation, dual approval, bulk approval, full history
+- [ ] 4.5 Approval inbox UI: unified queue, filters by module and requester, SLA countdown, bulk approve and reject with confirmation, audit
+Segment gate: permission matrix SQL assertion passes; approval chain enforced on every managed action.
+
+### SEGMENT 4B -- Onboarding, company settings, team (expected chat 2 of 4)
+- [ ] 4.6 Super admin first-run setup wizard and platform configuration
+- [ ] 4.7 Owner onboarding wizard, industry presets, first-run experience, entitlement-aware steps
+- [ ] 4.8 Company profile and branding settings with live preview
+- [ ] 4.9 Invoice settings, custom domain setup, tenant security policy
+- [ ] 4.10 Team management: invites, granular permission assignment, member lifecycle
+- [ ] 4.11 Staff activity monitoring, staff security controls, permission review hooks
+- [ ] 4.12 Staff draft to owner approval send workflow with audit
+Segment gate: onboarding completes end to end on a fresh tenant; staff cannot send without owner approval.
+
+### SEGMENT 4C -- KYC, notifications, message log (expected chat 3 of 4)
+- [ ] 4.13 KYC upload through the storage abstraction, statuses, re-verification
+- [ ] 4.14 KYC review console for kyc_reviewer, gate map, notifications, audit
+- [ ] 4.15 Notification center: in-app list, read state, realtime updates, four states
+- [ ] 4.16 Notification preferences, event matrix, digest scheduling, email dispatch interface consumed by step 12
+- [ ] 4.17 Message delivery event log service and table that every channel writes into
+Segment gate: KYC gate blocks gated features until approved; the message log receives entries from notification dispatch.
+
+### SEGMENT 4D -- Platform billing, enterprise access, security centre (expected chat 4 of 4)
+- [ ] 4.18 Platform billing: plan management and subscription lifecycle
+- [ ] 4.19 Coupons, entitlement engine, dunning
+- [ ] 4.20 Platform invoices and owner billing UI
+- [ ] 4.21 Enterprise access A: SAML and OIDC single sign-on adapter, domain verification, just-in-time provisioning rules
+- [ ] 4.22 Enterprise access B: SCIM provisioning, tenant IP allowlist, just-in-time access with expiry, break-glass with dual approval and mandatory audit
+- [ ] 4.23 Owner security centre: security score and checklist, who-did-what digest, permission review reminder, session and device review links
+- [ ] 4.24 Tenant settings surfaces: gateway configuration shell, payout partner settings with generic naming, handoff
+Segment gate: entitlements correct after plan change; break-glass use audited and notified.
 
 ## STEP 05 -- Invoicing Core, Documents, PDF Engine, Numbering, Editor Experience
 
@@ -108,21 +196,49 @@ Revision 2 change log (see `09_REVISION_2_ADDITIONS.md`):
 - [ ] 5.11 Invoice reports: sent versus paid, aging, revenue summary, billing lifecycle hooks
 - [ ] 5.12 Editor experience: autosave, undo, saved views and explainability messages on invoice and document actions using the Step 1 primitives; handoff
 
-## STEP 06 -- CRM, Catalog, Inventory, Suppliers, E-commerce Sync, Dashboards, Reports, Tax Engine, Batch
+## STEP 06 -- CRM, Catalog, Inventory, Suppliers, E-commerce Sync, Dashboards, Reports, Tax Engine, Batch (segments 6A to 6D)
 
-- [ ] 6.1 Client CRM CRUD, profiles, multiple contacts, search and filter, cursor pagination, four states
-- [ ] 6.2 Client activity, history, statements, merge, fuzzy duplicate detection, import and export
-- [ ] 6.3 Product and service catalog: CRUD, categories, pricing, tax class, SKU uniqueness, fuzzy name duplicate suggestion
-- [ ] 6.4 Inventory: warehouses, stock levels, movements, transfers, adjustments, valuation, low stock alerts, row locking
-- [ ] 6.5 Suppliers, purchase orders, supplier bills, supplier payments
-- [ ] 6.6 E-commerce sync: Shopify adapter, WooCommerce adapter, order to invoice mapping, sync management, idempotency, retries, error log
-- [ ] 6.7 Dashboard: revenue overview, sent versus paid, charts, widget layout, customization, drill-downs
-- [ ] 6.8 Reports baseline: sales, payment, expense, tax, client, inventory, project; saved views, exports, scheduling, sharing
-- [ ] 6.9 Billing lifecycle: reminder engine, late fees and penalties, escalation states, dunning
-- [ ] 6.10 Tax core: `services/tax/*`, `config/tax/*`, tax profiles per company with registration number, filing frequency and liability owner, jurisdictions with effective-dated versioned rates, tax classes, inclusive and exclusive handling, per-line and invoice-level modes, rounding policy
-- [ ] 6.11 Tax determination engine: place of supply, client country and state, B2B and B2C, reverse charge, exemption with expiry, zero-rated and out of scope, determination result with explainability stored on the document
-- [ ] 6.12 Tax documents and reporting: country-specific tax invoice and credit note mandatory fields, reverse-charge statement, exemption certificate register, collected versus remitted versus outstanding reporting per period, jurisdiction and rate, customer tax summary, exports
-- [ ] 6.13 Batch and bulk operations plus FX: batch invoice, bulk actions, batch guard, `lib/fx/exchange-rates.ts` with historical freeze; handoff
+### SEGMENT 6A -- CRM (expected chat 1 of 4)
+- [ ] 6.1 Client CRUD with soft delete, restore and audit
+- [ ] 6.2 Client profile: multiple contacts, billing and shipping addresses, payment terms
+- [ ] 6.3 Client list: search, filter, cursor pagination, mobile card list, four states
+- [ ] 6.4 Client activity and history timeline
+- [ ] 6.5 Client statements with opening balance, transactions and closing balance
+- [ ] 6.6 Client merge and fuzzy duplicate detection (levenshtein distance at most three plus email match)
+- [ ] 6.7 Client import and export with duplicate preview and validation
+Segment gate: merge produces a single balanced statement; the duplicate detector raises a typed `DuplicateError`.
+
+### SEGMENT 6B -- Catalog, inventory, suppliers (expected chat 2 of 4)
+- [ ] 6.8 Product and service CRUD with categories and images through storage
+- [ ] 6.9 Pricing, tax class, SKU uniqueness per tenant, fuzzy name duplicate suggestion
+- [ ] 6.10 Warehouses and stock levels
+- [ ] 6.11 Stock movements, transfers and adjustments with `SELECT FOR UPDATE`
+- [ ] 6.12 Inventory valuation and low stock alerts
+- [ ] 6.13 Supplier registry
+- [ ] 6.14 Purchase orders with approval and receiving
+- [ ] 6.15 Supplier bills and supplier payments
+Segment gate: inventory concurrency assertion passes; stock never goes negative under concurrent writes.
+
+### SEGMENT 6C -- E-commerce, dashboard, reports, lifecycle (expected chat 3 of 4)
+- [ ] 6.16 Shopify adapter: order import, mapping, idempotency
+- [ ] 6.17 WooCommerce adapter: order import, mapping, idempotency
+- [ ] 6.18 Sync management: retries, error log, manual resync, audit
+- [ ] 6.19 Dashboard core: revenue overview, sent versus paid, key metrics
+- [ ] 6.20 Dashboard customization: widget layout, saved views, drill-downs
+- [ ] 6.21 Reports A: sales, payment and expense reports with filters and exports
+- [ ] 6.22 Reports B: tax, client, inventory and project reports with saved views, scheduling and sharing
+- [ ] 6.23 Billing lifecycle: reminder engine, late fees and penalties, escalation states, dunning
+Segment gate: every report reconciles to its source documents; exports are reproducible.
+
+### SEGMENT 6D -- Tax engine, batch, FX (expected chat 4 of 4)
+- [ ] 6.24 Tax core: tax profiles per company (registration number, filing frequency, liability owner), jurisdictions, effective-dated versioned rates
+- [ ] 6.25 Tax classes, inclusive and exclusive handling, per-line and invoice-level modes, rounding policy
+- [ ] 6.26 Tax determination engine: place of supply, country and state, B2B and B2C, reverse charge, exemption with expiry, zero-rated, out of scope, explainability record
+- [ ] 6.27 Tax documents: country-specific mandatory fields, reverse-charge statement, exemption certificate register
+- [ ] 6.28 Tax reporting: collected versus remitted versus outstanding per period, jurisdiction and rate, customer tax summary, exports
+- [ ] 6.29 Batch and bulk operations: batch invoice, bulk actions, batch guard, audit
+- [ ] 6.30 FX rates with historical freeze for display conversion only, handoff
+Segment gate: no rate is hardcoded anywhere; the determination result is stored and explained on every document.
 
 ## STEP 07 -- Storage Abstraction, File Security, File Records
 
@@ -172,26 +288,51 @@ Revision 2 change log (see `09_REVISION_2_ADDITIONS.md`):
 - [ ] 9.15 Sandbox validation per processor: recorded calls, observed results, evidence files, mode selection proof
 - [ ] 9.16 Registry and console wiring: implemented processors registered, connectable in admin console, capability and mode matrix surface, `docs/PROVIDERS/INDEX.md`, corrections applied to `06_PROVIDER_DOCS_REGISTRY.md`; handoff
 
-## STEP 10 -- Checkout Design, Payment Experience, Wallet, MoR, Payouts, Disputes, Consent Evidence, Subscriptions, BNPL
+## STEP 10 -- Checkout Design, Payment Experience, Wallet, MoR, Payouts, Disputes, Consent Evidence, Subscriptions, BNPL (segments 10A to 10D)
 
-- [ ] 10.1 Payment orchestration: initiate, confirm, capture, void, receipt, notification, status machine
-- [ ] 10.2 Checkout experience core: hosted and embedded, payment page security with VPN checks and fingerprint and Turnstile, mobile wallet priority, four states
-- [ ] 10.3 Checkout design system: two-column desktop with sticky order summary, single-column mobile with sticky pay bar and safe-area, express pay row above the card form, step indicator, skeletons, inline validation, dark mode parity, motion with reduced-motion, 320px layout, WCAG AA focus order, tenant white-label theming tokens
-- [ ] 10.4 Checkout content and trust layer: monetary transparency with subtotal, discount, tax line and total, no hidden charges, refund policy auto-display, statement descriptor, seller contact, contact-seller-first message, immutable order summary snapshot, explainability messages for declines and next steps
-- [ ] 10.5 Checkout edge cases and retry: method switch and retry without losing the invoice, per-attempt idempotency, same-card same-invoice 24-hour message, manual review messaging, expired and revoked link handling, partial payment, installment and BNPL options, multi-invoice payment selection, saved tokenized payment methods
-- [ ] 10.6 Checkout technical hardening: iframe sandbox attributes, CSP frame-src allowlist, Subresource Integrity, autocomplete and input type attributes, LCP under 2.5s and CLS under 0.1 budgets, assertion that card fields exist only inside processor frames
-- [ ] 10.7 Payment links: create, share, expiry, revoke, analytics
-- [ ] 10.8 Pluggable integration modes UI: iframe, SDK, redirect, API per capability
-- [ ] 10.9 Refunds: full and partial, approval flow, reasons, evidence, reconciliation, tax reversal through the Step 6 service
-- [ ] 10.10 Partial payments, allocation, credit application
-- [ ] 10.11 Surcharge and fees: fee calculator, platform fee, net settlement, fee reporting
-- [ ] 10.12 Wallet: balances, ledger, serializable isolation, top-up, withdrawal, holds, statements, negative balance protection
-- [ ] 10.13 MoR engine: merchant of record flow, KYC-gated routing, collected-tax hold driven by the liability owner flag from the Step 6 tax profile, settlement batches, payout engine with step-up approvals, payout partner generic naming, reconciliation
-- [ ] 10.14 Chargeback, dispute and auto-defence: chargeback handling, ten-part evidence pack, auto-submit per processor format, deadline tracker, reason code mapping, win and loss analytics, reserve calculator, rate monitoring, auto-defence workspace
-- [ ] 10.15 Consent evidence: capture with timestamp and IP and fingerprint and versions, immutable text snapshot, delivery proof, timeline builder, audit chain export
-- [ ] 10.16 Client subscriptions: plans, recurring billing, management UI, dunning
-- [ ] 10.17 BNPL and installment financing framework with schedules and reporting
-- [ ] 10.18 Payment reports and analytics, PCI DSS posture document, payment audit trail; handoff
+### SEGMENT 10A -- Checkout page (expected chat 1 of 4)
+- [ ] 10.1 Checkout shell and layout: two-column desktop with sticky order summary, single-column mobile with safe-area pay bar
+- [ ] 10.2 Checkout design system: tenant white-label theming tokens, dark mode parity, motion with reduced motion, 320px layout, WCAG AA focus order
+- [ ] 10.3 Express payment row above the card form with wallet buttons per capability and a labelled divider
+- [ ] 10.4 Payer fields: email, name, billing address, postal code (required for the 3DS rule), country, optional business tax registration number, coupon, note, inline validation
+- [ ] 10.5 Monetary transparency: subtotal, discount, tax line from the Step 6 tax service and total, with no hidden charges
+- [ ] 10.6 Content and trust layer: refund policy auto-display, statement descriptor, seller contact, contact-seller-first notice, explainability messages for declines and next steps
+- [ ] 10.7 Consent capture: checkbox text, terms and refund policy versions, timestamp, IP, device fingerprint and immutable snapshot
+- [ ] 10.8 Saved tokenized payment methods for returning payers, displayed as brand and last four digits only
+- [ ] 10.9 Checkout edge cases: method switch and retry, per-attempt idempotency, same-card same-invoice 24-hour notice, manual review notice, expired and revoked links, partial payment, installment and BNPL options, multi-invoice selection
+- [ ] 10.10 Checkout technical hardening: iframe sandbox attributes, CSP frame-src allowlist, SRI, autocomplete and input types, LCP under 2.5s and CLS under 0.1 budgets, card-fields-in-processor-frames assertion
+Segment gate: checkout renders with tenant branding and no platform branding on entitled plans; transparency assertion passes; card-field assertion passes.
+
+### SEGMENT 10B -- Payment core, links, refunds, fees (expected chat 2 of 4)
+- [ ] 10.11 Payment orchestration status machine with transitions and guards
+- [ ] 10.12 Payment intent creation with idempotency key and gateway transaction linkage
+- [ ] 10.13 Capture, void, receipt generation, customer notification and reconciliation
+- [ ] 10.14 Payment links: create, share, expiry, revoke, usage analytics
+- [ ] 10.15 Pluggable integration modes UI: iframe, SDK, redirect and API only per declared capability
+- [ ] 10.16 Refunds: full and partial with approval flow, reason codes, evidence, reconciliation and tax reversal through the Step 6 service
+- [ ] 10.17 Partial payments, allocation across invoices, credit application
+- [ ] 10.18 Surcharge and fees: fee calculator, platform fee, net settlement and fee reporting
+Segment gate: every payment mutation is idempotent; webhook replay attempts are rejected.
+
+### SEGMENT 10C -- Wallet, merchant of record, payouts (expected chat 3 of 4)
+- [ ] 10.19 Wallet core: balances, double-entry ledger, serializable isolation on mutations
+- [ ] 10.20 Wallet operations: top-up, withdrawal, holds, statements, negative balance protection
+- [ ] 10.21 Merchant of record flow and KYC-gated routing
+- [ ] 10.22 MoR collected-tax hold driven by the liability owner flag from the Step 6 tax profile, plus settlement batches
+- [ ] 10.23 Payout engine with step-up approvals and generic partner naming
+- [ ] 10.24 Payout reconciliation against settlements and wallet movements
+Segment gate: wallet ledger balances to zero; settlement reconciliation is balanced against gateway payouts.
+
+### SEGMENT 10D -- Disputes, consent evidence, subscriptions, BNPL, reports (expected chat 4 of 4)
+- [ ] 10.25 Chargeback intake, reason code mapping and deadline tracker
+- [ ] 10.26 Evidence pack: all ten parts assembled in one action, gateway-ready formatting, auto-submit per processor
+- [ ] 10.27 Auto-defence workspace, chargeback reserve calculator, rate monitoring with the 0.65 percent threshold alert
+- [ ] 10.28 Consent evidence engine: delivery proof, chronological timeline, audit chain export
+- [ ] 10.29 Client subscriptions: plans, recurring billing, management UI, dunning, proration rules
+- [ ] 10.30 BNPL and installment financing with eligibility, schedules and reporting
+- [ ] 10.31 Payment reports and analytics
+- [ ] 10.32 PCI DSS posture document, payment audit trail, fraud review queue integration, handoff
+Segment gate: an evidence pack is complete for a sample dispute; refund and payout flows are audited and approval-gated.
 
 ## STEP 11 -- Client Portal, Token Checkout Page, Tokenized Access, Email Journey, Branding, White-label, Document Integrity
 
@@ -219,22 +360,53 @@ Revision 2 change log (see `09_REVISION_2_ADDITIONS.md`):
 - [ ] 12.9 Support: help center, ticket system with SLA, feedback and NPS, canned responses, agent assignment
 - [ ] 12.10 Data migration and import wizard with duplicate preview, mapping, validation, audit; handoff
 
-## STEP 13 -- Payroll, HR, Expenses, Double-entry Accounting, Tax Liability and Remittance, Statements, Reports
+## STEP 13 -- Payroll, HR, Expenses, Double-entry Accounting, Tax Liability and Remittance, Statements, Reports (segments 13A to 13D)
 
-- [ ] 13.1 Payroll core: employee profiles, pay structures, allowances and deductions, tax calculation per jurisdiction, pay runs with approval, payslips, duplicate detection
-- [ ] 13.2 Payroll finance: payout integration, accounting integration, reports and compliance documents, employee self-service portal over token links
-- [ ] 13.3 HR lite: org structure, onboarding and offboarding checklists, performance notes, leave management
-- [ ] 13.4 Expenses: CRUD, receipt capture with OCR, categories, policies, approvals, recurring, reimbursements, reports, duplicate hash detection
-- [ ] 13.5 Accounting core: chart of accounts templates, accounts, manual journal entries, posting rules, duplicate detection on post
-- [ ] 13.6 Automated journals from invoices, payments, expenses, payroll and assets; period locks; trial balance; audit trail
-- [ ] 13.7 Financial statements: profit and loss, balance sheet, cash flow, equity, comparatives, drill-down, export
-- [ ] 13.8 Bank reconciliation accounting-grade: statement import, matching engine, rules, unmatched queue, reconciliation reports
-- [ ] 13.9 Fixed assets and depreciation; budgets and variance; multi-book and multi-entity with consolidation; accounting standards config
-- [ ] 13.10 Period management and close checklist, tax filing preparation, tax reports, accounting audit features
-- [ ] 13.11 Tax liability ledger: `services/accounting/tax-remittance/*`, segregated Tax Payable accounts per jurisdiction and rate, collected tax never entering revenue or spendable balance, tax periods, return draft built from Step 6 determination data, reconciliation assertion
-- [ ] 13.12 Tax remittance workflow: approval chain staff to CEO to super_admin, remittance record with method, authority reference, date, proof upload and USD FX freeze, journal entry Dr Tax Payable and Cr Bank, bank reconciliation link, filed and closed states, evidence pack
-- [ ] 13.13 Tax filing operations: filing calendar with deadline reminders, penalty and interest tracking, accountant-ready export pack, platform self-billing tax treatment for subscriptions
-- [ ] 13.14 Financial intelligence: cash flow forecasting, BI dashboards, fifteen plus reports with scheduling and sharing using saved views; handoff
+### SEGMENT 13A -- Payroll (expected chat 1 of 4)
+- [ ] 13.1 Employee profiles with documents stored through the storage abstraction
+- [ ] 13.2 Pay structures: allowances, deductions, display currency rules
+- [ ] 13.3 Payroll tax calculation per jurisdiction with presets
+- [ ] 13.4 Pay runs with the approval chain and lock after approval
+- [ ] 13.5 Payslip generation and encrypted archive with content hash
+- [ ] 13.6 Payroll duplicate detection (tenant, employee, pay period) and payout integration
+- [ ] 13.7 Payroll accounting integration and payroll reports
+- [ ] 13.8 Employee self-service portal over token links
+Segment gate: payroll totals reconcile to payslips and to the ledger.
+
+### SEGMENT 13B -- HR and expenses (expected chat 2 of 4)
+- [ ] 13.9 Organization structure and positions
+- [ ] 13.10 Onboarding and offboarding checklists
+- [ ] 13.11 Performance notes and leave management with balances and approval
+- [ ] 13.12 Expense CRUD with categories and cost centers
+- [ ] 13.13 Receipt capture with OCR and smart entry
+- [ ] 13.14 Expense policies and approval routing
+- [ ] 13.15 Recurring expenses and reimbursements
+- [ ] 13.16 Expense reports and duplicate hash detection
+Segment gate: expense posting produces balanced journals; duplicate detection raises typed errors.
+
+### SEGMENT 13C -- Accounting core and reconciliation (expected chat 3 of 4)
+- [ ] 13.17 Chart of accounts templates and account management
+- [ ] 13.18 Manual journal entries with posting rules and duplicate detection
+- [ ] 13.19 Automated journals from invoices, payments, expenses, payroll and fixed assets
+- [ ] 13.20 Period locks and trial balance
+- [ ] 13.21 Bank reconciliation A: statement import and matching engine with rules
+- [ ] 13.22 Bank reconciliation B: unmatched queues, adjustments, reconciliation reports
+- [ ] 13.23 Fixed assets and depreciation schedules with disposal
+- [ ] 13.24 Budgets with allocation, tracking and variance alerts
+- [ ] 13.25 Multi-book, multi-entity and consolidation with accounting standards configuration
+Segment gate: debits equal credits after every posting; period close is irreversible and audited.
+
+### SEGMENT 13D -- Statements, tax remittance, intelligence (expected chat 4 of 4)
+- [ ] 13.26 Profit and loss with comparatives and drill-down
+- [ ] 13.27 Balance sheet with comparatives and drill-down
+- [ ] 13.28 Cash flow statement, statement of equity and exports
+- [ ] 13.29 Period close checklist, tax filing preparation, accounting-grade audit features
+- [ ] 13.30 Tax liability ledger: segregated Tax Payable accounts per jurisdiction and rate, tax periods, return draft from Step 6 determination data, reconciliation assertion
+- [ ] 13.31 Tax return review and approval with variance explanation
+- [ ] 13.32 Tax remittance workflow: remittance record (method, authority reference, date, proof, USD FX freeze), journal entry Dr Tax Payable and Cr Bank, bank reconciliation link, filed and closed states, evidence pack
+- [ ] 13.33 Filing operations: filing calendar with deadline reminders, penalty and interest tracking, accountant-ready export pack, platform self-billing tax treatment
+- [ ] 13.34 Financial intelligence: cash flow forecasting, BI dashboards, fifteen plus reports with scheduling and saved views, handoff
+Segment gate: no return can be marked filed without an approved remittance record containing method, authority reference, date and proof; statements reconcile to the trial balance.
 
 ## STEP 14 -- Super Admin Console, CMS, SEO, Analytics, Marketing, Growth, Intelligence, Trust Publishing
 

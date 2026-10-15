@@ -16,7 +16,7 @@ accounting, built for the Asian market.
 | --- | --- |
 | `MASTER_PROMPT.md` | Binding specification: absolute rules, stack, schema rules, security layers |
 | `FEATURE_LIST.md` | Owner-supplied feature list (3,950 features, eleven parts). It is the only file allowed to contain non-ASCII characters |
-| `docs/PLAN/` | The execution plan: sixteen steps, sub-step work orders, guardrails, traceability, provider registry, revision 2 additions, chat prompts |
+| `docs/PLAN/` | The execution plan: sixteen steps, sub-step work orders, segment guide, guardrails, traceability, provider registry, revision 2 additions, chat prompts |
 
 ## How the build is executed
 
@@ -29,9 +29,12 @@ The project is built in sixteen steps, one step per chat:
    on up to CHAT_16).
 3. The chat implements sub-step by sub-step, commits after each sub-step, runs
    `npm run verify`, and ends with a handoff document in `docs/handoffs/`.
-4. If a step does not finish in one chat, paste the same prompt again in a new
-   chat: the prompt's resume instruction continues from the first unchecked
-   sub-step without repeating work.
+4. Steps 1, 3, 4, 6, 10 and 13 are divided into four segments each. A chat
+   executes exactly one segment, stops at the segment gate, and the same prompt
+   is pasted again in a new chat for the next segment. For every other step, if
+   one chat is not enough, paste the same prompt again: the resume instruction
+   continues from the first unchecked sub-step without repeating work. Full
+   segment rules: `docs/PLAN/10_SEGMENT_GUIDE.md`.
 
 Never skip a step and never paste two step prompts into one chat. Each prompt
 is self-sufficient and states its scope, rules, gates and handoff duty.

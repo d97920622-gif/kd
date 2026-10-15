@@ -20,6 +20,7 @@ conflicting code, and defines the exact instruction text for every chat.
 | `07_BRANCH_AND_GIT_WORKFLOW.md` | `integration` mainline, commit convention, PR and release rules |
 | `08_SUBSTEP_CHECKLISTS.md` | Sub-step work orders for all 16 steps |
 | `09_REVISION_2_ADDITIONS.md` | Revision 2 placement, ownership boundaries, heavy-step notes, added gates |
+| `10_SEGMENT_GUIDE.md` | Segment model: how one heavy step is executed across four chats |
 | `chat-prompts/CHAT_01.md` ... `CHAT_16.md` | Paste-ready instruction for each of the 16 chats |
 | `../handoffs/` | One handoff document per completed chat |
 
@@ -28,7 +29,9 @@ conflicting code, and defines the exact instruction text for every chat.
 1. Read `00_MASTER_EXECUTION_PLAN.md` and `08_SUBSTEP_CHECKLISTS.md` once.
 2. Open chat 1, paste the whole content of `chat-prompts/CHAT_01.md`.
 3. The chat works sub-step by sub-step, commits after each sub-step, and ends
-   with `docs/handoffs/CHAT_01_COMPLETED.md`.
+   with `docs/handoffs/CHAT_01_COMPLETED.md`. Steps 1, 3, 4, 6, 10 and 13 run
+   as four segments each: one segment per chat, stop at the segment gate, then
+   paste the same prompt again for the next segment.
 4. Continue with chat 2, 3, ... 16 in order. Never skip a step.
 5. If a step cannot finish in one chat, the same chat-prompt file contains the
    resume instruction. Continue in a new chat that starts from the first

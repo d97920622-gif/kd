@@ -136,15 +136,30 @@ Added scope by step:
 Migration windows are unchanged; new tables and policies are created inside the
 owning step's existing window.
 
-## 8. Expected chat usage per step
+## 8. Expected chat usage per step (segment model)
 
-The plan defines sixteen steps, presented as sixteen chat prompts. A step with
-more sub-steps may need more than one chat:
+The plan defines sixteen steps, presented as sixteen chat prompts. Six heavy
+steps are executed as four segments each, one segment per chat. Segment rules
+and stop conditions are in `10_SEGMENT_GUIDE.md`.
 
-| Step | Expected chats | Reason |
-| --- | --- | --- |
-| 1, 3, 4, 6, 10, 13 | 1 to 3 | Largest scope; continue with the same prompt using the resume instruction |
-| 2, 5, 7, 8, 9, 11, 12, 14, 15, 16 | 1 to 2 | Medium to large scope; continue with the same prompt if needed |
+| Step | Segments | Sub-steps | Expected chats |
+| --- | --- | --- | --- |
+| 1 | 1A to 1D | 1.1 to 1.32 | 4 |
+| 2 | single | 2.1 to 2.14 | 1 to 2 |
+| 3 | 3A to 3D | 3.1 to 3.22 | 4 |
+| 4 | 4A to 4D | 4.1 to 4.24 | 4 |
+| 5 | single | 5.1 to 5.12 | 1 to 2 |
+| 6 | 6A to 6D | 6.1 to 6.30 | 4 |
+| 7 | single | 7.1 to 7.10 | 1 to 2 |
+| 8 | single | 8.1 to 8.13 | 1 to 2 |
+| 9 | single | 9.1 to 9.16 | 1 to 2 |
+| 10 | 10A to 10D | 10.1 to 10.32 | 4 |
+| 11 | single | 11.1 to 11.10 | 1 to 2 |
+| 12 | single | 12.1 to 12.10 | 1 to 2 |
+| 13 | 13A to 13D | 13.1 to 13.34 | 4 |
+| 14 | single | 14.1 to 14.11 | 1 to 2 |
+| 15 | single | 15.1 to 15.14 | 1 to 2 |
+| 16 | single | 16.1 to 16.11 | 1 to 2 |
 
 The step count never changes and no work is duplicated; the resume instruction
-in each prompt continues from the first unchecked sub-step.
+in each prompt continues from the first unchecked sub-step of the next segment.

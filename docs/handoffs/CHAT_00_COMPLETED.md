@@ -76,3 +76,21 @@ engine, the security modernization set and the usability modernization set.
 Nothing from the original specification was removed or weakened. The step
 count stays sixteen; heavy steps continue with the same prompt using the
 resume instruction.
+
+## 6. Revision 3 (finer granularity for the six heavy steps)
+
+Requested by the owner: break the heavy steps into even smaller pieces so a
+single chat can complete them without errors.
+
+| File | Change |
+| --- | --- |
+| `docs/PLAN/08_SUBSTEP_CHECKLISTS.md` | Revision 3: steps 1, 3, 4, 6, 10 and 13 rewritten as four segments each with finer sub-steps (total sub-steps 204) |
+| `docs/PLAN/10_SEGMENT_GUIDE.md` | New file: segment model, stop and start checklists, segment map, size discipline |
+| `docs/PLAN/09_REVISION_2_ADDITIONS.md` | Sub-step references updated to Revision 3 numbers; section 3A added |
+| `docs/PLAN/01_REQUIREMENTS_TRACEABILITY.md` | Revision 2 rows updated to Revision 3 sub-step numbers; section 7 added |
+| `docs/PLAN/00_MASTER_EXECUTION_PLAN.md` | Section 8 replaced with the segment model and expected chat counts |
+| `docs/PLAN/chat-prompts/CHAT_01, 03, 04, 06, 10, 13` | Segmented scope, segment execution model, segment rule and status line |
+| `README.md`, `docs/PLAN/README.md`, `docs/PLAN/chat-prompts/README.md` | Segment guidance added |
+
+Nothing was removed. The step count stays sixteen; the six heavy steps simply
+run as four chats each with small, individually verifiable sub-steps.
