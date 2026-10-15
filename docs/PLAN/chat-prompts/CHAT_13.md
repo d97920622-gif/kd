@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_13.md
-# CHAT 13 OF 16 -- Payroll, HR, Expenses, Double-entry Accounting, Financial Statements, Reports
+# CHAT 13 OF 16 -- Payroll, HR, Expenses, Double-entry Accounting, Tax Liability and Remittance, Statements, Reports
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 12 complete.
@@ -46,8 +46,25 @@ SCOPE FOR THIS CHAT:
   consolidation; accounting standards configuration.
 - 13.10 Period management and close checklist; tax filing preparation; tax
   reports; accounting-grade audit features.
-- 13.11 Financial intelligence: cash flow forecasting, BI dashboards, and at
+- 13.11 Tax liability ledger: segregated Tax Payable accounts per jurisdiction
+  and rate, collected tax never entering revenue or a spendable balance, tax
+  periods, return draft built from Step 6 determination data, reconciliation
+  assertion.
+- 13.12 Tax remittance workflow: approval chain staff to CEO to super_admin,
+  remittance record with method, authority reference, date, proof upload and
+  USD FX freeze, journal entry Dr Tax Payable and Cr Bank, bank reconciliation
+  link, filed and closed states, evidence pack.
+- 13.13 Tax filing operations: filing calendar with deadline reminders,
+  penalty and interest tracking, accountant-ready export pack, platform
+  self-billing tax treatment for subscriptions.
+- 13.14 Financial intelligence: cash flow forecasting, BI dashboards, and at
   least fifteen reports with scheduling, saved views and sharing.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 13.11 tax liability ledger, 13.12 tax remittance workflow, 13.13 tax filing operations. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; numeric(18,4) with
 decimal.js, never JavaScript Number; no test files; no TODO, FIXME, "Coming

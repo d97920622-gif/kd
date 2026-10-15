@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_14.md
-# CHAT 14 OF 16 -- Super Admin Console, CMS, SEO, Analytics, Marketing, Growth, Intelligence
+# CHAT 14 OF 16 -- Super Admin Console, CMS, SEO, Analytics, Marketing, Growth, Intelligence, Trust Publishing
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 13 complete.
@@ -52,6 +52,16 @@ SCOPE FOR THIS CHAT:
   for Splunk, Elastic, Datadog, CloudWatch, Sentinel and Chronicle with CEF,
   LEEF and UDM formatting, user behaviour analytics, insider threat signals,
   tamper detection alerts; growth and retention tools.
+- 14.11 Trust and transparency publishing: /.well-known/security.txt,
+  vulnerability disclosure page with policy and contact, transparency report
+  page, sub-processor list, data processing agreement page, accessibility
+  statement, privacy notice linkage.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-step 14.11 trust and transparency publishing. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; numeric(18,4) with
 decimal.js; no test files; no TODO, FIXME, "Coming Soon" or placeholders; no

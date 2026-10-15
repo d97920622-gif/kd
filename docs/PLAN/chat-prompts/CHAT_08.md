@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_08.md
-# CHAT 08 OF 16 -- Payment Framework Core, Card Rules, 3DS Policy, Routing, Super Admin API Console
+# CHAT 08 OF 16 -- Payment Framework Core, Card Rules, 3DS Policy, Advanced Card Risk, Routing, Super Admin API Console
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Steps 2 and 4 complete.
@@ -48,17 +48,23 @@ SCOPE FOR THIS CHAT:
   3DS is not completed, allow the payment only if the billing postal code and
   the payer IP country both match the invoice data; otherwise hold the payment
   and route the case to manual review; store authentication evidence.
-- 8.7 Velocity limits: config/payment-limits.ts defaults for card attempts,
-  IP attempts, invoice attempts and review thresholds; counters per card
-  token, per IP and per invoice; alerting on breach.
-- 8.8 Routing engine: deterministic rules by company, country, currency,
+- 8.7 3DS2 exemptions and network tokenization: exemption request with
+  documented fallback to a challenge, liability shift record, token lifecycle
+  and update events, PAN never present; lib/payment/tokenization.ts.
+- 8.8 Advanced card risk: card-testing detection with BIN velocity and
+  micro-attempt rules, authorization holds, processor fraud-tool adapter that
+  respects gateway-hosted risk decisions, config in config/payment-limits.ts.
+- 8.9 Velocity limits: defaults for card attempts, IP attempts, invoice
+  attempts and review thresholds; counters per card token, per IP and per
+  invoice; alerting on breach.
+- 8.10 Routing engine: deterministic rules by company, country, currency,
   capability and KYC status; when no rule matches the payment is aborted and
   never sent to another processor as a fallback; decision log for every
   routing evaluation.
-- 8.9 Webhook framework: per-processor signature verification adapters,
+- 8.11 Webhook framework: per-processor signature verification adapters,
   timestamp tolerance, replay protection, event id deduplication in
   webhook_events, idempotent processing, retry and dead-letter handling.
-- 8.10 Super admin API connect console: a page under app/(admin)/gateways/
+- 8.12 Super admin API connect console: a page under app/(admin)/gateways/
   where super_admin can enter credentials for any processor that has adapter
   code, test the connection, enable it, disable it, and switch the active
   mode, all without documentation changes or redeploys. Credentials are
@@ -71,8 +77,14 @@ SCOPE FOR THIS CHAT:
   the same session; exactly one mode per processor is active at a time and a
   mode change requires a successful test in the new mode; every credential
   action and mode change writes an audit entry.
-- 8.11 Fraud engine core: risk scoring, blacklists, blocklists, AML and
+- 8.13 Fraud engine core: risk scoring, blacklists, blocklists, AML and
   sanctions screening hooks, review queue UI, fraud analytics baseline.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 8.7 3DS2 exemptions and network tokenization, 8.8 advanced card risk (card-testing detection, authorization holds, processor fraud-tool adapter). Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; every amount is USD,
 numeric(18,4), decimal.js only, never JavaScript Number; no test files; no

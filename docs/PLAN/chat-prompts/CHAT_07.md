@@ -28,8 +28,8 @@ SCOPE FOR THIS CHAT:
 - 7.3 Supabase Storage adapter, runtime provider resolver per company,
   automatic failover when the preferred provider is unavailable, provider
   health checks.
-- 7.4 Encryption pipeline: AES-256-GCM before upload, per-tenant key
-  derivation, key version tagging, envelope format, decryption service,
+- 7.4 Encryption pipeline: AES-256-GCM before upload, per-tenant envelope key
+  usage, key version tagging, envelope format, decryption service,
   zero-knowledge notes documented.
 - 7.5 Upload pipeline: magic byte verification, extension and MIME
   cross-check, per-type size limits (image 5MB, PDF 10MB, KYC 5MB), zip bomb
@@ -48,6 +48,12 @@ SCOPE FOR THIS CHAT:
   derivatives, thumbnails, srcset support.
 - 7.10 Admin surfaces: owner usage view, super_admin quarantine console,
   migration console, usage reports.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps: none. Scope unchanged. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only where money appears;
 no test files; no TODO, FIXME, "Coming Soon" or placeholders; no `any`; no

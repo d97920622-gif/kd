@@ -42,19 +42,29 @@ SCOPE FOR THIS CHAT:
   signatures, append-only enforcement, audit triggers for all tables,
   verification function, merkle root table and function, export function.
 - 2.9 Encryption core: AES-256-GCM module, key vault, key rotation module,
-  blind index for searchable encrypted fields, PII redaction, secret storage
-  helper for later gateway credentials, benchmark document.
-- 2.10 Concurrency primitives: idempotency middleware and table, optimistic
+  blind index for searchable encrypted fields, PII redaction, benchmark doc.
+- 2.10 Envelope key management: per-tenant data encryption keys, wrapped key
+  storage, key usage audit, scheduled rotation window, crypto-shredding
+  procedure with a verification query.
+- 2.11 Secret registry: centralized secret records with owner, purpose, access
+  audit, boot-time validation hook and rotation checklist.
+- 2.12 Concurrency primitives: idempotency middleware and table, optimistic
   lock service, pessimistic lock service, advisory lock service, leader lock,
   duplicate detector base, request_logs, rate_limits.
-- 2.11 Governance data: data_classification, retention policies, DSAR tables,
+- 2.13 Governance data: data_classification, retention policies, DSAR tables,
   soft delete and restore helpers, backup metadata.
-- 2.12 Seeds and type generation: plans, permission matrix baseline, countries,
+- 2.14 Seeds and type generation: plans, permission matrix baseline, countries,
   currencies, tax presets, super_admin bootstrap, types/database.ts pipeline.
 
 FEATURE SOURCES: FEATURE_LIST.md Part 9 A (isolation), B (encryption and
 secrets), K (database engineering), L (concurrency), Part 11 C1 (immutable
 audit log), plus the audit log field list in MASTER_PROMPT.md.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 2.10 envelope keys with rotation and crypto-shredding, and 2.11 secret registry. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only with numeric(18,4) and
 decimal.js; no test files; no TODO, FIXME, "Coming Soon" or placeholders; no

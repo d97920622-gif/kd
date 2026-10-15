@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_09.md
-# CHAT 09 OF 16 -- 16 Processor Adapters, NMI Dual Mode, Sandbox Validation
+# CHAT 09 OF 16 -- 16 Processor Adapters, NMI Dual Mode, Advanced Capabilities, Sandbox Validation
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 8 complete. This step requires internet access to read the
@@ -54,12 +54,22 @@ SCOPE FOR THIS CHAT, one adapter file per processor:
 - 9.13 Custom adapter: owner-defined HTTPS gateway, JSON-driven
   configuration, SSRF-guarded, configurable signature scheme, no
   provider-specific behaviour hardcoded.
-- 9.14 Sandbox validation per processor with recorded calls and observed
+- 9.14 Advanced capability integration per processor: network tokenization,
+  3DS2 exemptions, hosted risk or fraud tooling, authorization holds, wallet
+  express pay; implement where the processor documents support and record the
+  evidence in docs/PROVIDERS/<provider>.md.
+- 9.15 Sandbox validation per processor with recorded calls and observed
   results; when credentials are unavailable, record the exact missing
   credential and mark the sandbox proof pending without inventing behaviour.
-- 9.15 Registry and console wiring, capability and mode matrix surface,
+- 9.16 Registry and console wiring, capability and mode matrix surface,
   docs/PROVIDERS/INDEX.md, corrections applied back to
   docs/PLAN/06_PROVIDER_DOCS_REGISTRY.md.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-step 9.14 advanced capability integration per processor with documented evidence. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; every amount is USD,
 numeric(18,4), decimal.js only; no test files, use SQL and HTTP assertion

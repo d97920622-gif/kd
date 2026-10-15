@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_16.md
-# CHAT 16 OF 16 -- Deployment, CI/CD, Cron, Docs, PWA, Performance, Backup/DR, Launch Readiness
+# CHAT 16 OF 16 -- Deployment, CI/CD, Cron, Docs, PWA Security, Performance, Backup/DR, Launch
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 15 complete.
@@ -29,7 +29,8 @@ SCOPE FOR THIS CHAT:
   against Netlify.
 - 16.3 CI/CD: ci workflow, security workflow with SAST, DAST, SCA and secret
   scanning, deploy workflow with migrations and rollback, release process,
-  changelog automation, branch protection and CODEOWNERS enforcement.
+  changelog automation, branch protection and CODEOWNERS enforcement,
+  signature and provenance verification of the build.
 - 16.4 Cron jobs: all twenty jobs implemented, leader-locked, monitored, with
   a registry, a console view and a dead man switch.
 - 16.5 Monitoring launch: Sentry releases with source maps, uptime monitoring,
@@ -42,17 +43,27 @@ SCOPE FOR THIS CHAT:
 - 16.7 PWA and UX polish: manifest, service worker, offline page, install
   prompt, splash screens, offline detection, full audit sweep of loading,
   error, empty and success states, 320px, dark mode, accessibility and motion.
-- 16.8 Performance: Lighthouse budget enforcement, bundle analysis, image
+- 16.8 PWA security and local data: biometric app lock using platform
+  authenticators, encrypted offline queue, no PII or payment data in local
+  storage or caches, push alert channel, secure service worker update flow
+  with verification.
+- 16.9 Performance: Lighthouse budget enforcement, bundle analysis, image
   pipeline, font strategy, caching, HTTP/3, Brotli, index audit, N+1 audit,
   load test procedure documented, performance report with measured numbers.
-- 16.9 Backup, DR and lifecycle: database and storage backup scripts, restore
+- 16.10 Backup, DR and lifecycle: database and storage backup scripts, restore
   drills, RTO and RPO validation, offsite encrypted backups, tenant offboarding
-  with export and delete, data portability, downgrade rules, cost
-  optimization, release and launch checklists, launch war room plan, thirty-day
-  post-launch plan.
-- 16.10 Final audit and sign-off: complete checklist sign-off, penetration test
+  with export and delete plus crypto-shredding, data portability, downgrade
+  rules, cost optimization, release and launch checklists, launch war room,
+  thirty-day post-launch plan.
+- 16.11 Final audit and sign-off: complete checklist sign-off, penetration test
   remediation verification, zero critical dependencies, traceability matrix
-  finalized at 3,950 features with zero unmapped entries, completion statement.
+  finalized with zero unmapped entries, completion statement.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-step 16.8 PWA security and local data protection. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only where money appears; no
 test files, load tests are documented procedures and SQL or HTTP scripts, not

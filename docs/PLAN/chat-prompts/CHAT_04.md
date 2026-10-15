@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_04.md
-# CHAT 04 OF 16 -- Roles, Permissions, Approval Engine, Onboarding, Settings, KYC, Notifications, Platform Billing
+# CHAT 04 OF 16 -- Roles, Permissions, Approval Engine, Approval Inbox, Enterprise Access, Onboarding, Settings, KYC, Notifications, Platform Billing
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 3 complete.
@@ -30,27 +30,40 @@ SCOPE FOR THIS CHAT:
   super_admin; SLA with auto-escalation; delegation with super_admin fallback;
   dual approval for critical actions; bulk approval; full approval history;
   approval dashboards per role; audit entry for every decision; every managed
-  action routes through this single engine (no parallel approval path).
-- 4.3 Super admin first-run setup wizard and platform configuration.
-- 4.4 Owner onboarding wizard: company creation, profile, industry presets,
+  action routes through this single engine.
+- 4.3 Approval inbox: unified pending queue per role, bulk approve and reject
+  with confirmation, SLA countdown, filters by module and requester, audit.
+- 4.4 Super admin first-run setup wizard and platform configuration.
+- 4.5 Owner onboarding wizard: company creation, profile, industry presets,
   branding, invoice defaults, first-run experience, entitlement-aware steps.
-- 4.5 Company profile and settings: profile, branding settings, invoice
+- 4.6 Company profile and settings: profile, branding settings, invoice
   settings, custom domain, tenant security policy, notification preferences,
   one-click backup request.
-- 4.6 Team management: staff invites, granular permission assignment,
+- 4.7 Team management: staff invites, granular permission assignment,
   staff activity monitoring, owner-controlled staff security, staff draft to
   owner approval send workflow.
-- 4.7 KYC: document upload through the storage abstraction, review console for
+- 4.8 KYC: document upload through the storage abstraction, review console for
   kyc_reviewer, KYC gate map for gated features, statuses, re-verification,
   notifications, audit.
-- 4.8 Notifications: in-app center, preferences, event matrix, realtime
-  updates, digest, and the email dispatch interface consumed by step 12
-  (implement the interface and queue now; SMTP adapters arrive in step 12).
-- 4.9 Platform billing: plan management, subscription lifecycle, coupons,
+- 4.9 Notifications: in-app center, preferences, event matrix, realtime
+  updates, digest, the email dispatch interface consumed by step 12, and the
+  message delivery event log that every channel writes into.
+- 4.10 Platform billing: plan management, subscription lifecycle, coupons,
   entitlement engine, dunning, platform invoices and billing UI.
-- 4.10 Tenant settings surfaces: gateway configuration shell and payout
+- 4.11 Enterprise access: SAML and OIDC single sign-on adapter, SCIM
+  provisioning, tenant IP allowlist, just-in-time access with expiry,
+  break-glass with dual approval and mandatory audit.
+- 4.12 Owner security centre: security score and checklist, who-did-what
+  digest, permission review reminder, session and device review links.
+- 4.13 Tenant settings surfaces: gateway configuration shell and payout
   partner settings using only the generic names "Global Payout Partners" and
   "Local Payment Methods via Licensed Partners".
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-step 4.3 approval inbox, 4.11 enterprise access (SSO, SCIM, IP allowlist, just-in-time, break-glass), 4.12 owner security centre, and the message delivery event log inside 4.9. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only with numeric(18,4) and
 decimal.js; no test files; no TODO, FIXME, "Coming Soon" or placeholders; no

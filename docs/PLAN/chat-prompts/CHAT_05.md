@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_05.md
-# CHAT 05 OF 16 -- Invoicing Core, Documents, PDF Engine, Numbering
+# CHAT 05 OF 16 -- Invoicing Core, Documents, PDF Engine, Numbering, Editor Experience
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 4 complete.
@@ -23,8 +23,9 @@ SCOPE FOR THIS CHAT:
 - 5.2 Invoice CRUD: service, API, multi-step form, list and detail, drafts,
   trash and restore, bulk actions, filters, cursor pagination, mobile card
   list, four UI states.
-- 5.3 Line items and the calculation engine: discounts, taxes, shipping,
-  withholding, rounding policy, decimal.js only, numeric(18,4) columns.
+- 5.3 Line items and the calculation engine: discounts, taxes through the
+  Step 6 tax service, shipping, withholding, rounding policy, decimal.js only,
+  numeric(18,4) columns.
 - 5.4 Numbering: pg_advisory_xact_lock based per-tenant sequence, prefixes and
   suffixes, gapless guarantee, concurrency assertion script.
 - 5.5 Status machine and workflow: transitions, guards, timeline, activity
@@ -37,12 +38,21 @@ SCOPE FOR THIS CHAT:
 - 5.8 PDF engine: server-side React-PDF, immutable snapshot archive through
   storage, content hash, watermark option, signed download, CSV and Excel
   export.
-- 5.9 Documents: estimates, credit notes, debit notes, proforma invoices,
-  advance and deposit invoices, recurring invoices, installment plans.
+- 5.9 Documents: estimates, credit notes with tax reversal, debit notes,
+  proforma invoices, advance and deposit invoices, recurring invoices,
+  installment plans.
 - 5.10 Projects and time tracking: projects, timers, billable hours to
   invoice conversion, batch invoice generation.
 - 5.11 Invoice reports: sent versus paid, aging, revenue summary; billing
   lifecycle hooks handed to step 6.
+- 5.12 Editor experience: autosave, undo, saved views and explainability
+  messages on invoice and document actions using the Step 1 primitives.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-step 5.12 editor experience (autosave, undo, saved views, explainability). Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; every amount is
 numeric(18,4) and every calculation uses decimal.js; JavaScript Number must

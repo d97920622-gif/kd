@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_12.md
-# CHAT 12 OF 16 -- Universal SMTP, WhatsApp, Social, Public API v1, Webhooks, Integrations, Support
+# CHAT 12 OF 16 -- Universal SMTP, WhatsApp, Social, Public API v1, Webhooks, Integrations, Support, Channel Transparency
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 11 complete.
@@ -45,11 +45,21 @@ SCOPE FOR THIS CHAT:
   Google Cloud Vision and smart entry, contracts and e-signature, multi-channel
   messaging engine with channel routing, fallback chain, consent and quiet
   hours, and additional channel adapters using generic partner naming.
-- 12.8 Support: help center, ticket system with SLA and assignment, canned
+- 12.8 Messaging transparency and compliance console: per-channel delivery,
+  open, click, retry and failure views appended to the Step 4 message log
+  through the append protocol, consent ledger view, quiet hours, suppression
+  list, admin audit.
+- 12.9 Support: help center, ticket system with SLA and assignment, canned
   responses, feedback and NPS.
-- 12.9 Data migration and import wizard: CSV and competitor import, column
+- 12.10 Data migration and import wizard: CSV and competitor import, column
   mapping, validation, duplicate preview with skip, overwrite or create
   options, audit.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-step 12.8 messaging transparency and compliance console. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; numeric(18,4) with
 decimal.js; no test files; no TODO, FIXME, "Coming Soon" or placeholders; no

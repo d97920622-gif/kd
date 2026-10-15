@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_11.md
-# CHAT 11 OF 16 -- Client Portal, Tokenized Access, Email Journey, Branding, White-label, Document Integrity
+# CHAT 11 OF 16 -- Client Portal, Token Checkout Page, Tokenized Access, Email Journey, Branding, White-label, Document Integrity
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 10 complete.
@@ -25,24 +25,38 @@ SCOPE FOR THIS CHAT:
   logs and analytics, leak detection alerts, noindex on all token pages,
   rate limiting and brute-force guard.
 - 11.2 Client pages under app/(client-portal): invoice view at /i/[token],
-  payment page, estimate approval at /e/[token], receipt view and download at
-  /r/[token], client hub at /hub/[token], contract signing at /c/[token],
-  expired and invalid token pages.
-- 11.3 Client email journey: invoice email, payment reminders, receipts,
+  estimate approval at /e/[token], receipt view and download at /r/[token],
+  client hub at /hub/[token], contract signing at /c/[token], expired and
+  invalid token pages.
+- 11.3 Token checkout composition: /i/[token]/pay and payment link routes
+  render the Step 10 checkout component set inside tenant branding with
+  noindex, token rate limits, OTP gate, no token in referrer or gateway
+  redirect, saved-method display.
+- 11.4 Client email journey: invoice email, payment reminders, receipts,
   statements, dunning messages, delivery tracking with open and click events,
   duplicate send guard, per-tenant sender identity.
-- 11.4 Tenant branding: logo, colors, fonts, email skin, auto-apply to
+- 11.5 Tenant branding: logo, colors, fonts, email skin, auto-apply to
   documents and portal, live preview, per-document overrides.
-- 11.5 White-label: platform brand removal, custom domain with plan gating,
+- 11.6 White-label: platform brand removal, custom domain with plan gating,
   email domain configuration, DNS and SSL guidance.
-- 11.6 Form and data safety UX: inline validation, autosave, unsaved changes
+- 11.7 Form and data safety UX: inline validation, autosave, unsaved changes
   guard, double submit guard, PII masking in the interface.
-- 11.7 Document integrity and workflow: immutable snapshots, hash verification
+- 11.8 Document integrity and workflow: immutable snapshots, hash verification
   on view, e-signature capture with evidence, staff draft to owner send
   approval flow, bulk email workflow.
-- 11.8 Quality and lifecycle UX: client data quality checks, industry presets
+- 11.9 Quality and lifecycle UX: client data quality checks, industry presets
   and template library, tenant lifecycle and growth UX, mobile and print
   polish for all client pages.
+- 11.10 Client explainability and support: plain-language reason for a failed
+  or held payment, what happens next, expected receipt time, delivery
+  transparency view backed by the Step 4 message log, contact-seller-first
+  flow for disputes.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 11.3 token checkout composition, 11.10 client explainability and support. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; numeric(18,4) with
 decimal.js; no test files; no TODO, FIXME, "Coming Soon" or placeholders; no

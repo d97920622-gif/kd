@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_10.md
-# CHAT 10 OF 16 -- Payment Experience, Wallet, MoR, Payouts, Disputes, Consent Evidence, Subscriptions, BNPL
+# CHAT 10 OF 16 -- Checkout Design, Payment Experience, Wallet, MoR, Payouts, Disputes, Consent Evidence, Subscriptions, BNPL
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 9 complete.
@@ -23,40 +23,66 @@ and A7 (card rules and 3DS enforcement points). 4. docs/PLAN/
 SCOPE FOR THIS CHAT:
 - 10.1 Payment orchestration: initiate, confirm, capture, void, receipt,
   notification, status machine, reconciliation with gateway_transactions.
-- 10.2 Checkout experience: hosted and embedded, payment page security with
-  VPN, proxy and Tor checks, device fingerprint, Turnstile, mobile wallet
+- 10.2 Checkout experience core: hosted and embedded, payment page security
+  with VPN, proxy and Tor checks, device fingerprint, Turnstile, mobile wallet
   priority, all four states.
-- 10.3 Payment links: create, share, expiry, revoke, usage analytics.
-- 10.4 Pluggable integration modes UI: iframe, SDK, redirect and API only per
+- 10.3 Checkout design system: two-column desktop with sticky order summary,
+  single-column mobile with sticky pay bar and safe-area, express pay row
+  above the card form, step indicator, skeletons, inline validation, dark mode
+  parity, motion with reduced-motion, 320px layout, WCAG AA focus order,
+  tenant white-label theming tokens.
+- 10.4 Checkout content and trust layer: monetary transparency with subtotal,
+  discount, tax line and total, no hidden charges, refund policy auto-display,
+  statement descriptor, seller contact, contact-seller-first message,
+  immutable order summary snapshot, explainability messages for declines and
+  next steps.
+- 10.5 Checkout edge cases and retry: method switch and retry without losing
+  the invoice, per-attempt idempotency, same-card same-invoice 24-hour notice,
+  manual review messaging, expired and revoked link handling, partial payment,
+  installment and BNPL options, multi-invoice payment selection, saved
+  tokenized payment methods.
+- 10.6 Checkout technical hardening: iframe sandbox attributes, CSP frame-src
+  allowlist, Subresource Integrity, autocomplete and input type attributes,
+  LCP under 2.5s and CLS under 0.1 budgets, assertion that card fields exist
+  only inside processor frames.
+- 10.7 Payment links: create, share, expiry, revoke, usage analytics.
+- 10.8 Pluggable integration modes UI: iframe, SDK, redirect and API only per
   declared capability.
-- 10.5 Refunds: full and partial, approval flow, reason codes, evidence,
-  reconciliation, audit.
-- 10.6 Partial payments, allocation across invoices, credit application.
-- 10.7 Surcharge and fees: fee calculator, platform fee, net settlement,
-  fee reporting; all amounts USD numeric(18,4).
-- 10.8 Wallet: balances, double-entry ledger, serializable isolation on
+- 10.9 Refunds: full and partial, approval flow, reason codes, evidence,
+  reconciliation, tax reversal through the Step 6 service.
+- 10.10 Partial payments, allocation across invoices, credit application.
+- 10.11 Surcharge and fees: fee calculator, platform fee, net settlement, fee
+  reporting; all amounts USD numeric(18,4).
+- 10.12 Wallet: balances, double-entry ledger, serializable isolation on
   mutations, top-up, withdrawal, holds, statements, negative balance
   protection.
-- 10.9 Merchant of record engine: MoR flow, KYC-gated routing, settlement
-  batches, payout engine, payout approvals requiring step-up, payout partner
-  naming limited to "Global Payout Partners" and "Local Payment Methods via
-  Licensed Partners", payout reconciliation.
-- 10.10 Disputes: chargeback handling, the ten-part evidence pack (invoice
-  snapshot, receipt, consent proof, delivery proof, communication log, client
-  identity, chronological timeline, audit chain, platform details, gateway
-  ready formatting), auto-submit per processor, deadline tracker, reason code
-  mapping, win and loss analytics, chargeback reserve calculator, rate
-  monitoring with the 0.65 percent threshold alert.
-- 10.11 Consent evidence engine: consent capture with checkbox timestamp, IP,
+- 10.13 Merchant of record engine: MoR flow, KYC-gated routing, collected-tax
+  hold driven by the liability owner flag from the Step 6 tax profile,
+  settlement batches, payout engine with step-up approvals, payout partner
+  generic naming, payout reconciliation.
+- 10.14 Chargeback, dispute and auto-defence: chargeback handling, the
+  ten-part evidence pack (invoice snapshot, receipt, consent proof, delivery
+  proof, communication log, client identity, chronological timeline, audit
+  chain, platform details, gateway ready formatting), auto-submit per
+  processor, deadline tracker, reason code mapping, win and loss analytics,
+  chargeback reserve calculator, rate monitoring with the 0.65 percent
+  threshold alert, auto-defence workspace.
+- 10.15 Consent evidence engine: consent capture with checkbox timestamp, IP,
   device fingerprint, terms and refund policy versions, immutable consent text
   snapshot, visual render, delivery proof, timeline builder, audit chain
   export.
-- 10.12 Client subscriptions: plans, recurring billing engine, management UI,
+- 10.16 Client subscriptions: plans, recurring billing engine, management UI,
   dunning, proration rules.
-- 10.13 BNPL and installment financing framework with eligibility, schedules
+- 10.17 BNPL and installment financing framework with eligibility, schedules
   and reporting.
-- 10.14 Payment reports and analytics, PCI DSS posture document, payment audit
+- 10.18 Payment reports and analytics, PCI DSS posture document, payment audit
   trail, fraud review queue integration.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 10.3 checkout design system, 10.4 checkout content and trust layer, 10.5 checkout edge cases and retry, 10.6 checkout technical hardening. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; numeric(18,4) with
 decimal.js, never JavaScript Number; no test files; no TODO, FIXME, "Coming

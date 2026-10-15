@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_06.md
-# CHAT 06 OF 16 -- CRM, Catalog, Inventory, Suppliers, E-commerce Sync, Dashboards, Reports, Tax, Batch
+# CHAT 06 OF 16 -- CRM, Catalog, Inventory, Suppliers, E-commerce Sync, Dashboards, Reports, Tax Engine, Batch
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 5 complete.
@@ -35,13 +35,27 @@ SCOPE FOR THIS CHAT:
 - 6.8 Reports baseline: sales, payment, expense, tax, client, inventory and
   project reports with filters, saved views, exports, scheduling and sharing.
 - 6.9 Billing lifecycle: reminder engine, late fees and penalties, escalation
-  states, dunning; email and WhatsApp delivery is dispatched through the
-  notification interface until step 12 lands.
-- 6.10 Tax: jurisdictions, rates, inclusive and exclusive handling, reverse
-  charge, VAT and GST rules, Asia presets, tax reports.
-- 6.11 Batch and bulk operations plus FX: batch invoice generation, bulk
+  states, dunning; delivery is dispatched through the notification interface.
+- 6.10 Tax core: tax profiles per company with registration number, filing
+  frequency and liability owner, jurisdictions with effective-dated versioned
+  rates, tax classes, inclusive and exclusive handling, per-line and
+  invoice-level modes, rounding policy.
+- 6.11 Tax determination engine: place of supply, client country and state,
+  B2B and B2C, reverse charge, exemption with expiry, zero-rated and out of
+  scope, determination result with explainability stored on the document.
+- 6.12 Tax documents and reporting: country-specific tax invoice and credit
+  note mandatory fields, reverse-charge statement, exemption certificate
+  register, collected versus remitted versus outstanding reporting per period,
+  jurisdiction and rate, customer tax summary, exports.
+- 6.13 Batch and bulk operations plus FX: batch invoice generation, bulk
   actions, batch_operations table with duplicate guard, and
   lib/fx/exchange-rates.ts with historical freeze for display conversion only.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 6.10 tax core, 6.11 tax determination engine, 6.12 tax documents and reporting. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; base currency USD; display
 conversion must never change stored amounts; numeric(18,4) and decimal.js; no

@@ -53,12 +53,24 @@ SCOPE FOR THIS CHAT (never implement later steps):
   terms, privacy, blog shell, 404, 500, offline.
 - 1.11 middleware.ts, instrumentation.ts, security headers and CSP nonce
   baseline, sitemap and robots baseline, metadata baseline, print stylesheet.
-- 1.12 Governance: .github/workflows/ci.yml, CODEOWNERS, pull request
-  template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE, ADR-0001 to ADR-0005,
+- 1.12 Web hardening primitives: Trusted Types policy, COOP, COEP, CORP,
+  Permissions-Policy, Clear-Site-Data on logout, Subresource Integrity
+  baseline, header matrix tests, ADR-0006.
+- 1.13 Usability primitives: use-saved-views, use-undo, use-autosave,
+  optimistic update helpers, explainability message component and string
+  catalogue, empty and error copy conventions.
+- 1.14 Governance: .github/workflows/ci.yml, CODEOWNERS, pull request
+  template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE, ADR-0001 to ADR-0007,
   README update, handoff document.
 
 FEATURE SOURCES: FEATURE_LIST.md Part 1 sections A to M, plus Part 10 section
 D baseline documentation.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 1.12 web hardening primitives and 1.13 usability primitives. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES:
 - English only, ASCII only, in every file, comment, seed and commit message.

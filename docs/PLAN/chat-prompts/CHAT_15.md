@@ -1,5 +1,5 @@
 // path: docs/PLAN/chat-prompts/CHAT_15.md
-# CHAT 15 OF 16 -- Deep Security, Compliance, Fraud, Tracking, Zero Trust, Conflict and Duplicate Finalization
+# CHAT 15 OF 16 -- Deep Security, Privacy Experience, Deception and Anomaly, Compliance, Fraud, Tracking, Zero Trust, Conflict and Duplicate Finalization
 
 Open a NEW chat and paste everything between the marker lines.
 Prerequisite: Step 14 complete.
@@ -54,27 +54,41 @@ SCOPE FOR THIS CHAT:
   consent manager, data classification, retention enforcement, residency and
   sovereignty rules, cross-border transfer controls, jurisdiction
   configuration, compliance audit exports.
-- 15.8 Supply chain and CI security: SCA with Snyk and Dependabot, SAST with
+- 15.8 Privacy experience: user and owner privacy dashboard showing stored
+  data classes with export and delete actions, consent ledger view, per-tenant
+  data residency selection, cross-border transfer record, appeal path with
+  review and notification for every automated block.
+- 15.9 Deception, anomaly and log integrity: honeytokens and canaries,
+  per-tenant behavioural baselines, impossible travel detection, automated
+  containment with appeal and owner notification, continuous audit log
+  integrity verification, WORM export with escrow.
+- 15.10 Supply chain and CI security: SCA with Snyk and Dependabot, SAST with
   Semgrep, DAST with OWASP ZAP, secret scanning with gitleaks and truffleHog,
   container scanning with Trivy, IaC scanning with Checkov, SBOM generation,
-  dependency policy.
-- 15.9 Observability and incident response: Sentry with PII scrubbing, real
+  dependency pinning policy, signed commits and provenance hooks.
+- 15.11 Observability and incident response: Sentry with PII scrubbing, real
   user monitoring, synthetic checks, database, payment, email, WhatsApp and
   storage monitors, cron dead man switch, SSL, domain and DNS monitors, alert
   routing, incident workflow, disaster recovery plan with a documented drill
   and RTO under four hours and RPO under one hour.
-- 15.10 Conflict and duplicate finalization: all fifteen conflict and
+- 15.12 Conflict and duplicate finalization: all fifteen conflict and
   duplicate implementations verified as code in services/ with typed errors,
   audit entries, user-visible resolution paths, concurrency assertion scripts
   and leader locks on every cron.
-- 15.11 Performance and database engineering: Core Web Vitals budgets, bundle
+- 15.13 Performance and database engineering: Core Web Vitals budgets, bundle
   budget under 200KB initial JavaScript, media pipeline, caching and ISR,
   index coverage audit, query timeouts, N+1 sweep, cursor pagination
   everywhere.
-- 15.12 Zero Trust and Zero Tolerance finalization: device, network, user and
+- 15.14 Zero Trust and Zero Tolerance finalization: device, network, user and
   transaction trust scores, adaptive MFA, just-in-time and just-enough access,
   break glass procedure, automated responses with an appeal path, security
   posture dashboard, penetration test log and remediation record.
+
+ADDED IN REVISION 2 (mandatory): read docs/PLAN/09_REVISION_2_ADDITIONS.md and
+sections A11 to A15 of docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md before
+starting. Added sub-steps 15.8 privacy experience, 15.9 deception, anomaly and log integrity. Revision 2 only adds; the twenty absolute rules and
+requirements A1 to A10 keep full force. Respect the ownership boundary table in
+that file so no code is duplicated or conflicting.
 
 NON-NEGOTIABLE RULES: English and ASCII only; USD only; numeric(18,4) with
 decimal.js; no test files, use SQL and HTTP assertion scripts instead; no TODO,
