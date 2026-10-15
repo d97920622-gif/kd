@@ -22,12 +22,14 @@ conflicting code, and defines the exact instruction text for every chat.
 | `09_REVISION_2_ADDITIONS.md` | Revision 2 placement, ownership boundaries, heavy-step notes, added gates |
 | `10_SEGMENT_GUIDE.md` | Segment model: how one heavy step is executed across four chats |
 | `11_USAGE_HANDBOOK.md` | A to Z operating guide: branch selection, per-chat loop, review checklist, troubleshooting |
+| `12_SIMPLE_GUIDE.md` | Start here: the three actions, permission gate, closing report, FAQ |
 | `chat-prompts/CHAT_01.md` ... `CHAT_16.md` | Paste-ready instruction for each of the 16 chats |
 | `../handoffs/` | One handoff document per completed chat |
 
 ## Start here
 
-Read `11_USAGE_HANDBOOK.md` first: it explains the one-time branch setup
+Read `12_SIMPLE_GUIDE.md` first (three actions: paste a prompt, type
+continue, type merge). For the detailed variant read `11_USAGE_HANDBOOK.md`: it explains the one-time branch setup
 (make `integration` the mainline and the default branch), which branch to
 select in each new chat, the per-chat loop, the owner review checklist and
 troubleshooting.

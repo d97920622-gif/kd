@@ -113,4 +113,25 @@ credentials.
 RESUME INSTRUCTION: read docs/handoffs/CHAT_09_PROGRESS.md, continue from the
 first unchecked processor sub-step, never re-implement an existing passing
 adapter.
+HOW TO WORK (permission gated, simple). Work one sub-step at a time.
+
+After every sub-step: run npm run verify, commit that sub-step, update
+docs/handoffs/CHAT_09_PROGRESS.md, then print exactly these three lines and stop:
+DONE: sub-step 09.YY - <one short line>
+NEXT: sub-step 09.ZZ - <one short line>
+CONTINUE? type continue for the next sub-step, or stop to finish this chat
+
+Then wait. Do not start the next sub-step until the owner types continue. Never
+put two sub-steps in one commit, never skip a check, and never cross a segment
+gate.
+
+When the owner types stop, print the closing report instead:
+STATUS: complete | partial
+NEXT: <the file to paste in the next chat>
+MERGE: ready to merge into integration | nothing to merge
+If the owner replies with the word merge, open a pull request from this session
+branch into integration and merge it with a merge commit, then confirm in one line.
+
+For this step: the next chat pastes CHAT_10.md; if this step is not finished, it pastes this same file 09 again instead.
+
 === END PASTE ===
