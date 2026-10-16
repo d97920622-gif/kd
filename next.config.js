@@ -3,10 +3,11 @@
  * Next.js configuration baseline for KD SOLUTION IT.
  *
  * Scope of sub-step 1.1: strict build behaviour and safe defaults. Sub-step
- * 1.26 adds the web hardening matrix below; redirects, rewrites and the
- * nonce-based content security policy are added by sub-step 1.30 through the
- * append protocol. This file stays the single place where the Next.js compiler
- * and build are configured.
+ * 1.26 adds the web hardening matrix below. Sub-step 1.30 adds no header here
+ * on purpose: the content security policy that names a per-request nonce is
+ * built in `middleware.ts`, which is the only place a request exists, and the
+ * static half of that policy stays in the data file below. This file stays the
+ * single place where the Next.js compiler and build are configured.
  *
  * The header matrix itself is not written here. It is data in
  * `config/security-headers.ts` - one entry per header, with the environment it
@@ -43,7 +44,12 @@ const nextConfig = {
   },
   experimental: {
     // Keep route handler caching explicit; handlers opt in where required.
-    dynamicIO: false,
+    // The flag was called `dynamicIO` until Next.js renamed it, and sub-step
+    // 1.30 moved to the current name: a flag the framework warns about is a
+    // flag the next upgrade removes, and a renamed flag still means what it
+    // meant. Nothing is cached implicitly, and a route handler that wants a
+    // cache asks for one.
+    cacheComponents: false,
   },
   // Development only. The component gallery is reviewed from a browser that
   // reaches the development server through a proxy host rather than through

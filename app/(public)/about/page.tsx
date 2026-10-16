@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -26,15 +27,11 @@ import type { Metadata } from 'next';
  * says where the keyboard reference is, which is the least glamorous and most
  * honest proof that a product documents itself rather than describing itself.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('about.meta_title'),
   description: t('about.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('about.meta_title'),
-    description: t('about.meta_description'),
-  },
-};
+  path: '/about',
+});
 
 interface AboutPoint {
   readonly id: string;

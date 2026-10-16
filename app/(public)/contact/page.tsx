@@ -1,6 +1,7 @@
 // path: app/(public)/contact/page.tsx
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -19,15 +20,11 @@ import type { Metadata } from 'next';
  * version names the configuration point and hands the reader the surfaces that
  * already answer most of what they came to ask.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('contact.meta_title'),
   description: t('contact.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('contact.meta_title'),
-    description: t('contact.meta_description'),
-  },
-};
+  path: '/contact',
+});
 
 const INCLUDE_KEYS: readonly EnglishStringKey[] = [
   'contact.label_include_point_one',

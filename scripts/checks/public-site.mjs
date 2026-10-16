@@ -369,11 +369,22 @@ for (const page of PAGES) {
     }
   }
 
-  const metadataBlock = /export const metadata: Metadata = \{[\s\S]*?\n\};/.exec(text);
+  // Since sub-step 1.30 the metadata is composed by `publicPageMetadata(...)`,
+  // so the block is either that call or the object it replaced. The fields that
+  // differ per page - the two catalogue keys and the path - stay written in the
+  // page file, which is what the rules after this one verify.
+  const metadataBlock =
+    /export const metadata: Metadata = (?:publicPageMetadata\()?\{[\s\S]*?\n\}(?:\))?;/.exec(text);
   if (metadataBlock === null) {
     finding(page.file, `${page.label} must export a typed metadata object`);
   }
   const metadata = metadataBlock === null ? '' : metadataBlock[0];
+  if (!/publicPageMetadata\(/.test(metadata)) {
+    finding(
+      page.file,
+      `${page.label} must compose its metadata through publicPageMetadata: a page that writes its own open graph block replaces the site-wide one rather than adding to it, which is how the first production run of 1.30 shipped a page with an og:title and no image`,
+    );
+  }
 
   const headings = [...code.matchAll(/<h([1-6])\b/g)].map((match) => ({
     level: Number(match[1]),
@@ -884,6 +895,6 @@ if (offline !== null) {
 reportResult(
   CHECK,
   findings,
-  `${String(PAGES.length)} public pages and ${String(NAMESPACES.length)} namespaces verified (server components with catalogue metadata, one h1 and no skipped heading level, no claim this build cannot evidence, company facts confined to the one namespace allowed to describe them, prices with one owner and two figures per published plan, every catalogue key rendered somewhere), plus the 404, the route error page and the offline page, ${String(titles.size)} distinct titles between 20 and 70 characters, ${String(checkedKeys)} keys checked for a reader, ${String(CLAIM_PATTERNS.length)} claim words and ${String(FACT_PATTERNS.length)} company fact shapes refused in copy`,
+  `${String(PAGES.length)} public pages and ${String(NAMESPACES.length)} namespaces verified (server components with catalogue metadata composed through the 1.30 baseline, one h1 and no skipped heading level, no claim this build cannot evidence, product facts confined to the two namespaces allowed to describe the product, prices with one owner and two figures per published plan, every catalogue key rendered somewhere), plus the 404, the route error page and the offline page, ${String(titles.size)} distinct titles between 20 and 70 characters, ${String(checkedKeys)} keys checked for a reader, ${String(CLAIM_PATTERNS.length)} claim words and ${String(FACT_PATTERNS.length)} product fact shapes refused in copy`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;

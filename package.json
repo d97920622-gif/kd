@@ -27,6 +27,7 @@
     "check:brand-assets": "node scripts/checks/brand-assets.mjs",
     "check:nav-map": "node scripts/checks/nav-map.mjs",
     "check:page-states": "node scripts/checks/page-states.mjs",
+    "check:platform-plumbing": "node scripts/checks/platform-plumbing.mjs",
     "check:motion": "node scripts/checks/motion.mjs",
     "check:web-hardening": "node scripts/checks/web-hardening.mjs",
     "check:usability": "node scripts/checks/usability.mjs",

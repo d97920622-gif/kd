@@ -147,7 +147,7 @@ export const SECURITY_HEADERS: readonly SecurityHeaderRule[] = [
     value: "frame-ancestors 'none'",
     environment: 'production',
     rationale:
-      'The modern half of the clickjacking pair in MASTER_PROMPT layer 2, and the one a browser that ignores X-Frame-Options still obeys. It is the first directive of the product policy: sub-step 1.30 appends script-src and style-src with a per-request nonce in middleware.ts, and because a browser enforces the intersection of every policy it receives, nothing added there can loosen this refusal.',
+      'The modern half of the clickjacking pair in MASTER_PROMPT layer 2, and the one a browser that ignores X-Frame-Options still obeys. This row states what the deployed origin must carry: sub-step 1.30 composes the full policy per request in middleware.ts, adds script-src and style-src with a nonce, and sends that composed policy in development as well, where the framing refusal below is left out so a development build can be reviewed inside a hosting preview window - the one difference the development relaxation list names. Because a browser enforces the intersection of every policy it receives, nothing the middleware adds can loosen it.',
     failureMode:
       'Without it a hostile page can frame the product whole and overlay controls on it, which is how a user is talked into approving a payment they never saw.',
   },

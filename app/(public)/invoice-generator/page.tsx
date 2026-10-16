@@ -1,6 +1,7 @@
 // path: app/(public)/invoice-generator/page.tsx
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -21,15 +22,11 @@ import type { Metadata } from 'next';
  * that produces a document the product would not produce is not a demo of the
  * product.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('generator.meta_title'),
   description: t('generator.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('generator.meta_title'),
-    description: t('generator.meta_description'),
-  },
-};
+  path: '/invoice-generator',
+});
 
 const ASK_KEYS: readonly EnglishStringKey[] = [
   'generator.label_asks_point_one',

@@ -5,6 +5,7 @@ import { KeyChord } from '@/components/ui/kbd';
 import { shortcutRows } from '@/config/commands';
 import { t } from '@/lib/i18n';
 import { brand } from '@/lib/i18n/strings/en/brand';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -45,10 +46,11 @@ import type { Metadata } from 'next';
  * as a live entry: the page exists, so the map may publish its href, and the
  * dead-link check verifies that the two agree.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('commands.label_shortcuts_title'),
   description: t('commands.label_shortcuts_description'),
-};
+  path: '/shortcuts',
+});
 
 export default function ShortcutsPage(): React.ReactElement {
   const rows = shortcutRows('public', null);

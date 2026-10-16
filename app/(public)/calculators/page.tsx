@@ -5,6 +5,7 @@ import { FreeCalculator } from '@/components/public/free-calculator';
 import { Button } from '@/components/ui/button';
 import { CALCULATOR_TOOLS, type CalculatorTool } from '@/lib/calculators/free-tools';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -28,15 +29,11 @@ import type { Metadata } from 'next';
  * on: the reader who has just used a calculator is the reader most likely to
  * ask what the product costs.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('calculators.meta_title'),
   description: t('calculators.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('calculators.meta_title'),
-    description: t('calculators.meta_description'),
-  },
-};
+  path: '/calculators',
+});
 
 interface ToolCopy {
   readonly titleKey: EnglishStringKey;

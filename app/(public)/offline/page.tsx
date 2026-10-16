@@ -2,6 +2,7 @@
 import { OfflineBanner } from '@/components/layout/offline-banner';
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -22,15 +23,11 @@ import type { Metadata } from 'next';
  * element that knows the answer, and a page about the connection should show its
  * state rather than describe it.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('offline.meta_title'),
   description: t('offline.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('offline.meta_title'),
-    description: t('offline.meta_description'),
-  },
-};
+  path: '/offline',
+});
 
 const WORK_KEYS: readonly EnglishStringKey[] = [
   'offline.label_works_point_one',

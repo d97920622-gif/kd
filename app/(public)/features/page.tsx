@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -25,15 +26,11 @@ import type { Metadata } from 'next';
  * is told they are reading a description of the platform rather than a release
  * announcement.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('features.meta_title'),
   description: t('features.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('features.meta_title'),
-    description: t('features.meta_description'),
-  },
-};
+  path: '/features',
+});
 
 interface FeatureGroup {
   readonly id: string;

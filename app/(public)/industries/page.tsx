@@ -1,6 +1,7 @@
 // path: app/(public)/industries/page.tsx
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -17,15 +18,11 @@ import type { Metadata } from 'next';
  * The page is a server component with no client boundary: every card is text
  * and every action is a link.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('industries.meta_title'),
   description: t('industries.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('industries.meta_title'),
-    description: t('industries.meta_description'),
-  },
-};
+  path: '/industries',
+});
 
 interface Industry {
   readonly id: string;

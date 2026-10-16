@@ -20,6 +20,8 @@
  *      alone: the document header, the printed date, the signature line.
  *   3. A row is not split across pages. Tables repeat their header, rows and
  *      figures stay whole, and headings stay with the content they introduce.
+ *      A document that has to match a named paper size asks for one of the two
+ *      named sheets this file declares, and gets the margins above it.
  *   4. Meaning survives without colour. A status badge whose meaning is only a
  *      background colour prints as nothing at all, so elements marked
  *      `data-print="outline"` keep a visible border in ink.
@@ -50,6 +52,39 @@
    */
   @page {
     margin: 16mm;
+  }
+
+  /*
+   * The two named sheets a document can ask for.
+   *
+   * A web page prints on whatever paper the printer has loaded, which is the
+   * right default: a reader does not want a pricing page to fail because the
+   * tray holds Letter. A business document is the opposite case. An invoice
+   * that must match a named sheet declares the sheet and says so, and the
+   * declaration is opt-in per document rather than global, because a global
+   * size would override the reader's own paper choice everywhere.
+   *
+   * A named page rule merges with the unnamed one above, so the margins stay
+   * in one place and these two rules carry only the size. The class below is
+   * how a document opts in: `page: a4` on an element puts that element and its
+   * content on the named sheet. Both are contract, not decoration - the print
+   * probe asserts the compiler emitted them, and
+   * scripts/checks/layout-shells.mjs asserts they stay paired.
+   */
+  @page a4 {
+    size: A4 portrait;
+  }
+
+  @page letter {
+    size: letter portrait;
+  }
+
+  .print-sheet-a4 {
+    page: a4;
+  }
+
+  .print-sheet-letter {
+    page: letter;
   }
 
   /*

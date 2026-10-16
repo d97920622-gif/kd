@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -32,15 +33,11 @@ import type { Metadata } from 'next';
  * unsubstantiated comparison, and `FEATURE_LIST` item 220 describes that page
  * as a separate deliverable with its own evidence.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('pricing.meta_title'),
   description: t('pricing.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('pricing.meta_title'),
-    description: t('pricing.meta_description'),
-  },
-};
+  path: '/pricing',
+});
 
 interface TierBase {
   readonly id: string;

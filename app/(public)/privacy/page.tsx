@@ -1,6 +1,7 @@
 // path: app/(public)/privacy/page.tsx
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -20,15 +21,11 @@ import type { Metadata } from 'next';
  * business that runs this deployment, with the remaining documents of the group -
  * refunds, cookies, data processing, service levels - following the same rule.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('legal.privacy_meta_title'),
   description: t('legal.privacy_meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('legal.privacy_meta_title'),
-    description: t('legal.privacy_meta_description'),
-  },
-};
+  path: '/privacy',
+});
 
 const COLLECT_KEYS: readonly EnglishStringKey[] = [
   'legal.privacy_collect_point_one',

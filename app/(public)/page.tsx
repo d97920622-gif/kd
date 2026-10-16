@@ -12,6 +12,7 @@ import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -43,15 +44,11 @@ import type { Metadata } from 'next';
  * the pages that exist. Authentication arrives in step 3, and the sign-up
  * button appears on this page in the same commit as the page it points at.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('home.meta_title'),
   description: t('home.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('home.meta_title'),
-    description: t('home.meta_description'),
-  },
-};
+  path: '/',
+});
 
 interface Capability {
   readonly id: string;

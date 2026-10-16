@@ -1,6 +1,7 @@
 // path: app/(public)/blog/page.tsx
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -22,15 +23,11 @@ import type { Metadata } from 'next';
  * This one has nothing to clear and nobody to ask, so it is a paragraph in the
  * page, marked for the rendered probe.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('blog.meta_title'),
   description: t('blog.meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('blog.meta_title'),
-    description: t('blog.meta_description'),
-  },
-};
+  path: '/blog',
+});
 
 const SHAPE_KEYS: readonly EnglishStringKey[] = [
   'blog.label_shape_point_one',

@@ -24,6 +24,15 @@ export const shells = {
     'Every route-group shell rendered with a document inside it, so the skip link, the focus order and the print rules can be inspected in a browser.',
 
   label_section_public: 'Public shell',
+
+  /**
+   * The paper-only line every printed page carries (sub-step 1.30). Paper has
+   * no address bar, so the document says where it came from: the brand string
+   * the rest of the product uses, and the origin this deployment is served
+   * from. It is read on a sheet rather than on a screen, and it is a real
+   * sentence on paper, so it lives in the catalogue with every other string.
+   */
+  label_print_marker: 'Printed from {brand} - {site}',
   label_section_auth: 'Auth shell',
 
   label_document_title: 'Invoice INV-1042',

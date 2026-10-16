@@ -587,6 +587,40 @@ if (print !== null) {
     );
   }
 
+  /*
+   * The two named sheets (sub-step 1.30, FEATURE_LIST items 864 and 865).
+   *
+   * A document that has to match a named paper size declares the sheet and the
+   * element that opts into it, and the pair is what this rule reads: a
+   * declaration nothing points at is a rule no page ever uses, and a class with
+   * no declaration puts a document on the reader's paper with no size
+   * guarantee. The margin is deliberately not repeated in the named rules - a
+   * named page merges with the unnamed one, and two copies of the same value is
+   * two places for the paper to drift.
+   */
+  for (const sheet of ['a4', 'letter']) {
+    // The sheet's own name is case insensitive in the declaration: the CSS
+    // value is `A4`, the class and the page name are `a4`, and both spellings
+    // are the same sheet.
+    const declaration = new RegExp(
+      `@page\\s+${sheet}\\s*\\{[^}]*size:\\s*${sheet}\\s+portrait`,
+      'i',
+    );
+    if (!declaration.test(print)) {
+      finding(
+        PRINT_STYLESHEET,
+        `@page ${sheet} must declare size: ${sheet} portrait; a document that must match a named sheet cannot ask for one without it`,
+      );
+    }
+    const optIn = mediaPrint(`.print-sheet-${sheet}`);
+    if ((optIn.get('page') ?? '').trim() !== sheet) {
+      finding(
+        PRINT_STYLESHEET,
+        `.print-sheet-${sheet} must set page: ${sheet}; a named page nothing opts into is a rule no document uses`,
+      );
+    }
+  }
+
   // Page breaks: a row that splits across sheets loses its header.
   const row = mediaPrint('tr');
   if (row.get('break-inside') !== 'avoid') {
@@ -1008,9 +1042,74 @@ for (const file of layoutModules()) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 7. The paper marker (sub-step 1.30)
+// ---------------------------------------------------------------------------
+
+/**
+ * The line a printed page carries, and who is allowed to mount it.
+ *
+ * Paper has no address bar, so the document prints its own source. The marker
+ * belongs to the document rather than to a frame: the root layout mounts it
+ * once, and no shell or route-group layout may mount a second copy, because a
+ * duplicate line on an invoice reads as a mistake in the document rather than
+ * in the frame around it.
+ */
+const PRINT_MARKER = 'components/layout/print-marker.tsx';
+const paperMarker = requireFile(
+  PRINT_MARKER,
+  'the print marker module is missing; a printed page keeps the document and loses the address bar',
+);
+if (paperMarker !== null) {
+  const code = withoutComments(PRINT_MARKER, paperMarker);
+  if (!/<div[^>]*data-print="only"/.test(code)) {
+    finding(
+      PRINT_MARKER,
+      'the marker must be a block marked data-print="only": a marker that prints on screen is a line every reader sees, and one the print base does not reveal never reaches paper',
+    );
+  }
+  if (!/data-layout="print-marker"/.test(code)) {
+    finding(
+      PRINT_MARKER,
+      'the marker block must carry data-layout="print-marker", the value the print probe selects on',
+    );
+  }
+  if (!/t\('shells\.label_print_marker'/.test(code)) {
+    finding(
+      PRINT_MARKER,
+      'the marker text must come from the catalogue (shells.label_print_marker), like every other string in the product',
+    );
+  }
+  if (!/siteUrl\(\)/.test(code)) {
+    finding(PRINT_MARKER, 'the marker must name the address this deployment is served from');
+  }
+}
+const rootLayoutPaper = read(ROOT_LAYOUT);
+if (
+  rootLayoutPaper === null ||
+  !/<PrintMarker\b/.test(withoutComments(ROOT_LAYOUT, rootLayoutPaper))
+) {
+  finding(
+    ROOT_LAYOUT,
+    'the root layout must mount the print marker: it belongs to the document, and every route group can be printed',
+  );
+}
+for (const file of [...SHELLS, ...ROUTE_LAYOUTS]) {
+  const text = read(file);
+  if (text === null) {
+    continue;
+  }
+  if (/<PrintMarker\b/.test(withoutComments(file, text))) {
+    finding(
+      file,
+      'a shell or route-group layout must not mount the print marker; the document owns it, and a second mount prints the line twice',
+    );
+  }
+}
+
 reportResult(
   CHECK,
   findings,
-  `${String(SHELLS.length)} shells and ${String(ROUTE_LAYOUTS.length)} route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), ${String(MANDATED_ROLES.length)} roles framed through one seam with no privileged default, ${String(NAV_SURFACES.length)} navigation surfaces verified (named landmarks, one owner of the current page, 44 pixel targets, device inset on pinned bars, drawer state owned in the component), print base verified against ${TOKEN_FILE}`,
+  `${String(SHELLS.length)} shells and ${String(ROUTE_LAYOUTS.length)} route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), ${String(MANDATED_ROLES.length)} roles framed through one seam with no privileged default, ${String(NAV_SURFACES.length)} navigation surfaces verified (named landmarks, one owner of the current page, 44 pixel targets, device inset on pinned bars, drawer state owned in the component), print base verified against ${TOKEN_FILE} including the two named sheets, one paper marker mounted by the document`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;

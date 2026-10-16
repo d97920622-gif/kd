@@ -1,6 +1,7 @@
 // path: app/(public)/terms/page.tsx
 import { PageActions, PointList } from '@/components/public/point-list';
 import { t, type EnglishStringKey } from '@/lib/i18n';
+import { publicPageMetadata } from '@/lib/seo/metadata';
 
 import type { Metadata } from 'next';
 
@@ -20,15 +21,11 @@ import type { Metadata } from 'next';
  * supplied by the deployment, which is the same rule the contact page follows
  * for its address.
  */
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: t('legal.terms_meta_title'),
   description: t('legal.terms_meta_description'),
-  openGraph: {
-    type: 'website',
-    title: t('legal.terms_meta_title'),
-    description: t('legal.terms_meta_description'),
-  },
-};
+  path: '/terms',
+});
 
 const COVER_KEYS: readonly EnglishStringKey[] = [
   'legal.terms_cover_point_one',
