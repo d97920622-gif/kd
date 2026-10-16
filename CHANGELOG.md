@@ -14,6 +14,7 @@ that introduced them and the newest entry is first within a section.
 
 ### Added
 
+- decision records, README refresh, governance rules (step-01/1.32, 4dfa2b0)
 - ci workflow, review ownership, governance files (step-01/1.31, 9654866)
 - nonce CSP, start-up hooks, crawler files, metadata (step-01/1.30, 0afc679)
 - public pages B, state pages, free calculators (step-01/1.29, 260a23b)
@@ -49,6 +50,7 @@ that introduced them and the newest entry is first within a section.
 
 ### Documentation
 
+- record sub-step 1.31 evidence (step-01/1.31, 6c685a4)
 - record sub-step 1.30 evidence (step-01/1.30, 136bff2)
 - pages B evidence and the 1.30 handover (step-01/1.29, 2224f6a)
 - record sub-step 1.28 evidence (step-01/1d, a123c2e)

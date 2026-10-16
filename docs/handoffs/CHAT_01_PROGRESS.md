@@ -3,16 +3,15 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.31 complete, 1.32 next
-Last completed sub-step: 1.31 (governance A: the CI workflow and the three jobs it runs, review
-ownership, the pull request template, the contributing guide, the security policy, the licence and the
-generated changelog).
-Previous sub-step: 1.30 (platform plumbing: middleware.ts with the per-request nonce and the content security policy, instrumentation.ts and its Node half, the sitemap and robots baseline, the metadata baseline and the print contract).
-Next sub-step: 1.32 (governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md).
+Current segment: 1D (states, hardening, public site, governance) -- all nine sub-steps complete, segment gate next
+Last completed sub-step: 1.32 (governance B: the seven decision records and their index, the README
+refresh, the step 1 handoff, and the check rules that keep them honest).
+Previous sub-step: 1.31 (governance A: the CI workflow and the three jobs it runs, review ownership, the pull request template, the contributing guide, the security policy, the licence and the generated changelog).
+Next sub-step: none in step 1 (1.32 is the last one); the segment 1D gate runs next, on the owner's word.
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24 to 1.31 done; segment gate pending)
+Segment 1D: sub-steps complete (1.24 to 1.32 done; segment gate next)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -92,20 +91,89 @@ passes on the current route set. Status: pending.
 
 ## SEGMENT 1D -- States, hardening, public site, governance (chat 4 of 4)
 
-| Sub-step | Description                                                                                                                                    | Status  | Commit  |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | done    | 4c9f2a2 |
-| 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | done    | dcd6b0f |
-| 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | done    | fb97830 |
-| 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | done    | 535c54e |
-| 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | done    | 8c75f2b |
-| 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | done    | 260a23b |
-| 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | done    | 0afc679 |
-| 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | done    | 9654866 |
-| 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | pending | -       |
+| Sub-step | Description                                                                                                                                    | Status | Commit  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
+| 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | done   | 4c9f2a2 |
+| 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | done   | dcd6b0f |
+| 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | done   | fb97830 |
+| 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | done   | 535c54e |
+| 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | done   | 8c75f2b |
+| 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | done   | 260a23b |
+| 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | done   | 0afc679 |
+| 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | done   | 9654866 |
+| 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | done   | 4dfa2b0 |
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.32 evidence -- the decision records, the README and the last sub-step of step 1
+
+1.32 is "Governance B: ADR-0001 to ADR-0007, README update,
+`docs/handoffs/CHAT_01_COMPLETED.md`", and it closes the sub-step list of
+segment 1D. Three things were delivered, and one defect was found on the way.
+
+**The decision records exist and they are checkable.** `docs/ADR/` held one file
+before this sub-step (ADR-0006, written by 1.26). Six records were added beside
+it and an index lists all seven. Each record carries the metadata block, the five
+sections in order and the name of a check script that would fail if the record
+stopped being true, which is the difference between a decision that is written
+down and a decision that is still enforced:
+
+| Record | What it decides                                                                                                                                                                         | Checks it names                                              |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 0001   | Next.js 15, React 19, TypeScript 5.9 strict, Tailwind 3.4 with the config-file pipeline, ESLint 8 in eslintrc mode, Node 22 with npm ci, one aggregate gate                             | check:any-types, check:english-only                          |
+| 0002   | English only, with `FEATURE_LIST.md` as the one named exemption, enforced by two independent scanners and printed in every verify run                                                   | check:english-only, check:i18n-strings                       |
+| 0003   | Copy lives in the catalogue and every visual value lives in the token module; the four themes and the claim floor depend on both                                                        | check:design-tokens, check:color-contrast, check:public-site |
+| 0004   | One environment schema, fail-fast boot with value-free messages, the build-phase exception named, the two server-only keys refused outside `lib/env`                                    | check:platform-plumbing, check:secrets                       |
+| 0005   | A route group is an audience, the shells take role data as props, the nav map is the single destination source, and the document is dynamic for the nonce with three file routes static | check:layout-shells, check:nav-map, check:platform-plumbing  |
+| 0007   | The build model: one sub-step per commit, the floor as the only definition of done, gates crossed on the owner's word, a handoff for every chat                                         | check:governance                                             |
+
+**The README is refreshed against the repository, not against memory.** Four
+statements were wrong or missing and every one of them is now part of the gate:
+the Node line said 20 or newer while `engines` requires 22 and CI pins major 22;
+the setup told a reader to run `npm install` while the lockfile and CI use
+`npm ci`; the gate paragraph said "all twelve rule checks" while the floor runs
+30 entries; and ten scripts were undocumented, including the checks added since
+1.24. The documentation list now names the ADR index, CONTRIBUTING, SECURITY,
+CHANGELOG and `.github/`, and the branch policy names the review ownership file
+and the pull request template.
+
+**Two rule groups were added to `check:governance`, one per new artefact, and
+the second one found a real defect.**
+
+| Rule group       | What it reads                                               | What it refuses                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Decision records | The `docs/ADR/` listing, every record, `docs/ADR/README.md` | A missing record of the set, two records for one number, a record without its path comment, heading, metadata or one of the five sections, sections out of order, a record that names no live check, a supersession only one side records, a status that disagrees with the supersession fields, and an index that stops naming a record                                     |
+| README           | `README.md`, `package.json`, `scripts/verify.mjs`           | A Node major other than the one `engines` declares, an `npm install` line instead of `npm ci`, a script in the manifest with no row in the README, an entry of the floor with no row in the README, a floor count that does not match the runner, a missing pointer to the ADR index, CONTRIBUTING, SECURITY or CHANGELOG, and a runner entry with no script in the manifest |
+
+The last rule is the one that paid: `check:layout-shells` and
+`check:color-contrast` were registered in the verification runner and documented
+in the README, but neither had a script in `package.json`, so neither could be
+run by name. Both aliases were added in this sub-step (`package.json` goes from
+38 to 40 scripts). It is the same class of drift the governance check exists to
+catch: nothing failed while the two entries ran, because the floor calls them by
+path and only `npm run <name>` needs the manifest.
+
+**The step 1 handoff is rewritten as the closing record.**
+`docs/handoffs/CHAT_01_COMPLETED.md` now covers all four segments: the sub-steps
+with their commits and evidence commits, the files created and extended, the
+database and environment changes, the verification evidence, the decisions with
+their ADR, the known risks and the starting point for step 2. Its tables keep the
+SEGMENT shape, so the changelog coverage rule in `check:governance` reads it as
+well as the SEGMENT tables in this file and fails when a recorded commit has no
+changelog entry.
+
+### Verification for this sub-step
+
+| Check                                                       | Result                                                                                                                                                                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify`                                            | PASS, 30 of 30 entries (`/tmp/verify-132a.txt`), including the extended `check:governance`                                                                                                        |
+| Controls for the new rules                                  | 22 controls, 1 renamed record, 1 duplicated record and 5 immunities, 0 failures (`/tmp/controls-132-final.txt`)                                                                                   |
+| Controls for the earlier rules, re-run on the changed check | The 1.31 harness: 49 controls and 6 immunities, 0 failures. The 1.30 harness: 49 controls and 5 immunities, 0 failures                                                                            |
+| Prettier                                                    | `docs/ADR/*.md`, `README.md`, `CHAT_01_COMPLETED.md` and `governance.mjs` formatted; `format:check` PASS                                                                                          |
+| Commit                                                      | `4dfa2b0` (10 files: six records, the index, the README, `package.json` and the check)                                                                                                            |
+| Changelog                                                   | Regenerated in the docs commit that carries this section, so `4dfa2b0` has an entry and the coverage rule passes                                                                                  |
+| Continuous integration                                      | The push of this sub-step runs the same three jobs (`verify`, `build`, `ci`); the workflow is unchanged since 1.31, and the run for this commit is watched before the segment 1D gate is recorded |
 
 ## Sub-step 1.31 evidence -- the gate, the reviewers, the policies and the generated changelog
 
@@ -3046,46 +3114,38 @@ only variable the build reads for the origin (`lib/seo/site.ts`); the schema in
 `.env.example` lists what a deployment must set. The three Supabase variables are
 required in production by that schema and are already refused outside `lib/env`.
 
-## Sub-step 1.32 starting point
+## Segment 1D gate starting point
 
-1.32 is "Governance B: ADR-0001 to ADR-0007, README update,
-`docs/handoffs/CHAT_01_COMPLETED.md`", and it closes segment 1D and step 1.
-What it needs from the state this sub-step leaves behind:
+Step 1 has no sub-step left. The next action is the segment 1D gate, and it runs
+only on the owner's word. What it has to measure, with the machinery for each
+item already in place:
 
-- **`docs/ADR/` holds one file**: `ADR-0006-web-hardening-baseline.md`. The
-  missing records are 0001 to 0005 and 0007, and the naming convention is
-  `ADR-NNNN-<slug>.md` (read 0006 first: the path comment, the heading shape and
-  the section order are the house style for the other six).
-- **The README is stale in three places 1.31 made checkable**: it says Node.js 20
-  or newer while `engines` requires 22 and the workflow pins major 22, it tells a
-  developer to run `npm install` while `CONTRIBUTING.md` and CI use `npm ci`, and
-  its status table predates sub-steps 1.18 to 1.31. If a README rule is worth
-  having, it belongs in `check:governance` beside the CONTRIBUTING rules, so the
-  next drift is a finding rather than a discovery.
-- **`check:governance` is the 30th verification entry**, and it holds two lists a
-  later sub-step extends: the artefact inventory (add each new governance file)
-  and the sensitive review paths (add a surface to `CODEOWNERS` in the same
-  commit that creates it). Its changelog coverage rule reads the SHAs out of
-  every completed row of the SEGMENT tables in this file, so
-  `CHAT_01_COMPLETED.md` should carry the same table shape if that rule is to
-  keep covering step 1.
-- **The changelog is regenerated with `npm run changelog` in the docs commit**,
-  and it must be regenerated after the 1.32 code commit exists in the history,
-  or the coverage rule fails the gate on a missing entry (this is how 1.31
-  closed, and it is deliberate: the file is generated, not edited).
-- **The 1D gate is the closing condition**: the production build passes (and now
-  runs on the runner on every push), Lighthouse at least 90 on the homepage
-  (which needs a browser this environment does not have, so the script and byte
-  counts the public-pages probe prints are the recorded substitute, with the
-  reason), the dead-link audit (`check:dead-links`, in the floor: 15 routes and
-  58 links at this sub-step), and `npm run verify` fully green.
-- **Facts a later change must not undo**: `engines` and the workflow's
-  `node-version` agree on major 22 (the check reads both); the workflow runs
-  `npm run verify`, `npm run build` and `npm run start` and never a single check
-  script or `npx next`; a probe added to the build job must be path-free, because
-  `public-pages-probe.py` reads `/home/user/kd` and cannot run on a runner; and
-  the branch protection setting the probe reports as unconfigured is the owner's
-  to enable after the merge, with `ci` named as the check.
+- **The production build passes.** A copy of the repository outside the working
+  tree, `npm ci`, `npx next build`, then the artefact assertions the CI build job
+  makes (`.next` removed first, `BUILD_ID` present, the crawler files emitted,
+  the sitemap route built) and zero dynamicIO diagnostics in the build output. At
+  1.32 the local run was exit 0 with 0 diagnostics, and the runner runs the same
+  build on every push.
+- **Lighthouse at least 90 on the homepage.** This environment has no browser, so
+  the number cannot be produced here. The recorded substitute is the
+  public-pages probe's measurement of the homepage: document bytes, the number of
+  stylesheets and the script count, server rendered, with the policy in front of
+  them. The item stays open in the handoff until the owner runs Lighthouse
+  against the deployed preview, and the gate record says exactly that instead of
+  printing a number nobody measured.
+- **The dead-link audit is clean.** `check:dead-links` is in the floor: 15 routes
+  and 58 verified links with 0 dynamic links skipped at this commit, and the pages
+  1.28 and 1.29 added are inside the audit.
+- **`npm run verify` is fully green.** 30 of 30 entries at this commit, which is
+  the unchanged command the `verify` job of `.github/workflows/ci.yml` runs on
+  the runner.
+- **The evidence record** is `docs/EVIDENCE/step-01/gate-1D.md`: the command, the
+  commit, the raw output, and a closing paragraph naming what the result does not
+  cover (the browser item) rather than leaving it implied.
+
+After the gate is recorded, step 1 is complete: the chat closes with
+"Segment 1D complete; step 1 complete", the merge into `integration` follows the
+pull request review, and step 2 opens with `docs/PLAN/chat-prompts/CHAT_02.md`.
 
 ## Blockers
 

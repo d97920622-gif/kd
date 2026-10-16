@@ -2,28 +2,41 @@
 
 # CHAT 01 COMPLETED -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
-Status: partial -- segments 1A and 1B complete, segments 1C and 1D pending
-Segment status: Segment 1B complete; next segment 1C
-First incomplete sub-step: 1.18 (brand assets)
-Date: 2026-10-16
-Branch: arena/b7780282-kd
+Status: sub-steps complete -- segments 1A, 1B and 1C are closed with their gates
+recorded; segment 1D's sub-steps 1.24 to 1.32 are complete and the segment gate is
+the next action, run only on the owner's word.
+Segment status: Segment 1D partial; resume at the 1D gate (sub-steps 1.1 to 1.32 complete)
+First incomplete sub-step: none; 1.32 is the last sub-step of step 1, so what remains
+of step 1 is the segment 1D gate itself
+Date: 2026-10-17
+Branch: arena/b7780282-kd (merged into integration after review)
+Verification floor at this commit: `npm run verify` PASS, 30 of 30 entries
 
 ## 1. Scope and status of this chat
 
-Chat 1 of step 1 executed segments 1A and 1B: the repository toolchain and the
-quality gates (1.1 to 1.7), then the core libraries and the design system
-(1.8 to 1.17, including the component gallery and its segment gate). The owner
-instructed the session to continue into 1B in the same chat, so 1B ran here
-under the permission-gated rhythm and closed with its gate; the boundary is
-recorded in docs/handoffs/CHAT_01_PROGRESS.md. The three defects found while
-proving the 1B gate (a composite control losing its field attributes, pinned
-theme scopes that could silently stop applying, and an incomplete
-development-only guard) are fixed and recorded in the evidence file.
+Chat 1 of step 1 executed the whole of step 1 in four segments, under the
+owner's permission-gated rhythm: one sub-step, one commit, one verification run,
+one evidence record, then the three gated lines and a stop for the owner's word.
+Segment 1A built the toolchain and the quality gates (1.1 to 1.7). Segment 1B
+built the core libraries and the design system (1.8 to 1.17, including the
+component gallery its gate needs). The owner continued into 1C in the same chat,
+which built the brand pack, the layout shells and the navigation surface (1.18 to
+1.23, gate recorded). The owner continued again into 1D, which built the page and
+motion states, the web hardening baseline, the usability primitives, the public
+site with its claim floor, the platform plumbing (middleware nonce, sitemap,
+robots, metadata, print contract), the repository governance files and the
+architecture decision records (1.24 to 1.32).
 
-No brand asset, application page for a real audience, database object or
-migration was created; those belong to segments 1C and 1D and to step 2.
+What step 1 deliberately did not build: no database object and no migration
+(step 2), no authentication, session or sign-out route (step 3), no role store or
+approval engine (step 4), no editor (step 5), no payment surface (steps 8 to 10),
+no deployment workflow and no security workflow beyond CI (step 16.3), and no
+test of any kind, because Rule 4 forbids a test runner and the platform measures
+itself with check scripts, probes and controls instead.
 
 ## 2. Sub-steps completed
+
+Segment 1A -- toolchain and quality gates.
 
 | Sub-step | Summary                                                                                                                                                                                                               | Commit  |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
@@ -35,209 +48,185 @@ migration was created; those belong to segments 1C and 1D and to step 2.
 | 1.6      | Check scripts B: check:no-console, check:forbidden-brands, check:migration-pairs, check:dead-links, check:secrets, check:any-types, check:money-math                                                                  | 98951cf |
 | 1.7      | Verify runner: scripts/verify.mjs aggregation with PASS/FAIL report and CI-ready exit codes, pre-commit and commit-msg wiring, README quality gate documentation                                                      | 98ac273 |
 
-| 1.8 | Structured logger: JSON lines, levels, correlation id propagation, redaction hook, no console usage | 7cf207e |
-| 1.9 | Error library: typed error classes, error codes, envelope builders, no internal detail leakage | 9d5f6c7 |
-| 1.10 | USD money utilities on decimal.js: parse, format, arithmetic, rounding policy, money-math guard annotation | d3b5e0d |
-| 1.11 | Utility set: date (UTC), formatting, slug, hash (SHA-256 and HMAC), id helpers (UUIDv7 and short references) | dc9592a |
-| 1.12 | i18n string catalogue: namespaced structure, key naming rules, copy rules, the literal-copy checker | e17e112 |
-| 1.13 | Design tokens A: spacing, radius, shadow and z-index scales, wired into Tailwind and enforced by check:design-tokens | 2f25ca8 |
-| 1.14 | Design tokens B: typography, colour palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, JSON export | 6eb05dd |
-| 1.15 | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch | cdba8d2 |
-| 1.16 | shadcn/ui primitives B: dialog, sheet, popover, dropdown menu, tabs, tooltip, toast, table, skeleton, badge, plus the toast queue and the layout width tokens | b5bb363 |
-| 1.17 | Form primitives: React Hook Form with a Zod resolver, the four form states, live-region errors, disabled and loading submit, one-time CSRF token, and the component gallery the 1B gate needs | a976d75 |
+Segment 1A supporting commits: 82a6ff5 (progress file created), 35b1869 (handoff
+for segment 1A), cdc2dcf (the permission-gated rhythm recorded), cca1d8d (the
+branch setup options documented).
 
-Progress file created in commit 82a6ff5.
+Segment 1B -- core libraries and design system.
+
+| Sub-step | Summary                                                                                                                                                                                       | Commit  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1.8      | Structured logger: JSON lines, levels, correlation id propagation, redaction hook, no console usage                                                                                           | 7cf207e |
+| 1.9      | Error library: typed error classes, error codes, envelope builders, no internal detail leakage                                                                                                | 9d5f6c7 |
+| 1.10     | USD money utilities on decimal.js: parse, format, arithmetic, rounding policy, money-math guard annotation                                                                                    | d3b5e0d |
+| 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256 and HMAC), id helpers (UUIDv7 and short references)                                                                                  | dc9592a |
+| 1.12     | i18n string catalogue: namespaced structure, key naming rules, copy rules, the literal-copy checker                                                                                           | e17e112 |
+| 1.13     | Design tokens A: spacing, radius, shadow and z-index scales, wired into Tailwind and enforced by check:design-tokens                                                                          | 2f25ca8 |
+| 1.14     | Design tokens B: typography, colour palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, JSON export                                                         | 6eb05dd |
+| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                                                                 | cdba8d2 |
+| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown menu, tabs, tooltip, toast, table, skeleton, badge, plus the toast queue and the layout width tokens                                 | b5bb363 |
+| 1.17     | Form primitives: React Hook Form with a Zod resolver, the four form states, live-region errors, disabled and loading submit, one-time CSRF token, and the component gallery the 1B gate needs | a976d75 |
+
+Segment 1B evidence commits: 7512444 (1.13), cd64a61 (1.14), 1e78f1f (1.15),
+c5a22b7 (1.16), 2b9e998 (1.17), 2cd305d (theme scopes enforced and the 1B gate
+closed). Segment 1B gate evidence: `docs/EVIDENCE/step-01/gate-1B.md`.
+
+Segment 1C -- brand, layout, navigation.
+
+| Sub-step | Summary                                                                                                                         | Commit  | Evidence |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| 1.18     | Brand assets: logo variants, the favicon pack, the apple touch icon, PWA icons, the default social image, the brand voice guide | b8511e6 | e76be97  |
+| 1.19     | Layout shells: public and auth layouts with skip links, focus order and the print base                                          | e95c963 | 88e993a  |
+| 1.20     | Layout shells: dashboard, admin and client portal layouts with role-aware framing through one seam                              | 2e3c0aa | 89439a3  |
+| 1.21     | Layout components: sidebar, topbar, mobile drawer, breadcrumbs, footer, offline banner, sticky action bar, safe-area tokens     | 5411c93 | c5b23dd  |
+| 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, the role filter, the breadcrumb generator, dead-link wiring   | 37c481b | 1528283  |
+| 1.23     | Command palette and the keyboard shortcuts page with focus management and ARIA labels                                           | d048e01 | 319e75d  |
+
+Segment 1C gate: recorded in `docs/EVIDENCE/step-01/gate-1C.md`, commit d9437f0.
+
+Segment 1D -- states, hardening, public site, governance.
+
+| Sub-step | Summary                                                                                                                                                                 | Commit  | Evidence    |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
+| 1.24     | Page states: loading, empty, error and offline surfaces, bounded retry, the 320 pixel layer                                                                             | 4c9f2a2 | 6f6a0ac     |
+| 1.25     | Motion layer: durations from the token bridge, reduced motion, the bounded celebration, illustration baseline                                                           | dcd6b0f | c2926fd     |
+| 1.26     | Web hardening baseline: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data on logout, SRI rule, header matrix, ADR-0006                               | fb97830 | fbc2546     |
+| 1.27     | Usability primitives: saved views, the five second undo window, autosave drafts, the optimistic queue, explainability                                                   | 535c54e | 9db8e73     |
+| 1.28     | Public pages, the site footer and the claim floor that refuses copy this build cannot evidence                                                                          | 8c75f2b | a123c2e     |
+| 1.29     | Public pages B, the state pages and the free calculators                                                                                                                | 260a23b | 2224f6a     |
+| 1.30     | Platform plumbing: middleware with the per-request nonce, instrumentation and its Node half, sitemap, robots, metadata baseline, print contract                         | 0afc679 | 136bff2     |
+| 1.31     | Governance A: the CI workflow and its three jobs, review ownership, the pull request template, CONTRIBUTING, SECURITY, the proprietary licence, the generated changelog | 9654866 | 6c685a4     |
+| 1.32     | Governance B: the seven architecture decision records and their index, the README refresh, this handoff, and the checks that keep them honest                           | 4dfa2b0 | this commit |
 
 ## 3. Files created
 
-| Path                                                                                                                        | Purpose                                                                                                                                        |
-| --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `package.json`                                                                                                              | Scripts, pinned dependency set, lint-staged configuration, engines                                                                             |
-| `package-lock.json`                                                                                                         | Reproducible dependency resolution                                                                                                             |
-| `tsconfig.json`                                                                                                             | Strict TypeScript: strict, noImplicitAny, strictNullChecks, noUnusedLocals, noUnusedParameters, noImplicitOverride, noFallthroughCasesInSwitch |
-| `next.config.js`                                                                                                            | React strict mode, powered-by header off, build must fail on lint and type errors, console stripping                                           |
-| `next-env.d.ts`                                                                                                             | Next.js type references (generated file, exempt from the path-comment check)                                                                   |
-| `.prettierrc`, `.prettierignore`                                                                                            | Formatting policy and ignore list                                                                                                              |
-| `.eslintrc.json`                                                                                                            | Lint policy and exemptions described in README                                                                                                 |
-| `.husky/pre-commit`                                                                                                         | lint-staged, then the full verify gate                                                                                                         |
-| `.husky/commit-msg`                                                                                                         | Conventional commit format, 72 character subject, ASCII only                                                                                   |
-| `tailwind.config.ts`                                                                                                        | Breakpoints 320/375/430/768/1024/1280/1920, semantic CSS variable colors, radius scale, font families                                          |
-| `postcss.config.js`                                                                                                         | Tailwind and Autoprefixer pipeline                                                                                                             |
-| `components.json`                                                                                                           | shadcn/ui configuration bound to the design tokens                                                                                             |
-| `styles/globals.css`                                                                                                        | Layer structure and light and dark token variables                                                                                             |
-| `lib/utils/cn.ts`                                                                                                           | The single class name composition helper                                                                                                       |
-| `lib/env/validate-env.ts`                                                                                                   | Zod environment schema, EnvValidationError, typed accessors, secret key registry, masking                                                      |
-| `lib/env/cli.ts`                                                                                                            | `npm run env:validate` entry point with masked report                                                                                          |
-| `.env.example`                                                                                                              | Documented environment template with empty secret values                                                                                       |
-| `scripts/checks/_lib.mjs`                                                                                                   | Shared file walker, exemption lists, text helpers, reporting contract                                                                          |
-| `scripts/checks/english-only.mjs`                                                                                           | ASCII scan with the documented FEATURE_LIST.md exemption                                                                                       |
-| `scripts/checks/no-todo.mjs`                                                                                                | Unfinished-work marker scan                                                                                                                    |
-| `scripts/checks/no-coming-soon.mjs`                                                                                         | Unfinished-launch and filler wording scan                                                                                                      |
-| `scripts/checks/no-tests.mjs`                                                                                               | Test artefact and test framework scan (Rule 4)                                                                                                 |
-| `scripts/checks/path-comment.mjs`                                                                                           | Path comment presence and accuracy scan for every source file                                                                                  |
-| `scripts/checks/no-console.mjs`                                                                                             | Console and debugger statement scan                                                                                                            |
-| `scripts/checks/forbidden-brands.mjs`                                                                                       | Rule 5 partner naming scan                                                                                                                     |
-| `scripts/checks/migration-pairs.mjs`                                                                                        | Migration naming, timestamp uniqueness and up/down pairing                                                                                     |
-| `scripts/checks/dead-links.mjs`                                                                                             | Route inventory versus internal link audit                                                                                                     |
-| `scripts/checks/secrets.mjs`                                                                                                | Credential, key and token scan                                                                                                                 |
-| `scripts/checks/any-types.mjs`                                                                                              | `any` type scan                                                                                                                                |
-| `scripts/checks/money-math.mjs`                                                                                             | Monetary arithmetic guard (Rule 2)                                                                                                             |
-| `scripts/check-english-only.sh`, `scripts/check-no-todo.sh`, `scripts/check-no-coming-soon.sh`, `scripts/check-no-tests.sh` | The mandated shell entry points; thin wrappers over the Node implementations so every check shares one report format                           |
-| `scripts/verify.mjs`                                                                                                        | Aggregated gate runner with PASS/FAIL lines, durations, failure detail and exit codes                                                          |
-| `docs/handoffs/CHAT_01_PROGRESS.md`                                                                                         | Segment progress, checklist, gate evidence summary                                                                                             |
+The repository holds 335 tracked files at this commit. The shape, by area:
 
-## 4. Files extended (append protocol)
+| Area          | What is there                                                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Root          | package.json and package-lock.json, tsconfig.json, next.config.js, .eslintrc.json, .prettierrc, .prettierignore, .gitignore, .env.example, README.md, CONTRIBUTING.md, SECURITY.md, CHANGELOG.md, LICENSE                      |
+| `.github/`    | workflows/ci.yml (verify, build and the aggregate ci job), CODEOWNERS, pull_request_template.md                                                                                                                                |
+| `.husky/`     | pre-commit (lint-staged then the floor) and commit-msg (conventional commit, subject limit, ASCII)                                                                                                                             |
+| `app/`        | Root layout, template, error and not-found, robots.ts, sitemap.ts, opengraph-image.tsx, favicon.ico, icon.png, apple-icon.png; route groups (public), (auth), (dashboard), (admin), (client-portal) and (dev); 15 pages in all |
+| `components/` | ui/ (12 primitives), shared/ (the form layer), layout/ (5 shells and 10 navigation surfaces), navigation/, public/, branding/, security/, motion/                                                                              |
+| `config/`     | brand.ts, commands.ts, design-tokens.ts with its generated design-tokens.json, nav-map.ts, security-headers.ts                                                                                                                 |
+| `lib/`        | brand, calculators, env, errors, forms, hooks, i18n (26 namespaces, 1022 keys), logger, motion, security, seo, usability, utils                                                                                                |
+| `scripts/`    | verify.mjs, the 25 check modules and their two helpers, changelog.mjs, export-design-tokens.ts, generate-brand-assets.ts, the four mandated .sh wrappers, brand/ (the renderer and its verification)                           |
+| `styles/`     | globals.css (four themes, the token variables, the layer structure) and print.css (the two named print sheets)                                                                                                                 |
+| `public/`     | brand/ (logo light, dark and icon), icons/ (the favicon pack, the apple touch icon, the PWA and maskable icons)                                                                                                                |
+| `docs/`       | PLAN/ (the sixteen-step plan and its supporting documents), ADR/ (seven records and their index), EVIDENCE/step-01/ (the gate records and the probes), handoffs/, BRAND_VOICE.md, COPY_RULES.md                                |
+| `migrations/` | Not created: step 2 owns the first migration, and until then check:migration-pairs reports that there is nothing to pair                                                                                                       |
 
-| Path                                                                                          | Owner step                          | Reason                                              | Change                                                                                                                             |
-| --------------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `.gitignore`                                                                                  | 1                                   | Secret and report hygiene for the new toolchain     | Added `# path:` header, certificate and key patterns, `secrets/`, local Lighthouse and verify report output                        |
-| `README.md`                                                                                   | 1 (final pass in 1.32)              | Segment gate: all scripts documented                | Added local setup, toolchain table, quality gate and script tables plus the exact exemption lists. No existing section was changed |
-| `docs/handoffs/README.md`, `docs/handoffs/_TEMPLATE.md`, `docs/handoffs/CHAT_00_COMPLETED.md` | 1                                   | Formatter alignment so `format:check` can be a gate | Markdown table padding only; no content change                                                                                     |
-| `.prettierignore`                                                                             | 1 (created in 1.1, extended in 1.4) | Prettier has no parser for `.env` files             | Added `.env.example` and `.env`                                                                                                    |
+## 4. Files extended
+
+| Path                                | What it carries now                                                                                                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`                      | 39 scripts (the floor, the checks, the two generators and the changelog), engines Node 22 and npm 10, private, UNLICENSED                       |
+| `scripts/verify.mjs`                | The 30 entries of the floor in fixed order, one PASS or FAIL line each, CI-ready exit code                                                      |
+| `next.config.js`                    | React strict mode, powered-by off, build fails on lint and type errors, cacheComponents off                                                     |
+| `styles/globals.css`                | The four theme scopes, the token variables, the print base and the reduced motion layer                                                         |
+| `app/layout.tsx`                    | The document shell, the metadata baseline, the print marker, the tooltip provider and force-dynamic for the nonce                               |
+| `config/design-tokens.ts`           | Every scale and every colour role, with the generated JSON export beside it                                                                     |
+| `docs/handoffs/CHAT_01_PROGRESS.md` | The running record: one evidence section per sub-step, the SEGMENT tables, the starting point of each next sub-step                             |
+| `README.md`                         | Setup (Node 22, npm ci), the toolchain table, the 30-entry floor with every script documented, the exemptions, the build model and the step map |
 
 ## 5. Database changes
 
-None. Migrations begin in step 2; the timestamp window for step 1 is reserved
-but unused, and `check:migration-pairs` reports "no migrations yet: nothing to
-pair" until step 2 adds them.
+None. Step 1 defines the database rules (universal columns, RLS default-deny,
+audit entry per mutation, numeric(18,4) money, optimistic locking) and enforces
+what can be enforced without a database: `check:migration-pairs` refuses a
+migration without its rollback file, `check:money-math` keeps money arithmetic in
+one module, and `check:platform-plumbing` refuses the two server-only keys outside
+`lib/env`. The first table, the first policy and the first audit trigger arrive in
+step 2, which is where `migrations/` starts.
 
 ## 6. Environment variables added
 
-All are documented in `.env.example` with empty or local-only values. No
-secret was committed.
+| Variable                    | Tier   | Purpose                                                                                    |
+| --------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| `NODE_ENV`                  | server | development, test or production; production enables the strict schema and the boot refusal |
+| `NEXT_PUBLIC_APP_URL`       | public | The origin canonical tags, the sitemap, robots and the social image are resolved against   |
+| `LOG_LEVEL`                 | server | debug, info, warn or error for the structured logger                                       |
+| `SUPABASE_URL`              | secret | Project URL; required in production, refused outside lib/env                               |
+| `SUPABASE_ANON_KEY`         | secret | Anonymous key, safe for the browser only because RLS is default-deny                       |
+| `SUPABASE_SERVICE_ROLE_KEY` | secret | Server only; bypasses RLS and must never reach a browser, a log line or a response         |
 
-| Variable                    | Purpose                                                | Masked example                   |
-| --------------------------- | ------------------------------------------------------ | -------------------------------- |
-| `NODE_ENV`                  | Runtime profile; production enables strict boot checks | `development`                    |
-| `NEXT_PUBLIC_APP_URL`       | Public origin of the application                       | `http://localhost:3000`          |
-| `LOG_LEVEL`                 | Level of the structured logger (sub-step 1.8)          | `info`                           |
-| `SUPABASE_URL`              | Project URL (consumed from step 2)                     | `https://ab******op.supabase.co` |
-| `SUPABASE_ANON_KEY`         | Browser-safe anonymous key (consumed from step 2)      | `(unset)`                        |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only service role key (consumed from step 2)    | `(unset)`                        |
+`.env.example` documents every one of them; `.env` is gitignored and
+`check:secrets` refuses a credential that ever reaches a tracked file.
 
 ## 7. Verification evidence
 
-Toolchain used: Node v22.22.3, npm 10.9.8, git 2.39.5.
-
-### 7.1 Segment gate: every check script runs without false positives
-
-`npm run verify` at commit 98ac273:
-
-```
-== KD SOLUTION IT verify ==
-branch arena/b7780282-kd at 98ac273
-PASS typecheck                completed with no output (  1.3s)
-PASS lint                     completed with no output (  1.7s)
-PASS format:check             All matched files use Prettier code style! (  1.3s)
-PASS env:validate             env:validate PASS (NODE_ENV=development) (  0.3s)
-PASS check:english-only       check:english-only PASS (73 text files scanned, 1 documented exemption) (  0.0s)
-PASS check:no-todo            check:no-todo PASS (36 text files scanned) (  0.0s)
-PASS check:no-coming-soon     check:no-coming-soon PASS (36 text files scanned) (  0.0s)
-PASS check:no-tests           check:no-tests PASS (74 tracked files inspected) (  0.0s)
-PASS check:path-comment       check:path-comment PASS (65 source files carry a valid path comment) (  0.0s)
-PASS check:no-console         check:no-console PASS (20 source files scanned) (  0.0s)
-PASS check:forbidden-brands   check:forbidden-brands PASS (36 text files scanned) (  0.0s)
-PASS check:migration-pairs    check:migration-pairs PASS (no migrations yet: nothing to pair) (  0.0s)
-PASS check:dead-links         check:dead-links PASS (no routes defined yet; link audit starts when the app directory exists) (  0.0s)
-PASS check:secrets            check:secrets PASS (73 text files scanned) (  0.0s)
-PASS check:any-types          check:any-types PASS (5 TypeScript files scanned) (  0.0s)
-PASS check:money-math         check:money-math PASS (20 script files scanned) (  0.0s)
-RESULT: PASS (16 of 16 checks passed)
-```
-
-Exit code: 0. Every `npm run check:*` script was additionally executed on its
-own through npm and exited 0, and the four mandated `.sh` wrappers
-(`check-english-only.sh`, `check-no-todo.sh`, `check-no-coming-soon.sh`,
-`check-no-tests.sh`) were executed directly and exited 0.
-
-### 7.2 Negative probes (proof that each check fails on a violation)
-
-Each probe was added to the index, scanned, then removed. All findings were
-correct and the affected check exited 1:
-
-| Check                  | Probe                                            | Result                                                  |
-| ---------------------- | ------------------------------------------------ | ------------------------------------------------------- |
-| check:english-only     | `cafe` with a combining accent in a tracked file | finding with U+00E9 position, exit 1                    |
-| check:no-todo          | an unfinished-work marker in a tracked file      | finding, exit 1                                         |
-| check:no-coming-soon   | an unfinished-launch phrase in Markdown          | finding, exit 1                                         |
-| check:no-tests         | `probe-d.test.ts`                                | finding, exit 1                                         |
-| check:path-comment     | Markdown file without a header                   | finding with the expected header text, exit 1           |
-| check:no-console       | `console.log` inside a TypeScript file           | finding, exit 1                                         |
-| check:forbidden-brands | Rule 5 wallet brand token in a TypeScript file   | finding without printing the token, exit 1              |
-| check:migration-pairs  | migration without a `_down.sql` file             | finding, exit 1                                         |
-| check:dead-links       | `href: "/ghost-route"` in `config/nav-map.ts`    | finding, exit 1                                         |
-| check:secrets          | a JSON Web Token shaped literal                  | finding with the value withheld, exit 1                 |
-| check:any-types        | `const value: any = 1`                           | finding, exit 1                                         |
-| check:money-math       | `totalAmount + 1`                                | finding, exit 1 (and no finding for `paymentCount + 1`) |
-
-### 7.3 Segment gate: all scripts documented in README.md
-
-Automated check over the 23 npm scripts in package.json: every one appears in
-the README script table (`all 23 scripts documented in README.md`). The three
-exemption lists are documented in the README "Documented exemptions" section.
-
-### 7.4 Hook and CI exit-code evidence
-
-- Pre-commit rejection: a staged file containing a banned call was committed
-  with a valid message; the hook ran lint-staged and `npm run verify`, the
-  gate failed and the commit was not created (`husky - pre-commit script
-failed (code 1)`, `git log` unchanged, exit code 1).
-- Commit-msg rejection: a subject line longer than 72 characters was rejected
-  (`commit-msg: subject line is longer than 72 characters`, exit code 1).
-- Verify failure path: with a deliberate violation in the tree, `npm run
-verify` printed `FAIL lint` plus the captured ESLint detail, `FAIL
-format:check` plus the Prettier detail and `RESULT: FAIL`, and exited 1.
-- ESLint policy proof: a probe file with `any`, a console call and a
-  non-ASCII literal produced exactly three errors, one per rule, and an
-  out-of-order import block produced the import/order errors.
-- Tailwind pipeline proof: `npx tailwindcss -i styles/globals.css -o <tmp>`
-  compiled to 615 lines of CSS with the token variables present, exit 0.
-
-### 7.5 Environment validation evidence
-
-| Command                                                     | Result                                                                   |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `npm run env:validate`                                      | PASS with development defaults, secrets reported as `(unset)`            |
-| `NODE_ENV=production npm run env:validate`                  | FAIL with three value-free issues (missing Supabase variables), exit 1   |
-| `NODE_ENV=production NEXT_PHASE=phase-production-build ...` | PASS: runtime secrets are not required during the production build phase |
+| Evidence                                          | Result                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run verify` at this commit                   | PASS, 30 of 30 entries                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `check:governance`                                | The ten governance artefacts cross-read: 3 CI jobs, Node.js 22 pinned by both the workflow and engines, 6 surfaces under named review, 9 pull request fields, the 7 decision records, the proprietary licence agreeing with the manifest, the changelog carrying every recorded sub-step commit                                                                                                                                     |
+| `check:web-hardening`                             | 11 security headers verified (7 in every environment, 3 on the deployed origin), Permissions-Policy refusing by default with 4 named grants, sanitizer allowlist and Trusted Types shaped, Clear-Site-Data gated on TLS, no hand-written script or link in 207 application files                                                                                                                                                    |
+| `check:public-site`                               | 12 public pages and 11 namespaces as server components with catalogue metadata, one h1 and no skipped heading level, no unprovable claim, 12 distinct titles, 354 keys checked for a reader, 26 claim words and 7 product fact shapes refused                                                                                                                                                                                       |
+| `check:dead-links`                                | 15 routes and 58 links resolve; 0 dynamic links skipped                                                                                                                                                                                                                                                                                                                                                                             |
+| Segment 1B gate                                   | `docs/EVIDENCE/step-01/gate-1B.md`: every primitive rendered in four themes and under reduced motion via `check:layout-shells`, `usability-probe.mjs`, `gallery-dom-probe.py` and the style probe                                                                                                                                                                                                                                   |
+| Segment 1C gate                                   | `docs/EVIDENCE/step-01/gate-1C.md`: navigation correct for 6 roles, dead-link audit clean, shells and print base verified                                                                                                                                                                                                                                                                                                           |
+| Platform probe (production and development)       | `platform-probe.py`: 5 robots checks, 12 sitemap locations all answering 200, the nonce in both directives on 44 script elements, a production policy with no inline and no eval, a static asset without a policy, one stylesheet, no secret in the start-up record                                                                                                                                                                 |
+| HTTP hardening probe (production and development) | `http-hardening-probe.py`: 9 header values compared exactly, the content security policy and the Permissions-Policy judged by content, framing refused in production and allowed in development by design                                                                                                                                                                                                                           |
+| Production build                                  | `npx next build` exit 0, 0 dynamicIO diagnostics, all public routes present                                                                                                                                                                                                                                                                                                                                                         |
+| Continuous integration                            | Runs 38951829955 and 38952873146 on the two 1.31 commits: workflow `ci`, all three jobs green, the build job serving the production build and running both probes against it. The workflow is unchanged since, so the push of this sub-step exercises the same three jobs                                                                                                                                                           |
+| Governance probe against the platform             | `governance-probe.py` exit 0, 0 findings: tree clean, the `ci` workflow registered and active, the newest run belonging to HEAD, CODEOWNERS parsing, private vulnerability reporting on, and branch protection on `integration` reported as not configured (the owner's action)                                                                                                                                                     |
+| Controls                                          | Control harnesses run per sub-step from outside the repository: each one mutates every guarded file, requires the specific finding and restores the file by hash. The last runs reported 49 controls with 5 immunities for the layout and token guards, 49 controls with 6 immunities for the governance artefacts, and 22 controls with a renamed record and a duplicated record for the decision records, 0 failures in all three |
 
 ## 8. Decisions and assumptions
 
-| Decision                                                                                            | Reason                                                                                                                                                                                                                                 | ADR                                              |
-| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Next.js 15 with React 19, TypeScript 5, Tailwind 3.4, ESLint 8 in eslintrc mode                     | Matches the mandated stack ("Next.js 14+", "Tailwind 3+") and keeps the mandated `.eslintrc.json` file format working with familiar behavior on the target Node LTS line                                                               | To be recorded with ADR-0001..0007 in segment 1D |
-| Tailwind 3.4 with `tailwind.config.ts` instead of Tailwind 4 CSS-first configuration                | The mandated structure names `tailwind.config.ts`, `postcss.config.js` and `components.json`; the config-file pipeline is the one those files describe                                                                                 | To be recorded in segment 1D                     |
-| `eslint-plugin-import` order rules instead of `simple-import-sort`                                  | The package registry available in the build sandbox does not publish a usable `simple-import-sort`; the import ordering requirement is met by `import/order`, `import/first`, `import/newline-after-import` and `import/no-duplicates` | Recorded here, README                            |
-| Environment validation is skipped only during `phase-production-build`                              | A production build must not require runtime secrets, while a production server boot must fail fast                                                                                                                                     | To be recorded in segment 1D                     |
-| `npm test` is an alias of `npm run verify`                                                          | Rule 4 forbids test runners; CI conventions that call `npm test` must still reach the real gate                                                                                                                                        | Recorded here, README                            |
-| Content checks exempt the governance corpus, the English-only check exempts `FEATURE_LIST.md` alone | The owner specification and the plan restate the prohibited phrases while documenting the rules; the exact lists live in `scripts/checks/_lib.mjs` and the README                                                                      | ADR-0002 in segment 1D                           |
-| Check scripts are Node ESM with thin `.sh` wrappers                                                 | Keeps one implementation, one report format and one exit-code contract while honouring the mandated shell script paths                                                                                                                 | Recorded here                                    |
-| Heuristic guards (money-math, any-types) are conservative and documented                            | Static analysis without a type checker cannot be exact; the ESLint rules and the type checker cover what the heuristics cannot, and the naming convention removes the false-positive surface                                           | Recorded here                                    |
+| Decision                                                                                            | Reason                                                                                                                                                                                                                                 | ADR      |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Next.js 15 with React 19, TypeScript 5, Tailwind 3.4, ESLint 8 in eslintrc mode                     | Matches the mandated stack ("Next.js 14+", "Tailwind 3+") and keeps the mandated `.eslintrc.json` file format working with familiar behavior on the target Node LTS line                                                               | ADR-0001 |
+| Tailwind 3.4 with `tailwind.config.ts` instead of Tailwind 4 CSS-first configuration                | The mandated structure names `tailwind.config.ts`, `postcss.config.js` and `components.json`; the config-file pipeline is the one those files describe                                                                                 | ADR-0001 |
+| `eslint-plugin-import` order rules instead of `simple-import-sort`                                  | The package registry available in the build sandbox does not publish a usable `simple-import-sort`; the import ordering requirement is met by `import/order`, `import/first`, `import/newline-after-import` and `import/no-duplicates` | ADR-0001 |
+| Node.js 22 pinned by `engines` and by the CI workflow                                               | One major for both the runner and the manifest, compared by `check:governance` so the two cannot drift                                                                                                                                 | ADR-0001 |
+| No test runner, of any kind                                                                         | Rule 4 forbids tests; the platform measures itself with check scripts, probes, controls and CI, and `check:no-tests` refuses a test path, a test dependency or a test script                                                           | ADR-0001 |
+| Environment validation is skipped only during `phase-production-build`                              | A production build must not require runtime secrets, while a production server boot must fail fast                                                                                                                                     | ADR-0004 |
+| The three Supabase variables are required in production and refused outside `lib/env`               | A missing key fails at boot rather than on the first query, and a server-only key never reaches a browser component or a log line                                                                                                      | ADR-0004 |
+| `npm test` is an alias of `npm run verify`                                                          | Rule 4 forbids test runners; CI conventions that call `npm test` must still reach the real gate                                                                                                                                        | ADR-0007 |
+| Content checks exempt the governance corpus, the English-only check exempts `FEATURE_LIST.md` alone | The owner specification and the plan restate the prohibited phrases while documenting the rules; the exact lists live in `scripts/checks/_lib.mjs` and the README                                                                      | ADR-0002 |
+| Check scripts are Node ESM with thin `.sh` wrappers                                                 | Keeps one implementation, one report format and one exit-code contract while honouring the mandated shell script paths                                                                                                                 | ADR-0007 |
+| Heuristic guards (money-math, any-types) are conservative and documented                            | Static analysis without a type checker cannot be exact; the ESLint rules and the type checker cover what the heuristics cannot, and the naming convention removes the false-positive surface                                           | ADR-0001 |
+| Copy lives in the catalogue and every visual value lives in the token module                        | A sentence or a colour in one place can be audited and changed; in fourteen files it cannot, and the four themes plus the claim floor depend on both                                                                                   | ADR-0003 |
+| A route group is an audience, and role-aware shells take data as props                              | Authentication and the role store belong to steps 3 and 4, so no shell may read a session; one seam renders every role with no privileged default                                                                                      | ADR-0005 |
+| `config/nav-map.ts` is the single destination source and is not importable from the shells          | It makes "navigation correct for every role" a property of one data structure, auditable by `check:nav-map` and `check:dead-links`                                                                                                     | ADR-0005 |
+| The document is rendered per request so the nonce reaches it, with three file routes static         | A per-request nonce cannot be prerendered; robots, sitemap and the social image hold no nonce and stay static, and the build reports 0 dynamicIO diagnostics                                                                           | ADR-0005 |
+| The web hardening baseline refuses inline script in production and allows framing only off-origin   | The policy is deployment-specific: the preview window is a frame, so `frame-ancestors` and HSTS are deployment-only, and a relaxation is written down rather than implied                                                              | ADR-0006 |
+| The security policy prints the process and refuses to promise a response window or print an address | A window is a commitment the deployment makes and keeps; the private advisory form is the channel, and an invented address is never read                                                                                               | ADR-0007 |
+| One sub-step per commit, one segment per chat, gates crossed only on the owner's word               | The history is the record: the changelog is generated from it, the progress file maps every sub-step to its commit, and a partial chat still hands off a recoverable position                                                          | ADR-0007 |
+| The public site states only what this build can evidence                                            | `check:public-site` refuses 26 claim words and 7 product fact shapes, and the omitted sections are omitted rather than faked                                                                                                           | ADR-0003 |
 
 ## 9. Known risks and pending external credentials
 
-| Item                                                   | Impact                                                                                                             | Owner action required                                                                                 |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Supabase project credentials are not present           | `env:validate` fails in a production runtime until they exist (by design); no step 1 functionality depends on them | Provide `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` before step 2 migrations run |
-| ESLint prints "Pages directory cannot be found at app" | Cosmetic note on stderr, not an error; it disappears as soon as `app/` exists in segment 1C                        | None                                                                                                  |
-| `check:dead-links` has no routes to audit yet          | The audit becomes meaningful in segment 1C/1D                                                                      | None                                                                                                  |
-| Node 22 used in the sandbox while `engines` allows 20+ | A Node 20 environment is untested in this session                                                                  | None; CI runs on the pinned Node version added in sub-step 1.31                                       |
+| Item                                                     | Impact                                                                                                                                                                              | Owner action required                                                                                                                 |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase project credentials are not present             | `env:validate` fails in a production runtime until they exist (by design); no step 1 functionality depends on them                                                                  | Provide `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` before step 2 migrations run                                 |
+| Lighthouse at least 90 on the homepage is outstanding    | This environment has no browser, so the 1D gate's performance item cannot be measured here; the public-pages probe's byte, script and stylesheet counts are the recorded substitute | Run Lighthouse against the deployed preview before the 1D gate is closed, and record the result in `docs/EVIDENCE/step-01/gate-1D.md` |
+| Branch protection on `integration` is not configured yet | A pull request can be merged without the `ci` check passing                                                                                                                         | Enable branch protection on `integration` and require the `ci` status check                                                           |
+| `deploy.yml` and `security.yml` do not exist             | Deployment and the scheduled security jobs (dependency and secret scanning) arrive in step 16.3; CI is the only workflow today                                                      | Nothing now; the plan owner is step 16.3                                                                                              |
+| GitHub Actions deprecation notices on the runner         | `actions/checkout@v4` and `actions/setup-node@v4` are annotated as running on the Node 24 runtime, and `ubuntu-latest` moves to Ubuntu 26 on 2026-10-19                             | Step 16.3 pins or upgrades the actions and the runner image                                                                           |
+| The dead-link audit grows with the public surface        | 15 routes and 58 links today; a new page that is not reachable from the navigation map is a finding                                                                                 | Nothing now; the check is part of the floor and fails on a broken destination                                                         |
+| Focus and ARIA contracts are verified from source        | There is no browser dependency in the floor, so a regression only a real browser would expose is caught by the gallery probes during a segment gate                                 | Run the probes at each segment gate; the tools are committed in `docs/EVIDENCE/step-01/`                                              |
 
 ## 10. Starting point for the next chat
 
-- Next segment: 1C (brand, layout, navigation), starting at sub-step 1.18
-  (brand assets). Segment 1B is complete and its gate is recorded in
-  `docs/EVIDENCE/step-01/gate-1B.md`.
-- Read: `docs/PLAN/chat-prompts/CHAT_01.md` (the same prompt), then
-  `docs/handoffs/CHAT_01_PROGRESS.md`, this file, and the 1B gate evidence.
-- Working tree is clean, `npm run verify` is green at 20 of 20 entries, and the
-  pre-commit gate is active. Do not re-implement anything from 1.1 to 1.17.
-- Two things carry forward for whoever continues: the step 1 gate also needs
-  Lighthouse at least 90 on the homepage, which cannot be measured until a
-  public page exists (segment 1D), and `app/layout.tsx` already mounts the
-  root shell and the tooltip provider, so 1C adds layouts below it rather than
-  a second root layout.
-- Segment 1C must not start segment 1D. It stops with
-  "Segment 1C complete; next segment 1D" or, if it cannot finish,
-  "Segment 1C partial; resume at sub-step 1.NN".
-- Segment status line for this chat: Segment 1B complete; next segment 1C.
+- Next: the segment 1D gate, on the owner's word. It runs the production build,
+  the dead-link audit, the verification floor and the accessibility, focus and
+  print probes, records its evidence in `docs/EVIDENCE/step-01/gate-1D.md`, and
+  closes step 1.
+- After step 1 is closed and merged: step 2, database foundation, migrations, RLS,
+  encryption and the audit ledger, opened with
+  `docs/PLAN/chat-prompts/CHAT_02.md`.
+- Read before coding, in order: `MASTER_PROMPT.md`, `FEATURE_LIST.md`,
+  `docs/PLAN/00_MASTER_EXECUTION_PLAN.md`, `docs/PLAN/02`, `docs/PLAN/03`,
+  `docs/PLAN/04`, `docs/PLAN/08` (STEP 02), then the revision 2 files
+  `docs/PLAN/09_REVISION_2_ADDITIONS.md` and sections A11 to A15 of
+  `docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md`.
+- Do not re-implement anything from 1.1 to 1.32. On a resume, run the preflight
+  first: branch against origin, clean tree, dependencies installed, `npm run
+verify` at the current tip. If the floor is green, continue from the first
+  incomplete slice rather than rewriting a passing file.
+- The working tree is clean, the floor is green at 30 of 30 entries, the
+  pre-commit gate is active, and both CI runs on the 1.31 commits are green.
+- Segment 1D stops with "Segment 1D complete; step 1 complete" once its gate is
+  recorded, or with "Segment 1D partial; resume at the 1D gate" if it is not.
