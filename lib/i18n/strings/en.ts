@@ -25,6 +25,7 @@ import { forms } from './en/forms';
 import { gallery } from './en/gallery';
 import { motion } from './en/motion';
 import { nav } from './en/nav';
+import { security } from './en/security';
 import { shells } from './en/shells';
 import { states } from './en/states';
 import { ui } from './en/ui';
@@ -39,6 +40,7 @@ export const en = {
   gallery,
   motion,
   nav,
+  security,
   shells,
   states,
   ui,

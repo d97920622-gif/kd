@@ -63,6 +63,7 @@ const ENTRIES = [
   { name: 'check:nav-map', command: 'node', args: ['scripts/checks/nav-map.mjs'] },
   { name: 'check:page-states', command: 'node', args: ['scripts/checks/page-states.mjs'] },
   { name: 'check:motion', command: 'node', args: ['scripts/checks/motion.mjs'] },
+  { name: 'check:web-hardening', command: 'node', args: ['scripts/checks/web-hardening.mjs'] },
 ];
 
 const SUMMARY_PATTERN = /(PASS \(|FAIL \(|code style|All matched files)/i;

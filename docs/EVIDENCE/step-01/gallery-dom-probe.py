@@ -28,6 +28,13 @@ It answers four questions about the component gallery:
    preference rather than a class, so the pinned pane is the only way this
    machine can show the reduced path; the probe reads that pane rather than
    trusting the pin.
+6. Does the hardening baseline render, and is the hostile string it is shown
+   against escaped? A sanitizer demonstration that inserts its own specimen as
+   markup is a worse bug than the one it is describing, so the probe reads the
+   pane rather than assuming React escapes it. The sanitizer itself needs a
+   parser and therefore runs in the browser, so this response carries the pending
+   state of the output pane; the removal marker is what a reader sees once the
+   client effect has run.
 """
 import html
 import re
@@ -36,6 +43,10 @@ import urllib.request
 from html.parser import HTMLParser
 
 BASE_URL = 'http://127.0.0.1:3000'
+# The text a removed element leaves behind, from lib/security/sanitizer.ts. Its
+# presence in the rendered output is the proof that the sanitizer ran in the
+# browser rather than being described here.
+REMOVED_MARKER = '[removed]'
 PAGE_URL = f'{BASE_URL}/gallery'
 SCOPES = [
     'theme-light',
@@ -100,6 +111,16 @@ MARKERS = {
     'data-motion-pane="reduced"': 'specimen pane pinned to reduced motion',
     'motion-safe:active:scale-95': 'button press feedback, motion safe',
     'motion-safe:focus-visible:animate-focus-pulse': 'focus pulse, one shot',
+    # Sub-step 1.26: the hardening baseline. The headers themselves are read off
+    # the wire by http-hardening-probe.py; what an inventory can prove is that the
+    # three security specimens render in every theme, and that the hostile string
+    # the sanitizer is shown against is rendered as escaped text rather than as
+    # markup - the difference between demonstrating a sanitizer and being a sink.
+    'data-security="sanitizer-input"': 'the hostile specimen, as it arrived',
+    'data-security="sanitizer-output"': 'the same specimen after sanitizing',
+    'data-security="header-matrix"': 'the header matrix read from the response',
+    'data-security="trusted-types"': 'the Trusted Types policy pane',
+    'data-security="clear-site-data"': 'the sign-out clear signal pane',
 }
 
 # Markers that belong to the document rather than to a theme scope. The page
@@ -272,6 +293,14 @@ def stylesheet_for(page: str) -> str:
     return fetch(f'{BASE_URL}{hrefs[0]}')
 
 
+"""The slice of markup that follows one data attribute, for reading a pane."""
+def pane_text(block: str, marker: str, length: int = 2000) -> str:
+    start = block.find(marker)
+    if start < 0:
+        return ''
+    return block[start : start + length]
+
+
 def reduced_pane(page: str) -> str:
     """The specimen pane that pins the motion preference to reduce.
 
@@ -373,6 +402,39 @@ def main() -> int:
     findings.extend(issues)
 
     print()
+    print()
+    print('hardening specimens, read element by element:')
+    for scope in SCOPES:
+        block = blocks[scope]
+        input_pane = pane_text(block, 'data-security="sanitizer-input"')
+        output_pane = pane_text(block, 'data-security="sanitizer-output"')
+        escaped = '&lt;script&gt;' in input_pane and '&lt;iframe' in input_pane
+        # The escaped form is what React emits for text; a literal tag name is
+        # what a sink produces. Only the literal form is a finding.
+        raw = any(tag in input_pane for tag in ('<script', '<iframe', '<img', '<svg'))
+        state = 'sanitized' if REMOVED_MARKER in output_pane else 'pending in the browser'
+        # The sanitizer needs a parser, so it runs in the browser and not during
+        # server rendering: this response carries the pending state, and the
+        # removal marker appears once the client effect has run. What the server
+        # response *can* prove - and what matters most, because the specimen is
+        # hostile markup - is that neither pane contains the specimen as markup.
+        print(
+            f'  {scope:22} escaped: {"yes" if escaped else "NO"}   '
+            f'hostile markup rendered raw: {"YES" if raw else "no"}   '
+            f'output pane state: {state}'
+        )
+        if not escaped:
+            findings.append(
+                f'{scope}: the hostile specimen is not rendered as escaped text'
+            )
+        if raw:
+            findings.append(
+                f'{scope}: hostile markup from the specimen reached the page as markup, which '
+                'makes the gallery a second injection sink'
+            )
+        if 'data-security="sanitizer-output"' not in block:
+            findings.append(f'{scope}: the sanitizer output pane is missing')
+
     print(f'markers checked per scope: {len(MARKERS)}')
     print(f'page level markers checked: {len(PAGE_MARKERS)}')
     print(f'findings: {len(findings)}')

@@ -12,6 +12,7 @@ import { ShowcaseFeedback } from './showcase-feedback';
 import { ShowcaseForms } from './showcase-forms';
 import { ShowcaseMotion } from './showcase-motion';
 import { ShowcasePanels } from './showcase-panels';
+import { ShowcaseSecurity } from './showcase-security';
 import { ShowcaseStates } from './showcase-states';
 import { ThemeScope } from './theme-scope';
 
@@ -77,6 +78,7 @@ export default function GalleryPage(): React.ReactElement {
           <ShowcaseData />
           <ShowcaseStates />
           <ShowcaseMotion />
+          <ShowcaseSecurity />
           <ShowcaseBrand />
         </ThemeScope>
       ))}

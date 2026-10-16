@@ -49,6 +49,7 @@ import {
   readTextFile,
   reportResult,
   selectCssBlock,
+  stripCommentsAndStrings,
 } from './_lib.mjs';
 
 const CHECK = 'motion';
@@ -689,7 +690,10 @@ for (const file of tracked.filter((candidate) =>
   if (text === null) {
     continue;
   }
-  const rawImage = /<img\s/.exec(text);
+  // Comments and string literals are blanked first: a specimen string that
+  // contains an image element - which the sanitizer's gallery demonstration
+  // does, on purpose - is a string, not an image this application loads.
+  const rawImage = /<img\s/.exec(stripCommentsAndStrings(text));
   if (rawImage !== null) {
     finding(
       file,

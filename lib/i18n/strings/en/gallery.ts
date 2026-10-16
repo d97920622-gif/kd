@@ -135,4 +135,9 @@ export const gallery = {
   label_demo_animation_note:
     'The slot holds its box before a drawing arrives, so nothing below it moves when the drawing loads, and it hides itself from assistive technology because the sentence beside it carries the meaning.',
   label_demo_animation_child: 'Sequence inside the slot',
+  label_section_security: 'Security hardening',
+  label_security_note:
+    'The sanitizer against a hostile string, the response headers this page actually carried, and the Trusted Types policy declared for this document. The header half of the baseline is data applied by the build configuration to every response; this page is where a reviewer reads it back.',
+  label_security_header_sent: 'Sent with this response',
+  label_security_header_unknown: 'Not readable from here',
 } as const;

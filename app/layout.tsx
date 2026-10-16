@@ -2,6 +2,7 @@
 import { type Metadata } from 'next';
 
 import { MotionProvider } from '@/components/motion/motion-provider';
+import { SecurityRuntime } from '@/components/security/security-runtime';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { t } from '@/lib/i18n';
 
@@ -50,6 +51,13 @@ import '../styles/print.css';
  * is what lets each animated component ask once instead of subscribing to the
  * media query itself. It renders no element of its own beyond Framer Motion's
  * context, so the document structure is unchanged.
+ *
+ * One security runtime mounts here as well (sub-step 1.26). It declares the
+ * Trusted Types policy for the document and renders nothing: a policy is a
+ * per-document declaration, `createPolicy` refuses a name that is already taken,
+ * and the root layout is the only place that runs exactly once per document.
+ * The header half of the same sub-step is not here at all - it is data in
+ * config/security-headers.ts, applied by next.config.js to every response.
  */
 export const metadata: Metadata = {
   title: {
@@ -70,6 +78,7 @@ export default function RootLayout({
         <MotionProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </MotionProvider>
+        <SecurityRuntime />
       </body>
     </html>
   );

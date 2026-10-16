@@ -2,13 +2,26 @@
 /**
  * Next.js configuration baseline for KD SOLUTION IT.
  *
- * Scope of sub-step 1.1: strict build behaviour and safe defaults only.
- * Security headers, CSP nonce handling, redirects and rewrites are added by
- * sub-steps 1.26 and 1.30 of step 1 through the append protocol; this file
- * stays the single place where the Next.js compiler and build are configured.
+ * Scope of sub-step 1.1: strict build behaviour and safe defaults. Sub-step
+ * 1.26 adds the web hardening matrix below; redirects, rewrites and the
+ * nonce-based content security policy are added by sub-step 1.30 through the
+ * append protocol. This file stays the single place where the Next.js compiler
+ * and build are configured.
+ *
+ * The header matrix itself is not written here. It is data in
+ * `config/security-headers.ts` - one entry per header, with the environment it
+ * applies in and the reason it exists - and this file only turns that data into
+ * the shape `headers()` returns. Two reasons for the indirection: the matrix is
+ * then readable and reviewable without reading build configuration, and
+ * `scripts/checks/web-hardening.mjs` can assert on the data and on this
+ * consumer separately. The require carries the `.ts` extension for the reason
+ * `tailwind.config.ts` documents for the token module: the extension is what
+ * makes the specifier unambiguous.
  *
  * @type {import('next').NextConfig}
  */
+const { SECURITY_HEADER_SOURCE, securityHeadersFor } = require('./config/security-headers.ts');
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -38,6 +51,29 @@ const nextConfig = {
   // assets in development unless the host is named here. The list applies to
   // `next dev` alone; a production server never serves these paths.
   allowedDevOrigins: ['*.e2b.app', 'localhost:3000'],
+  /**
+   * The web hardening baseline. Every response - documents, stylesheets,
+   * scripts, fonts, images - carries the matrix for the environment the server
+   * is running in, because a header that covers a document but not the files it
+   * loads is a header with a hole in it.
+   *
+   * `NODE_ENV` is what decides between the two matrices, and it is the build
+   * that sets it rather than a switch a runtime can flip: `next start` serves
+   * the production matrix, `next dev` serves the development one, and the three
+   * production-only headers in the data file are the entire difference.
+   */
+  async headers() {
+    const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+    return [
+      {
+        source: SECURITY_HEADER_SOURCE,
+        headers: securityHeadersFor(environment).map((header) => ({
+          key: header.key,
+          value: header.value,
+        })),
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
