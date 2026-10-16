@@ -12,6 +12,7 @@ import {
   RADIUS_CLASS_MAP,
   SHADOW_CLASS_MAP,
   SPACING_TOKENS,
+  THEME_SCOPE_CLASSES,
   WIDTH_CLASS_MAP,
   Z_INDEX_CLASS_MAP,
 } from './config/design-tokens.ts';
@@ -30,6 +31,10 @@ import {
  * from Tailwind. scripts/checks/design-tokens.mjs fails any extensionless
  * import of the token module for the same reason.
  *
+ * The safelist carries the theme scope classes for the same reason: a rule in
+ * `@layer base` is tree shaken by class name, so a pinned theme must be
+ * safelisted or it disappears.
+ *
  * Spacing, radius, shadow, z-index, typography, motion and weight are
  * replaced rather than extended: the default Tailwind steps that are not
  * tokens do not exist, which turns a mistyped step (p-7, text-md,
@@ -46,6 +51,13 @@ const config = {
     './lib/**/*.{ts,tsx}',
     './config/**/*.{ts,tsx}',
   ],
+  // The theme scopes in styles/globals.css are authored inside @layer base,
+  // and Tailwind tree shakes that layer by class name exactly like a utility.
+  // A scope whose class name appears in no scanned file would be dropped, and
+  // the surface would silently render in the page theme while looking like a
+  // pinned one, so the classes are listed here rather than left to a page to
+  // spell out.
+  safelist: [...THEME_SCOPE_CLASSES],
   theme: {
     // Single breakpoint system for the whole platform, mobile first.
     // MASTER_PROMPT: 320 / 375 / 430 / 768 / 1024 / 1280 / 1920.

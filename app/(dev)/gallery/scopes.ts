@@ -1,25 +1,30 @@
 // path: app/(dev)/gallery/scopes.ts
+import { THEME_SCOPE_TOKENS, type ThemeScopeTheme } from '@/config/design-tokens.ts';
 import { type EnglishStringKey } from '@/lib/i18n';
 
 /**
- * The themes the gallery renders, in the order they appear on the page.
+ * The themes the gallery renders, and the heading each one is given.
  *
- * The first four are the palettes: light, dark, and the high contrast pair the
- * operating system preference switches to. The fifth is not a palette but a
- * motion scope: it pins the reduced motion durations onto a block of the page
- * while the rest of the page keeps its motion, so a reviewer can see both at
- * once and confirm that nothing is animated for a user who asked for no
- * motion.
+ * The list itself is not declared here. It comes from THEME_SCOPE_TOKENS in
+ * config/design-tokens.ts, which is the single owner of the scope class names:
+ * the stylesheet declares one rule per class, the Tailwind safelist is built
+ * from the same list, and scripts/checks/design-tokens.mjs compares the list
+ * with the stylesheet in both directions. Duplicating the names here is how a
+ * scope ends up styled in one file and unknown in another.
  *
- * The class names must match the blocks in styles/globals.css exactly; the
- * contrast checker compares every one of those blocks with
- * config/design-tokens.ts token by token, so a scope cannot silently drift
- * from the theme it mirrors.
+ * What belongs to the page, and stays here, is the heading. The mapping is
+ * total: `ThemeScopeTheme` is a union of the theme names in the token list, so
+ * a new scope fails the type check until it has a label instead of rendering
+ * an empty heading.
+ *
+ * The reduced motion scope is not a palette but a motion scope: it pins the
+ * zeroed durations onto one block of the page while the rest of the page keeps
+ * its motion, so a reviewer sees both at once.
  */
 export interface GalleryScope {
-  /** Identifier used for headings and anchors (ASCII, stable). */
+  /** Identifier used for headings and anchors, drawn from the theme name. */
   readonly id: string;
-  /** Class that pins the theme, as declared in styles/globals.css. */
+  /** Class that pins the theme, declared in styles/globals.css. */
   readonly className: string;
   /** Catalogue key of the heading. */
   readonly labelKey: EnglishStringKey;
@@ -27,40 +32,22 @@ export interface GalleryScope {
   readonly motionOnly: boolean;
 }
 
-export const GALLERY_SCOPES: readonly GalleryScope[] = [
-  {
-    id: 'scope-light',
-    className: 'theme-light',
-    labelKey: 'gallery.label_scope_light',
-    motionOnly: false,
-  },
-  {
-    id: 'scope-dark',
-    className: 'theme-dark',
-    labelKey: 'gallery.label_scope_dark',
-    motionOnly: false,
-  },
-  {
-    id: 'scope-hc-light',
-    className: 'theme-hc-light',
-    labelKey: 'gallery.label_scope_hc_light',
-    motionOnly: false,
-  },
-  {
-    id: 'scope-hc-dark',
-    className: 'theme-hc-dark',
-    labelKey: 'gallery.label_scope_hc_dark',
-    motionOnly: false,
-  },
-  {
-    id: 'scope-reduced-motion',
-    className: 'theme-reduced-motion',
-    labelKey: 'gallery.label_scope_reduced_motion',
-    motionOnly: true,
-  },
-];
+const SCOPE_LABEL_KEYS: Readonly<Record<ThemeScopeTheme, EnglishStringKey>> = {
+  light: 'gallery.label_scope_light',
+  dark: 'gallery.label_scope_dark',
+  'high-contrast-light': 'gallery.label_scope_hc_light',
+  'high-contrast-dark': 'gallery.label_scope_hc_dark',
+  'reduced-motion': 'gallery.label_scope_reduced_motion',
+};
 
-/** The scopes that pin a palette, used for the palette swatch row. */
+export const GALLERY_SCOPES: readonly GalleryScope[] = THEME_SCOPE_TOKENS.map((scope) => ({
+  id: scope.theme,
+  className: scope.className,
+  labelKey: SCOPE_LABEL_KEYS[scope.theme],
+  motionOnly: scope.motionOnly,
+}));
+
+/** The scopes that pin a palette, used where only a palette makes sense. */
 export const PALETTE_SCOPES: readonly GalleryScope[] = GALLERY_SCOPES.filter(
   (scope) => !scope.motionOnly,
 );

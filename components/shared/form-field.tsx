@@ -36,6 +36,27 @@ import { cn } from '@/lib/utils/cn';
  * the descriptor list the error summary is built from) passes the same id to
  * both; `fieldIdFor(path)` in lib/forms/field-id.ts derives it from the field
  * path so the two cannot drift apart.
+ *
+ * Two shapes for the control, because not every control is a DOM element:
+ *
+ *   - an element, which receives the attributes by cloning. This is the shape
+ *     for the plain primitives (Input, Textarea, Checkbox, Switch): they pass
+ *     unknown props straight to the element they render.
+ *   - a function, which receives the same attributes as an object and places
+ *     them where they belong. A composite control needs this: Radix Select,
+ *     for example, is a context provider, and an id handed to it is dropped
+ *     rather than rendered, so the label ends up pointing at nothing and the
+ *     control ends up with no accessible name. With the function shape the
+ *     attributes go to the trigger, which is the element that carries the
+ *     role:
+ *
+ *       <FormField label={...} fieldId={fieldIdFor('plan')}>
+ *         {(fieldProps) => (
+ *           <Select ...>
+ *             <SelectTrigger {...fieldProps} />
+ *           </Select>
+ *         )}
+ *       </FormField>
  */
 export interface FormFieldProps {
   /** Visible label for the control. */
@@ -48,8 +69,8 @@ export interface FormFieldProps {
   readonly required?: boolean;
   /** Explicit control id; one is generated when omitted. */
   readonly fieldId?: string;
-  /** The control. Receives id, aria-describedby, aria-invalid and required. */
-  readonly children: React.ReactElement<FormFieldControlProps>;
+  /** The control: an element, or a function that places the attributes. */
+  readonly children: FormFieldChild;
   readonly className?: string;
 }
 
@@ -60,6 +81,11 @@ export interface FormFieldControlProps {
   readonly 'aria-invalid'?: boolean;
   readonly required?: boolean;
 }
+
+/** Either the control itself or a function that receives the field attributes. */
+export type FormFieldChild =
+  | React.ReactElement<FormFieldControlProps>
+  | ((fieldProps: FormFieldControlProps) => React.ReactElement);
 
 export function FormField({
   label,
@@ -80,12 +106,14 @@ export function FormField({
 
   const describedBy = hasError ? errorId : description === undefined ? undefined : descriptionId;
 
-  const control = cloneElement(children, {
+  const fieldProps: FormFieldControlProps = {
     id: controlId,
     'aria-describedby': describedBy,
     'aria-invalid': hasError ? true : undefined,
     required,
-  });
+  };
+  const control =
+    typeof children === 'function' ? children(fieldProps) : cloneElement(children, fieldProps);
 
   return (
     <div className={cn('grid gap-2', className)}>

@@ -2,17 +2,26 @@
 
 # CHAT 01 COMPLETED -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
-Status: partial -- segment 1A complete, segments 1B, 1C and 1D pending
-Segment status: Segment 1A complete; next segment 1B
-First incomplete sub-step: 1.8 (structured logger)
-Date: 2026-10-15
+Status: partial -- segments 1A and 1B complete, segments 1C and 1D pending
+Segment status: Segment 1B complete; next segment 1C
+First incomplete sub-step: 1.18 (brand assets)
+Date: 2026-10-16
 Branch: arena/b7780282-kd
 
 ## 1. Scope and status of this chat
 
-Chat 1 of step 1 executed segment 1A only: the repository toolchain and the
-quality gates (sub-steps 1.1 to 1.7). No application page, layout, brand asset
-or database object was created; those belong to segments 1B to 1D and to step 2. The segment gate is recorded in section 7.
+Chat 1 of step 1 executed segments 1A and 1B: the repository toolchain and the
+quality gates (1.1 to 1.7), then the core libraries and the design system
+(1.8 to 1.17, including the component gallery and its segment gate). The owner
+instructed the session to continue into 1B in the same chat, so 1B ran here
+under the permission-gated rhythm and closed with its gate; the boundary is
+recorded in docs/handoffs/CHAT_01_PROGRESS.md. The three defects found while
+proving the 1B gate (a composite control losing its field attributes, pinned
+theme scopes that could silently stop applying, and an incomplete
+development-only guard) are fixed and recorded in the evidence file.
+
+No brand asset, application page for a real audience, database object or
+migration was created; those belong to segments 1C and 1D and to step 2.
 
 ## 2. Sub-steps completed
 
@@ -25,6 +34,17 @@ or database object was created; those belong to segments 1B to 1D and to step 2.
 | 1.5      | Check scripts A: check:english-only, check:no-todo, check:no-coming-soon, check:no-tests, check:path-comment plus the shared helper library and the four mandated .sh wrappers                                        | e25ddac |
 | 1.6      | Check scripts B: check:no-console, check:forbidden-brands, check:migration-pairs, check:dead-links, check:secrets, check:any-types, check:money-math                                                                  | 98951cf |
 | 1.7      | Verify runner: scripts/verify.mjs aggregation with PASS/FAIL report and CI-ready exit codes, pre-commit and commit-msg wiring, README quality gate documentation                                                      | 98ac273 |
+
+| 1.8 | Structured logger: JSON lines, levels, correlation id propagation, redaction hook, no console usage | 7cf207e |
+| 1.9 | Error library: typed error classes, error codes, envelope builders, no internal detail leakage | 9d5f6c7 |
+| 1.10 | USD money utilities on decimal.js: parse, format, arithmetic, rounding policy, money-math guard annotation | d3b5e0d |
+| 1.11 | Utility set: date (UTC), formatting, slug, hash (SHA-256 and HMAC), id helpers (UUIDv7 and short references) | dc9592a |
+| 1.12 | i18n string catalogue: namespaced structure, key naming rules, copy rules, the literal-copy checker | e17e112 |
+| 1.13 | Design tokens A: spacing, radius, shadow and z-index scales, wired into Tailwind and enforced by check:design-tokens | 2f25ca8 |
+| 1.14 | Design tokens B: typography, colour palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, JSON export | 6eb05dd |
+| 1.15 | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch | cdba8d2 |
+| 1.16 | shadcn/ui primitives B: dialog, sheet, popover, dropdown menu, tabs, tooltip, toast, table, skeleton, badge, plus the toast queue and the layout width tokens | b5bb363 |
+| 1.17 | Form primitives: React Hook Form with a Zod resolver, the four form states, live-region errors, disabled and loading submit, one-time CSRF token, and the component gallery the 1B gate needs | a976d75 |
 
 Progress file created in commit 82a6ff5.
 
@@ -205,13 +225,19 @@ format:check` plus the Prettier detail and `RESULT: FAIL`, and exited 1.
 
 ## 10. Starting point for the next chat
 
-- Next segment: 1B (core libraries and design system), starting at sub-step
-  1.8 (structured logger).
+- Next segment: 1C (brand, layout, navigation), starting at sub-step 1.18
+  (brand assets). Segment 1B is complete and its gate is recorded in
+  `docs/EVIDENCE/step-01/gate-1B.md`.
 - Read: `docs/PLAN/chat-prompts/CHAT_01.md` (the same prompt), then
-  `docs/handoffs/CHAT_01_PROGRESS.md` and this file.
-- Working tree is clean, `npm run verify` is green at 16 of 16 entries, and
-  the pre-commit gate is active. Start at sub-step 1.8; do not re-implement
-  anything from 1.1 to 1.7.
-- Segment 1B must not start segment 1C. It stops with
-  "Segment 1B complete; next segment 1C" or, if it cannot finish,
-  "Segment 1B partial; resume at sub-step 1.NN".
+  `docs/handoffs/CHAT_01_PROGRESS.md`, this file, and the 1B gate evidence.
+- Working tree is clean, `npm run verify` is green at 20 of 20 entries, and the
+  pre-commit gate is active. Do not re-implement anything from 1.1 to 1.17.
+- Two things carry forward for whoever continues: the step 1 gate also needs
+  Lighthouse at least 90 on the homepage, which cannot be measured until a
+  public page exists (segment 1D), and `app/layout.tsx` already mounts the
+  root shell and the tooltip provider, so 1C adds layouts below it rather than
+  a second root layout.
+- Segment 1C must not start segment 1D. It stops with
+  "Segment 1C complete; next segment 1D" or, if it cannot finish,
+  "Segment 1C partial; resume at sub-step 1.NN".
+- Segment status line for this chat: Segment 1B complete; next segment 1C.

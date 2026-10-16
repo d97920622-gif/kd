@@ -283,6 +283,91 @@ export const REQUIRED_LAYOUT_WIDTH_KEYS: readonly string[] = [
   'sheet',
 ];
 
+/**
+ * A theme scope: one theme pinned to one surface by a class name.
+ *
+ * The application switches theme in two places: the `.dark` class on the html
+ * element, and the operating system preferences for contrast and motion. A
+ * pinned scope is a third case, for a surface that must show one theme while
+ * the rest of the page shows another, which is what the component gallery uses
+ * to render light, dark and both high contrast palettes side by side.
+ *
+ * The class names live here, next to the palettes they pin, for two reasons:
+ *
+ *   1. They are Tailwind content. A rule authored inside `@layer base` is
+ *      tree shaken exactly like a utility: if the class name appears in no
+ *      scanned file, Tailwind drops the rule, and the scope silently becomes
+ *      a no-op that looks like a working theme. This module is scanned
+ *      (tailwind.config.ts includes ./config), and the scope classes are also
+ *      listed in the Tailwind safelist, so the rules survive any refactor of
+ *      the pages that use them.
+ *   2. There is one list. scripts/checks/design-tokens.mjs compares it with
+ *      styles/globals.css in both directions: every scope here must have a
+ *      rule, and every `.theme-` selector there must be one of these.
+ */
+export interface ThemeScopeToken {
+  /** Class that pins the theme. */
+  readonly className: string;
+  /** Theme the scope pins: a colour theme name or the motion scope. */
+  readonly theme: string;
+  /** True when the scope pins motion rather than a palette. */
+  readonly motionOnly: boolean;
+  /** Why the scope exists. */
+  readonly usage: string;
+}
+
+export const THEME_SCOPE_TOKENS = [
+  {
+    className: 'theme-light',
+    theme: 'light',
+    motionOnly: false,
+    usage: 'pin the light palette to one surface, used by the component gallery',
+  },
+  {
+    className: 'theme-dark',
+    theme: 'dark',
+    motionOnly: false,
+    usage: 'pin the dark palette to one surface, used by the component gallery',
+  },
+  {
+    className: 'theme-hc-light',
+    theme: 'high-contrast-light',
+    motionOnly: false,
+    usage: 'pin the light high contrast palette to one surface, for review',
+  },
+  {
+    className: 'theme-hc-dark',
+    theme: 'high-contrast-dark',
+    motionOnly: false,
+    usage: 'pin the dark high contrast palette to one surface, for review',
+  },
+  {
+    className: 'theme-reduced-motion',
+    theme: 'reduced-motion',
+    motionOnly: true,
+    usage: 'pin zeroed motion durations to one surface while the page keeps its motion',
+  },
+] satisfies readonly ThemeScopeToken[];
+
+/**
+ * Class names of the theme scopes, in declaration order.
+ *
+ * The array is annotated with `satisfies` rather than with a type, so each
+ * entry keeps its literal type: the theme names below are a union of string
+ * literals, and a surface that maps a theme to a translated label has to cover
+ * every member of it. A scope added here and forgotten there fails the type
+ * check instead of rendering a blank heading.
+ */
+export const THEME_SCOPE_CLASSES: readonly string[] = THEME_SCOPE_TOKENS.map(
+  (scope) => scope.className,
+);
+
+/** Union of the scope class names, derived from the list above. */
+export type ThemeScopeClass = (typeof THEME_SCOPE_TOKENS)[number]['className'];
+
+/** Union of the theme names a scope can pin. */
+export type ThemeScopeTheme = (typeof THEME_SCOPE_TOKENS)[number]['theme'];
+
 /** Tailwind width map: floating panels that need a fixed width. */
 export const WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths(['popover']);
 

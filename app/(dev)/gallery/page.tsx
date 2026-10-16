@@ -1,6 +1,7 @@
 // path: app/(dev)/gallery/page.tsx
-import { type Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
+import { isDevelopment } from '@/lib/env/validate-env';
 import { t } from '@/lib/i18n';
 
 import { GALLERY_SCOPES } from './scopes';
@@ -32,15 +33,31 @@ import { ThemeScope } from './theme-scope';
  * implementation of a feature; and every string it shows comes from the
  * catalogue, including the text inside the demo inputs.
  *
- * The route exists in development only; the layout above answers 404
- * everywhere else.
+ * The route exists in development only, and the guard is in two places on
+ * purpose. The layout guard covers every development route; this one stops the
+ * page from being rendered at all outside development. A layout that refuses
+ * is not enough on its own: the page segment is still rendered and serialized
+ * into the response, so a production 404 would carry the whole component tree
+ * as a flight payload. Measured with `next start`: with the layout guard alone
+ * the 404 body was 45,947 bytes and contained the scope markers and the page
+ * content; with both guards it is 5,522 bytes with no scope marker, no page
+ * content and no metadata of its own.
  */
-export const metadata: Metadata = {
-  title: t('gallery.label_title'),
-  description: t('gallery.label_description'),
-};
+/*
+ * This route declares no metadata of its own, and that is deliberate. Next.js
+ * collects a page's metadata without rendering the page, so an export here
+ * would put the gallery title and description into the document head of a
+ * production 404 response: the route would answer 404 while still announcing,
+ * by name, which internal page exists. The guard in the layout runs first and
+ * the one below stops the page body from being produced at all; dropping the
+ * metadata export removes the last trace.
+ */
 
 export default function GalleryPage(): React.ReactElement {
+  if (!isDevelopment()) {
+    notFound();
+  }
+
   return (
     <main className="mx-auto grid max-w-7xl gap-8 p-4 md:p-8">
       <header className="grid gap-2">

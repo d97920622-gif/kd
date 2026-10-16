@@ -149,22 +149,28 @@ export function DemoForm(): React.ReactElement {
         <Input inputMode="decimal" autoComplete="off" {...form.register('amount')} />
       </FormField>
 
+      {/* The render-prop shape: the id, the described-by reference and the
+          invalid flag belong on the trigger, which is the element with the
+          combobox role. Handing them to Select itself would drop them, because
+          Radix Select is a context provider rather than an element. */}
       <FormField label={t('gallery.label_demo_plan')} required={true} fieldId={fieldIdFor('plan')}>
-        <Select
-          value={String(form.watch('plan') ?? 'growth')}
-          onValueChange={(value) => {
-            form.setValue('plan', value, { shouldDirty: true });
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="starter">{t('gallery.label_demo_plan_starter')}</SelectItem>
-            <SelectItem value="growth">{t('gallery.label_demo_plan_growth')}</SelectItem>
-            <SelectItem value="scale">{t('gallery.label_demo_plan_scale')}</SelectItem>
-          </SelectContent>
-        </Select>
+        {(fieldProps) => (
+          <Select
+            value={String(form.watch('plan') ?? 'growth')}
+            onValueChange={(value) => {
+              form.setValue('plan', value, { shouldDirty: true });
+            }}
+          >
+            <SelectTrigger className="w-full" {...fieldProps}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="starter">{t('gallery.label_demo_plan_starter')}</SelectItem>
+              <SelectItem value="growth">{t('gallery.label_demo_plan_growth')}</SelectItem>
+              <SelectItem value="scale">{t('gallery.label_demo_plan_scale')}</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </FormField>
 
       <FormField

@@ -3,9 +3,11 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1B (core libraries and design system) -- in progress
-Last completed sub-step: 1.17 (form primitives) at a976d75. Next sub-step: the 1B segment gate, then segment 1C (sub-step 1.18).
+Current segment: 1B (core libraries and design system) -- gate passed, segment complete
+Last completed sub-step: 1.17 (form primitives) at a976d75; segment 1B gate passed on 2026-10-16.
+Next sub-step: 1.18 (brand assets), the first sub-step of segment 1C.
 Segment 1A: complete
+Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -458,6 +460,50 @@ rhythm from there.
   `origin/arena/b7780282-kd`, the local branch was restored to that tip
   (35b1869) and the working tree matched the commit exactly. Dependencies
   were reinstalled and `npm run verify` returned PASS at 16 of 16 checks.
+
+## Segment 1B gate -- PASSED (2026-10-16)
+
+Gate: "component gallery route renders every primitive in light, dark, high
+contrast and reduced motion; no hardcoded color or spacing value exists outside
+tokens." Evidence is committed in docs/EVIDENCE/step-01/gate-1B.md, with the
+two probes that produce it next to it:
+
+- `node docs/EVIDENCE/step-01/gallery-style-probe.mjs` -- PASS: 244 class
+  tokens, 0 without CSS, 0 of 6 negative controls compiled, 32 declaration
+  expectations, 0 raw colour or spacing values across 75 files, and the
+  safelist control (5 of 5 scope rules with it, 0 of 5 without it).
+- `python3 docs/EVIDENCE/step-01/gallery-dom-probe.py` -- PASS: 26 markers in
+  each of the five scopes with identical inventories, the five scope rules
+  present in the stylesheet the browser loads, 0 accessible-name issues across
+  175 buttons, 100 form controls, 45 role-bearing controls and 30 labels.
+- `npm run verify` -- PASS, 20 of 20 checks.
+- `npx next build` -- PASS; production audit: `GET /gallery` returns 404 with
+  5,473 bytes and zero gallery traces, `GET /` returns 404 (no public page
+  yet), dead-link audit clean.
+
+Three defects were found while proving the gate and fixed at the source:
+
+1. A composite control lost the attributes the field handed it (Radix Select
+   is a context provider, not an element): the label pointed at an id no
+   element carried and the combobox had no accessible name. FormField now takes
+   an element or a function that receives the field attributes, and the DOM
+   probe checks every label target and every role-bearing control, so the
+   defect cannot return unnoticed (negative control: 6 findings).
+2. The pinned theme scopes could silently stop applying, because a rule in
+   `@layer base` is tree shaken by class name. THEME_SCOPE_TOKENS in
+   config/design-tokens.ts is now the single owner; the Tailwind safelist is
+   derived from it; check:design-tokens compares it with the stylesheet in both
+   directions and requires the safelist to derive from it; the gallery scope
+   list is derived rather than duplicated.
+3. The development-only guard was incomplete: a layout guard alone still let
+   Next serialize the page, so a production 404 carried the component tree as a
+   flight payload (45,947 bytes) and the page metadata named the route in the
+   response head. The guard is repeated in the page and the route declares no
+   metadata of its own; the same request is now 5,473 bytes with no trace.
+
+Open item, unchanged: the step 1 gate also requires Lighthouse at least 90 on
+the homepage. There is no public page to measure until segments 1C and 1D
+build one, so it is carried forward rather than claimed.
 
 ## Segment 1B gate state (after sub-step 1.17)
 

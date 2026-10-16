@@ -1054,6 +1054,104 @@ function checkLayoutWidths(reader) {
   return findings;
 }
 
+/**
+ * Theme scopes: the pinned themes and the motion scope.
+ *
+ * A scope is authored inside @layer base in styles/globals.css, and Tailwind
+ * tree shakes that layer by class name exactly like a utility. A scope whose
+ * class appears in no scanned file is therefore dropped from the compiled
+ * stylesheet without a warning: the surface renders in the page theme and
+ * looks like a pinned theme that matches. Two things prevent that here.
+ *
+ *   1. The class names have one owner, THEME_SCOPE_TOKENS in the token module,
+ *      and that module is Tailwind content (tailwind.config.ts scans ./config).
+ *   2. The class names are in the Tailwind safelist, read from the same list,
+ *      so a later refactor of a page cannot reintroduce the drop.
+ *
+ * This check compares the list with the stylesheet in both directions: every
+ * declared scope must have a rule, and every .theme- selector in the
+ * stylesheet must be a declared scope. A rule that drifts, or a scope that is
+ * renamed in one place only, fails the build.
+ */
+function checkThemeScopes(reader) {
+  const findings = [];
+  const text = safeRead(STYLESHEET);
+  if (text === null) {
+    return findings;
+  }
+  const records = parseCssDeclarations(text);
+
+  const scopes = reader.read('THEME_SCOPE_TOKENS');
+  if (!Array.isArray(scopes) || scopes.length === 0) {
+    findings.push({
+      file: TOKEN_FILE,
+      line: 1,
+      column: 1,
+      message: 'THEME_SCOPE_TOKENS must be a non-empty array of theme scopes',
+    });
+    return findings;
+  }
+
+  const declared = new Map();
+  for (const scope of scopes) {
+    if (!isPlainObject(scope) || typeof scope.className !== 'string') {
+      findings.push({
+        file: TOKEN_FILE,
+        line: 1,
+        column: 1,
+        message: 'every theme scope needs a className string',
+      });
+      continue;
+    }
+    declared.set(scope.className, scope);
+    if (typeof scope.theme !== 'string' || typeof scope.usage !== 'string') {
+      findings.push({
+        file: TOKEN_FILE,
+        line: 1,
+        column: 1,
+        message: `theme scope ${scope.className} needs a theme name and a usage line`,
+      });
+    }
+    if (selectCssBlock(records, { selector: `.${scope.className}` }).size === 0) {
+      findings.push({
+        file: STYLESHEET,
+        line: 1,
+        column: 1,
+        message: `theme scope .${scope.className} is declared in ${TOKEN_FILE} but styles/globals.css has no rule for it`,
+      });
+    }
+  }
+
+  const selectorPattern = /\.theme-([a-z0-9-]+)/g;
+  for (const match of text.matchAll(selectorPattern)) {
+    const className = `theme-${match[1]}`;
+    if (!declared.has(className)) {
+      findings.push({
+        file: STYLESHEET,
+        line: 1,
+        column: 1,
+        message: `.${className} is styled in the stylesheet but is not a theme scope in ${TOKEN_FILE}`,
+      });
+    }
+  }
+
+  // The safelist is what keeps the scopes in the compiled stylesheet. It must
+  // be built from the same list rather than list the names a second time: two
+  // owners is how one of them goes stale.
+  const configText = safeRead(TAILWIND_CONFIG);
+  if (configText !== null && !/safelist:\s*\[[^\]]*THEME_SCOPE_CLASSES/s.test(configText)) {
+    findings.push({
+      file: TAILWIND_CONFIG,
+      line: 1,
+      column: 1,
+      message:
+        'the Tailwind safelist must spread THEME_SCOPE_CLASSES, or the theme scope rules are dropped from the compiled stylesheet',
+    });
+  }
+
+  return findings;
+}
+
 function checkStylesheetVariables() {
   const findings = [];
   const text = safeRead(STYLESHEET);
@@ -1418,6 +1516,7 @@ function main() {
   }
 
   findings.push(...checkStylesheetVariables());
+  findings.push(...checkThemeScopes(createTokenReader()));
   findings.push(...checkTokenImports(files));
   findings.push(...checkTypography(createTokenReader()));
   findings.push(...checkLayoutWidths(createTokenReader()));
