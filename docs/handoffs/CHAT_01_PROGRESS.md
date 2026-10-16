@@ -3,12 +3,12 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18 and 1.19 complete, 1.20 next
-Last completed sub-step: 1.19 (public and auth layout shells) at the shell commit.
-Next sub-step: 1.20 (dashboard, admin and client portal layout shells with role-aware framing).
+Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19 and 1.20 complete, 1.21 next
+Last completed sub-step: 1.20 (role-aware dashboard, admin and client portal shells).
+Next sub-step: 1.21 (layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
-Segment 1C: in progress (1.18 and 1.19 complete; segment gate pending)
+Segment 1C: in progress (1.18, 1.19 and 1.20 complete; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -94,6 +94,104 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.20 evidence -- role-aware shells for the three signed-in and tokenized audiences
+
+Delivered the three remaining route-group shells, the framing data they render
+from, the slot contract sub-step 1.21 fills, and the one seam through which a
+layout will ask who the reader is.
+
+**The frame is data.** `components/layout/role-framing.ts` describes what each
+of the six roles of the role model sees around the content: audience, whether a
+persistent band is shown, which approval notice applies, whether navigation
+exists at all. Copy is referenced by catalogue key typed as the catalogue's own
+union, so a frame that names a string nobody wrote fails the type check.
+`components/layout/role-frame.tsx` renders the band and the notice; the
+platform band uses the warning surface pair and the notice uses the muted pair,
+both already verified contrasts. The band is hidden in print: a customer's
+invoice must not carry a line reading "platform administration".
+
+**Three shells, three briefs.** `dashboard-shell.tsx` is the tenant workspace:
+quiet chrome, no band for the owner, the approval notice for the owner's staff,
+because that reader is the one whose work is reviewed. `admin-shell.tsx` is
+platform administration: a persistent band on every screen, because the mistake
+it prevents - acting on a tenant's records while believing you are in your own
+workspace - cannot be undone by a toast. `client-portal-shell.tsx` is the
+tokenized client: no navigation of any kind, one column at the document
+measure, and a single slot for the tenant's own header, because white-label
+tenants put their own branding there (A11, 11.5).
+
+**Navigation is gated by the frame, not by the caller.** `shell-slots.tsx`
+renders the four slots 1.21 needs (top bar, sidebar, footer, mobile bottom bar)
+and refuses to paint the two navigation slots unless the frame allows
+navigation. An unresolved reader therefore gets landmarks and content and no
+menu, even if a caller hands one in: the links would lead to routes that refuse
+the request, which reads as a broken product rather than as a session that
+ended. Nothing about this is authorization - a menu is not a permission - but
+failing closed in the frame costs nothing and removes a class of confusing
+screens.
+
+**The seam.** `components/layout/session-role.ts` is the single place a layout
+asks who the reader is. In development it answers the lowest-privilege role of
+the group's audience (staff for the workspace, admin staff for platform
+administration), because a preview that ran as the owner or the founder would
+show the developer the frame almost nobody sees. Outside development it answers
+null. Step 3 replaces the body with the session read and nothing else changes.
+The seam never previews the client role, because that audience has no session
+to preview.
+
+**The print base moved to the root.** `styles/print.css` is now imported once,
+by `app/layout.tsx`, instead of by each group layout. Every group can be
+printed for a reason - an invoice from the workspace, a receipt from the client
+portal, a pricing page from the public site - and a base every group must
+remember to include is a base some group will one day omit. `check:layout-shells`
+now requires the root layout to import it and forbids a route-group layout from
+importing it a second time.
+
+**Verification.** `npm run verify`: RESULT PASS (22 of 22). `check:layout-shells`
+grew to cover five shells and five route-group layouts, and the framing rules
+with them: every role of the role model is framed and no role is invented;
+every copy key a frame names is checked against the catalogue files; each
+audience's group must render the shell the table gives it; the client frame must
+declare `hasNavigation: false` and its shell must accept no navigation slot;
+every role-aware shell must publish the role and audience on its root element;
+and the seam must fail closed, must not preview a privileged role, and must not
+preview the client role.
+
+Eight negative controls, each run and reverted: a role deleted from the table; a
+frame naming a key no namespace declares; the seam previewing as the super
+admin; the seam losing its null branch; the client shell gaining a sidebar; the
+admin group rendering the dashboard shell; the frame no longer gating
+navigation (the unresolved reader then showed a menu); the client portal
+rendering a navigation landmark.
+
+**Rendered evidence.** `docs/EVIDENCE/step-01/shell-probe.py` now measures the
+specimen page per shell rather than in aggregate: 9 shells rendered, each with
+exactly one skip link carrying the catalogue label, one focusable main landmark
+before which the skip link is the only focusable element, and the skip link
+before the landmark inside its own block. Then the framing table, one row per
+reader, read from the copy the reader actually sees:
+
+| role        | shell         | band | notice             | navigation |
+| ----------- | ------------- | ---- | ------------------ | ---------- |
+| owner       | dashboard     | no   | no                 | yes        |
+| staff       | dashboard     | no   | staff notice       | yes        |
+| super_admin | admin         | yes  | no                 | yes        |
+| ceo         | admin         | yes  | CEO notice         | yes        |
+| admin_staff | admin         | yes  | admin staff notice | yes        |
+| client      | client-portal | no   | no                 | no         |
+| unresolved  | dashboard     | no   | no                 | no         |
+
+Three more negative controls were run against the probe: the owner given the
+staff notice, navigation gating removed, and a navigation landmark inside the
+client portal. All three turn it into a FAIL.
+
+**Production.** `next build` OK, 8 static pages. With `next start`: `/shells`
+404 at 7,196 bytes with zero occurrences of the page title, `data-shell`,
+`main-content` or the framing copy; `/gallery` unchanged at 404 / 6,172 bytes;
+`/dashboard`, `/admin` and `/client-portal` answer 404 because they have no
+pages yet, and the layouts themselves emit no route. The development group
+stays invisible in production.
 
 ## Sub-step 1.19 evidence -- layout shells, focus order and the print base
 
@@ -721,24 +819,27 @@ with its gate passed, and segment 1B continues under the permission-gated
 rhythm (one sub-step per commit, verify between sub-steps, stop for
 confirmation).
 
-## Sub-step 1.20 starting point
+## Sub-step 1.21 starting point
 
-1.20 is "Layout shells: dashboard, admin and client portal layouts with
-role-aware framing". Three groups are named by docs/PLAN/03 (file ownership):
-`app/(dashboard)/layout.tsx`, `app/(admin)/layout.tsx` and
-`app/(client-portal)/layout.tsx`. There is no session or role source yet in
-step 1 (auth arrives in step 2), so "role-aware framing" here means the shell is
-parameterised by a role and renders the framing that role gets, with the role
-supplied by a prop or a stub resolver inside the shell rather than by a session
-read that does not exist. The pieces to build on are already in place:
-`components/layout/main-content.tsx` owns the single `<main>`, `SkipLink`
-carries the catalogue label, `components/branding/logo-mark.tsx` draws the mark,
-and `styles/print.css` is already imported by the two existing groups.
-`check:layout-shells` enumerates its shells and route layouts in two arrays at
-the top of the file, so 1.20 extends those arrays rather than adding a second
-check. The command palette, sidebar, topbar, drawer, bottom navigation,
-breadcrumbs, footer and sticky action bar are 1.21, not 1.20: the shells should
-leave documented slots for them exactly as the public shell does.
+1.21 is "Layout components: sidebar, topbar, mobile drawer, bottom navigation,
+breadcrumbs, footer, offline banner, sticky action bar", all of which belong in
+`components/layout/` (step 1 owns that directory). The attachment points exist
+and are already exercised: `ShellSlots` in
+`components/layout/shell-slots.tsx` takes `topBar`, `sidebar`, `footer` and
+`bottomBar` as nodes and wraps each in the right landmark with an accessible
+name from the catalogue, and the frames decide whether navigation is painted at
+all, so a component dropped into a slot needs no layout knowledge.
+
+Two facts from the accepted work to build on rather than re-decide: the
+dashboard and admin shells are rendered by the specimen page
+(`app/(dev)/shells/page.tsx`) once per role with a specimen navigation in the
+sidebar slot, which is where the new components should be rendered for the
+probe; and `config/nav-map.ts` is 1.22, so the sidebar, the drawer and the
+bottom bar consume a navigation list that does not exist yet and should take it
+as data through their props rather than reading a config module that is not
+written. `check:layout-shells` enumerates shells and route layouts in two arrays
+at the top of the file; if 1.21 adds a component with a landmark, that check is
+where its rules belong, not a new script.
 
 ## Blockers
 
