@@ -434,3 +434,23 @@
     outline-offset: 2px;
   }
 }
+
+/**
+ * Utilities that keep a page usable at 320 pixels.
+ *
+ * The mandated breakpoint ladder starts at 320 (MASTER_PROMPT, mobile-first
+ * CSS), and a layout at that width fails in one characteristic way: a single
+ * unbroken token - an invoice reference, a correlation id, an email address, a
+ * URL - is wider than the content column, so the page grows a horizontal
+ * scrollbar and every other element is dragged sideways with it. The fix is
+ * not a smaller font: it is telling the browser the token may break.
+ *
+ * `overflow-wrap: anywhere` is the declaration that works in both engines and
+ * does not affect the line breaking of normal prose: a word with spaces still
+ * wraps at its spaces, and only a token that cannot fit anywhere else breaks.
+ */
+@layer utilities {
+  .wrap-anywhere {
+    overflow-wrap: anywhere;
+  }
+}

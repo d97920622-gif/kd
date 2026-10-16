@@ -11,6 +11,7 @@ import { ShowcaseData } from './showcase-data';
 import { ShowcaseFeedback } from './showcase-feedback';
 import { ShowcaseForms } from './showcase-forms';
 import { ShowcasePanels } from './showcase-panels';
+import { ShowcaseStates } from './showcase-states';
 import { ThemeScope } from './theme-scope';
 
 /**
@@ -73,6 +74,7 @@ export default function GalleryPage(): React.ReactElement {
           <ShowcasePanels />
           <ShowcaseFeedback />
           <ShowcaseData />
+          <ShowcaseStates />
           <ShowcaseBrand />
         </ThemeScope>
       ))}

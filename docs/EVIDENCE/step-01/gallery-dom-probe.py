@@ -69,6 +69,20 @@ MARKERS = {
     'Open a menu': 'menu trigger',
     'Amounts are stored in USD.': 'tooltip trigger',
     'role="region"': 'toast viewport live region',
+    # Sub-step 1.24: the page-state system and the accessibility primitives.
+    # Each marker is one member of the family, so a state that stops rendering
+    # in one theme is visible in the inventory rather than in a review.
+    'data-loading="table"': 'loading state, table layout',
+    'data-loading="form"': 'loading state, form layout',
+    'data-page-state="empty"': 'empty state, first use and filtered',
+    'data-page-state="permission"': 'empty state, permission variant',
+    'data-page-state="error"': 'error state with retry and reference',
+    'data-page-state="success"': 'success state with countdown',
+    'data-state-illustration="empty"': 'empty-state drawing',
+    'data-state-illustration="error"': 'error-state drawing',
+    'data-icon-button="true"': 'icon button, named and tooltipped',
+    'data-live-region="polite"': 'live region for announcements after load',
+    'wrap-anywhere': 'the 320 pixel wrap guard on a reference code',
 }
 
 # scope class -> a declaration the stylesheet must carry for it

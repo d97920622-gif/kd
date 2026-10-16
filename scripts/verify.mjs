@@ -61,6 +61,7 @@ const ENTRIES = [
   { name: 'check:brand-assets', command: 'node', args: ['scripts/checks/brand-assets.mjs'] },
   { name: 'check:layout-shells', command: 'node', args: ['scripts/checks/layout-shells.mjs'] },
   { name: 'check:nav-map', command: 'node', args: ['scripts/checks/nav-map.mjs'] },
+  { name: 'check:page-states', command: 'node', args: ['scripts/checks/page-states.mjs'] },
 ];
 
 const SUMMARY_PATTERN = /(PASS \(|FAIL \(|code style|All matched files)/i;
