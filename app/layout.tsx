@@ -4,6 +4,7 @@ import { type Metadata } from 'next';
 import { MotionProvider } from '@/components/motion/motion-provider';
 import { SecurityRuntime } from '@/components/security/security-runtime';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ToastProvider } from '@/lib/hooks/use-toast';
 import { t } from '@/lib/i18n';
 
 import '../styles/globals.css';
@@ -52,6 +53,14 @@ import '../styles/print.css';
  * media query itself. It renders no element of its own beyond Framer Motion's
  * context, so the document structure is unchanged.
  *
+ * One toast surface mounts inside those two (sub-step 1.27). A toast is a
+ * notice about something that already happened, and the five second undo window
+ * is a toast with an action on it, so the queue has to be reachable from any
+ * page without that page rendering a stack of its own. It sits below the motion
+ * provider because a toast is a motion surface too, and above the pages because
+ * that is the point. The live region the provider mounts exists before the
+ * first message arrives, which is what a screen reader needs.
+ *
  * One security runtime mounts here as well (sub-step 1.26). It declares the
  * Trusted Types policy for the document and renders nothing: a policy is a
  * per-document declaration, `createPolicy` refuses a name that is already taken,
@@ -76,7 +85,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-background font-sans text-base text-foreground antialiased">
         <MotionProvider>
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </TooltipProvider>
         </MotionProvider>
         <SecurityRuntime />
       </body>

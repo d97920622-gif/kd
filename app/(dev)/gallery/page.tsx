@@ -14,6 +14,7 @@ import { ShowcaseMotion } from './showcase-motion';
 import { ShowcasePanels } from './showcase-panels';
 import { ShowcaseSecurity } from './showcase-security';
 import { ShowcaseStates } from './showcase-states';
+import { ShowcaseUsability } from './showcase-usability';
 import { ThemeScope } from './theme-scope';
 
 /**
@@ -79,6 +80,7 @@ export default function GalleryPage(): React.ReactElement {
           <ShowcaseStates />
           <ShowcaseMotion />
           <ShowcaseSecurity />
+          <ShowcaseUsability />
           <ShowcaseBrand />
         </ThemeScope>
       ))}

@@ -29,6 +29,7 @@
     "check:page-states": "node scripts/checks/page-states.mjs",
     "check:motion": "node scripts/checks/motion.mjs",
     "check:web-hardening": "node scripts/checks/web-hardening.mjs",
+    "check:usability": "node scripts/checks/usability.mjs",
     "verify": "node scripts/verify.mjs",
     "test": "npm run verify",
     "check:english-only": "node scripts/checks/english-only.mjs",

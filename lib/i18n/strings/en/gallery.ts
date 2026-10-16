@@ -140,4 +140,32 @@ export const gallery = {
     'The sanitizer against a hostile string, the response headers this page actually carried, and the Trusted Types policy declared for this document. The header half of the baseline is data applied by the build configuration to every response; this page is where a reviewer reads it back.',
   label_security_header_sent: 'Sent with this response',
   label_security_header_unknown: 'Not readable from here',
+  label_section_usability: 'Usability primitives',
+  label_usability_note:
+    'Saved views, the five second undo window, the autosave indicator and the optimistic queue. Every specimen below runs the real hook in this browser, so the buttons change state and the sentences come from the catalogue.',
+  label_usability_saved_views_note:
+    'The filter values below are saved under a name. A view belongs to one person and one list, and it is kept in this browser rather than on the server.',
+  label_usability_filters: 'Filters this specimen saves',
+  label_usability_filter_status: 'status = draft',
+  label_usability_filter_period: 'period = this month',
+  label_usability_views_header: 'Stored views',
+  label_usability_undo_note:
+    'Removing a sample row takes it off the list at once. Nothing has been sent yet, and the toast can take the removal back for five seconds; when the window closes the request runs.',
+  label_usability_autosave_note:
+    'Type in the note. The draft is written to this browser after a short quiet period, and the indicator says where the work is kept rather than whether a record changed.',
+  label_usability_optimistic_note:
+    'Applying a change shows it at once. The switch makes the next request fail, so the rollback can be seen without breaking a connection.',
+  label_usability_explainability_note:
+    'The same panel three times: a payment on hold with a reference and an instant, a delivery that failed, and an outcome the platform cannot classify yet. The sentences come from the explainability catalogue, and only the context values differ between them.',
+  label_demo_view_name: 'Overdue this month',
+  label_demo_note_value: 'The draft in this browser survives a closed tab.',
+  label_demo_row_one: 'Sample row one',
+  label_demo_row_two: 'Sample row two',
+  label_demo_row_three: 'Sample row three',
+  label_demo_record_name: 'Sample record',
+  label_usability_held_reference: 'pay_01J8ZQ4C9KBM3T7W',
+  label_usability_held_expected: '2026-10-19T09:00:00Z',
+  label_usability_held_note: 'A payment on hold, with the reference and the review date',
+  label_usability_delivery_note: 'A delivery that failed, with the route to support',
+  label_usability_unknown_note: 'An outcome with no reason recorded yet',
 } as const;

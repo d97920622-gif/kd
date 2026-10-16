@@ -121,6 +121,24 @@ MARKERS = {
     'data-security="header-matrix"': 'the header matrix read from the response',
     'data-security="trusted-types"': 'the Trusted Types policy pane',
     'data-security="clear-site-data"': 'the sign-out clear signal pane',
+    # Sub-step 1.27: the usability primitives. Four specimens run the real hooks
+    # against this browser's storage and the explainability panel renders its
+    # copy, so what an inventory can prove is that every one of them is present
+    # in every theme - a specimen that renders in light and not in high contrast
+    # is a token that stopped resolving - and that the panel's sentences are in
+    # the server response rather than waiting for a browser.
+    'data-usability="saved-views"': 'the saved views specimen',
+    'data-usability="undo"': 'the undo specimen',
+    'data-usability="autosave"': 'the autosave specimen',
+    'data-usability="optimistic"': 'the optimistic specimen',
+    'data-usability="explainability"': 'the explainability panel',
+    'data-explainability="payment_held"': 'the held payment explanation',
+    'data-explainability="delivery_failed"': 'the failed delivery explanation',
+    'data-explainability="unknown_outcome"': 'the fallback explanation for an unknown reason',
+    'data-usability-status="saved-views"': 'the saved views status line',
+    'data-usability-status="undo"': 'the undo status line',
+    'data-usability-status="autosave"': 'the autosave status line',
+    'data-usability-status="optimistic"': 'the optimistic status line',
 }
 
 # Markers that belong to the document rather than to a theme scope. The page
@@ -128,6 +146,11 @@ MARKERS = {
 # appears once on the page and cannot be counted per scope.
 PAGE_MARKERS = {
     'data-motion="page-transition"': 'page transition mounted by the root template',
+    # The undo window is a toast with an action on it, so the single toast
+    # surface has to be above every page rather than rendered by the page that
+    # happens to need it. It is mounted once by the root layout, which is why it
+    # is a page level marker and not one of the per scope ones.
+    'data-toast-stack="global"': 'the single toast surface mounted by the root layout',
 }
 
 # scope class -> a declaration the stylesheet must carry for it
@@ -279,9 +302,16 @@ def scope_blocks(page: str) -> dict[str, str]:
         if index < 0:
             raise SystemExit(f'scope {scope} is missing from the rendered page')
         positions.append((scope, index))
+    # The last scope's slice would otherwise run to the end of the document and
+    # pick up whatever the layout renders after the page content - the single
+    # toast surface mounted by the root layout, for one - which would count a
+    # page level element inside a theme that does not contain it. The surface
+    # carries its own marker precisely so this cut can be exact.
+    tail = page.find('data-toast-stack="global"')
+    limit = len(page) if tail < 0 else tail
     blocks = {}
     for order, (scope, start) in enumerate(positions):
-        end = positions[order + 1][1] if order + 1 < len(positions) else len(page)
+        end = positions[order + 1][1] if order + 1 < len(positions) else limit
         blocks[scope] = page[start:end]
     return blocks
 
@@ -360,6 +390,17 @@ def main() -> int:
         print(f'  {description[:52]:54} {count}')
         if count == 0:
             findings.append(f'{description} is missing from the page')
+        elif count > 1:
+            # Presence is not the decision here, uniqueness is. A second toast
+            # surface is how a reader gets two stacked messages with two live
+            # regions reading them aloud, and the first run of this inventory
+            # found exactly that shape as a count difference in one theme only -
+            # which is also why the per scope blocks are cut at the first
+            # occurrence of this marker. A rule that only asks whether the
+            # marker appears cannot see either of those.
+            findings.append(
+                f'{description} appears {count} times on the page: it must be mounted exactly once'
+            )
 
     pane = reduced_pane(page)
     reduced_true = pane.count('data-motion-reduced="true"')
@@ -434,6 +475,58 @@ def main() -> int:
             )
         if 'data-security="sanitizer-output"' not in block:
             findings.append(f'{scope}: the sanitizer output pane is missing')
+
+    print()
+    print('usability specimens, read element by element:')
+    for scope in SCOPES:
+        block = blocks[scope]
+        held = pane_text(block, 'data-explainability="payment_held"')
+        delivery = pane_text(block, 'data-explainability="delivery_failed"')
+        unknown = pane_text(block, 'data-explainability="unknown_outcome"')
+        # The panel resolves a reason it does not know to the fallback, which
+        # renders the same four sentences as every other reason. The failure
+        # this asserts against is a heading with an empty body: that is the
+        # shape a reader sees at the moment they are most worried about money.
+        #
+        # The unknown pane is asked for by the marker React rendered, so the
+        # check has to find the resolved name in it: the specimen passes
+        # `provider_code_9f3` and the panel must have resolved it.
+        held_reference = 'pay_01J8ZQ4C9KBM3T7W' in held
+        held_instant = '2026-10-19 09:00 UTC' in held
+        # The reference is a long machine identifier in a narrow panel, so the
+        # wrap guard is the difference between a panel and a horizontal scroll
+        # bar at 320 pixels. It is asserted on the element that carries the
+        # reference rather than on the page as a whole: the class appears
+        # elsewhere, so a page wide count cannot see it go missing here.
+        code_element = re.search(r'<code class="([^"]*)"', held)
+        reference_wrapped = code_element is not None and 'wrap-anywhere' in code_element.group(1)
+        fallback_words = 'We cannot explain this outcome yet' in unknown
+        print(
+            f'  {scope:22} held reference: {"yes" if held_reference else "NO"}   '
+            f'held instant: {"yes" if held_instant else "NO"}   '
+            f'delivery sentences: {"yes" if "receiving server refused" in delivery else "NO"}   '
+            f'unknown reason falls back: {"yes" if fallback_words else "NO"}   '
+            f'reference wrap guard: {"yes" if reference_wrapped else "NO"}'
+        )
+        if not held_reference:
+            findings.append(f'{scope}: the held payment panel lost the reference it was given')
+        if not held_instant:
+            findings.append(
+                f'{scope}: the held payment panel lost its expected instant, or printed it in '
+                'something other than the fixed UTC label'
+            )
+        if not reference_wrapped:
+            findings.append(
+                f'{scope}: the reference code lost the 320 pixel wrap guard, so a long identifier '
+                'overflows its panel on a narrow screen'
+            )
+        if 'receiving server refused' not in delivery:
+            findings.append(f'{scope}: the failed delivery panel did not render its explanation')
+        if not fallback_words:
+            findings.append(
+                f'{scope}: a reason this build does not know did not render the fallback copy, '
+                'which is a panel with a heading and no words'
+            )
 
     print(f'markers checked per scope: {len(MARKERS)}')
     print(f'page level markers checked: {len(PAGE_MARKERS)}')

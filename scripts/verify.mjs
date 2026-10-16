@@ -14,7 +14,7 @@
  *   3. format:check     prettier --check .
  *   4. env:validate     environment schema against the current environment
  *   5. tokens:export    config/design-tokens.json is current with the token module
- *   6..22               the seventeen rule checks in scripts/checks
+ *   6..27               the rule checks in scripts/checks
  *
  * The production build and the Lighthouse run are step gates, not part of
  * verify; they are executed separately and recorded in the step handoff.
@@ -64,6 +64,7 @@ const ENTRIES = [
   { name: 'check:page-states', command: 'node', args: ['scripts/checks/page-states.mjs'] },
   { name: 'check:motion', command: 'node', args: ['scripts/checks/motion.mjs'] },
   { name: 'check:web-hardening', command: 'node', args: ['scripts/checks/web-hardening.mjs'] },
+  { name: 'check:usability', command: 'node', args: ['scripts/checks/usability.mjs'] },
 ];
 
 const SUMMARY_PATTERN = /(PASS \(|FAIL \(|code style|All matched files)/i;

@@ -21,6 +21,7 @@ import { brand } from './en/brand';
 import { commands } from './en/commands';
 import { common } from './en/common';
 import { errors } from './en/errors';
+import { explainability } from './en/explainability';
 import { forms } from './en/forms';
 import { gallery } from './en/gallery';
 import { motion } from './en/motion';
@@ -29,6 +30,7 @@ import { security } from './en/security';
 import { shells } from './en/shells';
 import { states } from './en/states';
 import { ui } from './en/ui';
+import { usability } from './en/usability';
 import { validation } from './en/validation';
 
 export const en = {
@@ -36,6 +38,7 @@ export const en = {
   commands,
   common,
   errors,
+  explainability,
   forms,
   gallery,
   motion,
@@ -44,6 +47,7 @@ export const en = {
   shells,
   states,
   ui,
+  usability,
   validation,
 } as const;
 
@@ -55,6 +59,7 @@ export {
   commands,
   common,
   errors,
+  explainability,
   forms,
   gallery,
   motion,
@@ -62,5 +67,6 @@ export {
   shells,
   states,
   ui,
+  usability,
   validation,
 };
