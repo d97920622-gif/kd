@@ -3,16 +3,16 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.29 complete, 1.30 next
-Last completed sub-step: 1.29 (public site pages B: industries, contact, calculators, the free invoice
-generator shell, terms, privacy, the blog shell, the 404 and 500 pages and the offline page, plus the
-public header the 1.28 pages deferred).
-Previous sub-step: 1.28 (public site pages A: the homepage, features, pricing and about pages with real English copy and metadata, the public site footer through the shell, and the claim floor that refuses a sentence this build cannot evidence).
-Next sub-step: 1.30 (platform plumbing: middleware.ts, instrumentation.ts, the CSP nonce baseline, sitemap and robots, the metadata baseline and the print stylesheet).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.30 complete, 1.31 next
+Last completed sub-step: 1.30 (platform plumbing: middleware.ts with the per-request nonce and the content
+security policy, instrumentation.ts and its Node half, the sitemap and robots baseline, the metadata
+baseline and the print contract).
+Previous sub-step: 1.29 (public site pages B: industries, contact, calculators, the free invoice generator shell, terms, privacy, the blog shell, the 404 and 500 pages and the offline page, plus the public header the 1.28 pages deferred).
+Next sub-step: 1.31 (governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24, 1.25, 1.26, 1.27, 1.28 and 1.29 done; segment gate pending)
+Segment 1D: in progress (1.24 to 1.30 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -100,12 +100,172 @@ passes on the current route set. Status: pending.
 | 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | done    | 535c54e |
 | 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | done    | 8c75f2b |
 | 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | done    | 260a23b |
-| 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | pending | -       |
+| 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | done    | 0afc679 |
 | 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | pending | -       |
 | 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | pending | -       |
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.30 evidence -- the platform plumbing, the nonce CSP, the crawler files and the paper
+
+1.30 is "Platform plumbing: `middleware.ts`, `instrumentation.ts`, CSP nonce
+baseline, sitemap and robots baseline, metadata baseline, print stylesheet".
+Two commits: code and this progress file. The acceptance anchors are docs/PLAN/08
+line 90 (the sub-step line; line 92 is the segment gate), FEATURE_LIST item 265
+for the sitemap and 2525 with 2527 for its sources and its index, 266 for
+robots.txt with 2528 and 2529 for the admin-editable half and the generated
+defaults, the print group 340 and 371-375 with 864, 865 and 883 (the print
+stylesheets, the margin, the pages that stay printable, the hidden chrome, A4
+and US Letter, and the print-preview mode), 3199 for the server-only environment
+variables, and 3231 with 3892-3894 for a policy that names a per-request nonce in
+`script-src` and `style-src` and allows no `unsafe-inline`. Of those, 340 and 374
+(the print preview) need a document surface to preview and are named as deferred
+below rather than half-built here.
+
+### What the product gained, module by module
+
+| Module                                                                                                    | What it decides                                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/security/content-security-policy.ts`                                                                 | The document policy as a pure function of a nonce and an environment: `script-src` and `style-src` carry `'self'` and the nonce, production carries neither `'unsafe-inline'` nor `'unsafe-eval'`, the framing refusal and the HTTPS upgrade are deployment-only, and the four development relaxations are exported as a list. `newCspNonce()` is 128 bits from the platform's random source, base64url, no padding.      |
+| `middleware.ts`                                                                                           | The one request-time decision: a nonce per request, the policy on the request headers (where Next.js reads it to stamp its own inline scripts) and on the response (what the browser enforces), and a matcher that leaves the static prefixes alone so a stylesheet does not cost a function invocation.                                                                                                                  |
+| `instrumentation.ts`                                                                                      | The entry point that may import nothing: both hooks test `NEXT_RUNTIME` and reach the Node half through a dynamic import inside that branch, which is what keeps `node:crypto` out of the other runtime's build.                                                                                                                                                                                                          |
+| `instrumentation-node.ts`                                                                                 | The start-up refusal (`getEnv()` inside `registerService`, one structured line on the way up, `process.exit(1)` when the configuration is invalid) and the failed-request record: method, path, route, correlation id, and an error code beside the error name.                                                                                                                                                           |
+| `lib/seo/site.ts`                                                                                         | Where the origin comes from: `siteUrl()` normalizes the validated `NEXT_PUBLIC_APP_URL`, and `absoluteUrl()` and `canonicalPath()` are the only two ways a path becomes an address. Three surfaces need an absolute URL and no longer build one themselves.                                                                                                                                                               |
+| `lib/seo/sitemap.ts`                                                                                      | The section table: every public section of the navigation map decided exactly once - listed with a frequency, a priority and a sentence of reason, or excluded with a reason - and `sitemapEntries()` resolving the live entries from the map rather than from a hand-written list. A section with no decision throws.                                                                                                    |
+| `lib/seo/robots.ts`                                                                                       | The refusal table with a reason per path (`/api/`, `/_next/`, the gallery), the preview rule that refuses everything, and the sitemap line that is written only when there is a sitemap to point at.                                                                                                                                                                                                                      |
+| `lib/seo/metadata.ts`                                                                                     | `publicPageMetadata()`: a page owns three facts (title key, description key, path) and cannot lose a field it never writes. Canonical, `og:url`, the image entry and the Twitter card are composed here or nowhere.                                                                                                                                                                                                       |
+| `lib/seo/social-image.ts`                                                                                 | The social image's path, dimensions and alt text, defined once for both blocks that name it, so thirteen pages cannot disagree and no page writes an image tag of its own.                                                                                                                                                                                                                                                |
+| `app/sitemap.ts`, `app/robots.ts`, `app/opengraph-image.tsx`                                              | The three file routes at the application root, each declared `force-static` against the layout's per-request default because none of them is a document that runs scripts.                                                                                                                                                                                                                                                |
+| `app/layout.tsx` (edited)                                                                                 | The metadata baseline (metadataBase, title template, application name, open graph, Twitter card, robots, format detection, the two browser theme colours), the viewport export, the paper marker, and `dynamic = 'force-dynamic'` with the reason written above it.                                                                                                                                                       |
+| `components/layout/print-marker.tsx`                                                                      | The paper line every shell mounts once: the brand and the address, hidden on screen and shown on paper through a class rather than an inline style.                                                                                                                                                                                                                                                                       |
+| `styles/print.css` (edited)                                                                               | The two named sheets beside the paper-agnostic base: `@page a4` and `@page letter` with the token margin and `size`, and the two classes that bind a surface to a sheet.                                                                                                                                                                                                                                                  |
+| `lib/i18n/strings/en/shells.ts` (edited)                                                                  | The one new sentence: the marker's line, with the brand and the site as values rather than as words baked into markup.                                                                                                                                                                                                                                                                                                    |
+| `scripts/checks/platform-plumbing.mjs`                                                                    | The new 29th check: the module run rather than read for both policies, the entry point that may import nothing, the start-up rules, the middleware's three decisions, the sitemap and robots tables per entry window, the metadata baseline, the paper contract, and the server-only environment rule that keeps two key names inside `lib/env`, `instrumentation.ts`, `middleware.ts`, `next.config.js` and the scripts. |
+| `scripts/checks/public-site.mjs`, `scripts/checks/layout-shells.mjs` (edited)                             | The metadata composition rule (a page that hand-writes an open graph block is refused) and the paper rules (the marker mounted once by the document, the two named sheets, no marker in a shell).                                                                                                                                                                                                                         |
+| `docs/EVIDENCE/step-01/platform-probe.py` (new), `docs/EVIDENCE/step-01/http-hardening-probe.py` (edited) | The two probes: the first reads a running server for the nonce, the crawler files, the metadata, the paper contract, the 404 and the start-up record; the second now judges the composed policy per environment instead of comparing it with a constant it cannot equal.                                                                                                                                                  |
+
+### Decisions this sub-step turns on
+
+1. **The nonce is generated inside the handler, and the policy is set twice on
+   purpose.** A nonce built at module scope is a constant with a random-looking
+   value, which is the shape of a policy that looks strict and protects nothing;
+   the call runs once per request and the check asserts the call site is inside
+   the handler. The same string is set on the request headers, which is where
+   the framework reads it to stamp the scripts it writes into the document, and
+   on the response, which is what a browser enforces - so the framework's own
+   inline scripts are covered by the policy rather than exempted from it.
+2. **Documents are rendered per request, and that is a security decision rather
+   than a caching one.** The first production run of this sub-step served 39
+   script elements and not one of them carried a nonce: a prerendered document is
+   bytes written at build time, so there is no response for a nonce to belong to,
+   and under `'strict-dynamic'` every unnonced script is refused - a site that
+   paints and never hydrates. The root layout therefore declares
+   `force-dynamic`, and the three routes that carry no scripts declare
+   `force-static` against it. After the fix the same probe counts 44 nonce-carrying
+   scripts.
+3. **Production has no `unsafe-inline` and no `unsafe-eval`, and development has
+   four named relaxations and no fifth.** Every difference between the two
+   policies is a line in an exported list, and each line names the directive it
+   widens, so a relaxation cannot arrive unnoticed. The framing refusal stays
+   deployment-only because a development build is reviewed inside a hosting
+   preview window - the 1.26 rule, kept, and now named in that list rather than
+   inferred from an absence.
+4. **A crawl file that lists everything advertises the page a reader sees when
+   the site is down.** The offline page is excluded with that reason written
+   down, every public section is decided exactly once, and the entries come from
+   the navigation map, so a page added to the map is listed without anyone
+   remembering this file.
+5. **A preview is not the site.** Outside production robots.txt disallows
+   everything and writes no sitemap line, because a preview that refuses the
+   crawler and then hands it the full list of paths has refused nothing.
+6. **The metadata baseline is composed once, because a page-level block replaces
+   the layout's rather than adding to it.** This was measured, not assumed: the
+   first production run served an `og:title` with no `og:image` at all, because
+   each page had written its own open graph block and silently dropped the
+   image. `publicPageMetadata()` now owns everything except the three facts a
+   page really has, and the public-site check refuses a page that hand-writes the
+   block again.
+7. **A refusal that throws is not a refusal.** Next.js logs a failed
+   instrumentation hook and keeps serving, so an invalid configuration produced a
+   server answering 500 per page instead of one that refuses to start. The catch
+   now ends the process, which is measured: `next start` with no environment exits
+   1 and nothing listens on the port. The record carries `error_code` beside
+   `error_name` because a minified build renames classes - the refusal log read
+   `"error_name":"aI"` until the code was added beside it.
+8. **A rule window that reaches into the next entry is not a rule.** The static
+   controls caught this one: the sitemap rationale rule passed on a section whose
+   rationale had been emptied, because the fixed 400-character window around an
+   entry included the _next_ entry's value. Both windows now stop at the next
+   `block:` in their own table, and the control fires (`C16`).
+
+### Evidence
+
+- `npm run verify`: **RESULT: PASS (29 of 29 checks passed)**, exit 0, with
+  `check:platform-plumbing` as the new entry. The suite is run over the tree the
+  two commits contain.
+- `npx next build`: exit 0, Next.js 15.5.28. Every document is rendered per
+  request (`/`, `/about`, `/blog`, `/calculators`, `/contact`, `/features`,
+  `/industries`, `/invoice-generator`, `/offline`, `/pricing`, `/privacy`,
+  `/shortcuts`, `/terms`, `/shells`, `/gallery`, `/_not-found`) and the four
+  non-document routes are prerendered (`/robots.txt`, `/sitemap.xml`,
+  `/opengraph-image`, `/icon.png`, `/apple-icon.png`). The `experimental.dynamicIO`
+  rename warning that the 1.29 section recorded as owned by this sub-step is
+  gone: the flag is `cacheComponents` now, its meaning unchanged.
+- The platform probe against the built server (`platform-probe.py --base
+http://127.0.0.1:3020 --environment production --server-log /tmp/prod-130.log`):
+  **PASS, 0 findings** (`/tmp/probe-130-prod.txt`). It reads 44 script elements
+  carrying the nonce in the document, two nonces across two responses, a
+  production policy with no inline or eval and `frame-ancestors 'none'`, a static
+  asset with no policy, the print base and both named sheets in the compiled
+  stylesheet, one paper marker marked for paper, the open graph title,
+  description, url and image, the Twitter card, the theme colour, the viewport and
+  the application name, the social image answering 200 with `image/png`, robots
+  allowing all with three refusals and naming the sitemap, twelve sitemap
+  locations with every one of them answering 200, the gallery answering 404
+  outside development, a 404 that still carries the policy, and one structured
+  start-up line with no secret in it.
+- The same probe against the development server
+  (`--base http://127.0.0.1:3000 --environment development`): **PASS, 0 findings**
+  (`/tmp/probe-130-dev.txt`), with 51 nonce-carrying scripts, the development
+  policy allowing `'unsafe-eval'`, robots refusing everything and naming no
+  sitemap, and the stylesheet and print assertions skipped with their reason: the
+  development bundler injects styles through JavaScript, so the print base only
+  exists as a stylesheet in a build.
+- `http-hardening-probe.py` on both servers: **PASS, 0 findings** on the
+  development matrix and on the built one (`/tmp/http-130-prod.txt`). This
+  sub-step forced the probe to grow one honest distinction: the composed policy
+  carries a fresh nonce in every response, so it is judged by what each
+  environment must contain - the nonce reaching both directives, production with
+  the framing refusal and the HTTPS upgrade and no `unsafe-*`, development with
+  the relaxations and neither of the two deployment-only directives - rather than
+  by equality with a constant.
+- The refusal, measured: `next start -p 3021` with no environment in scope exits
+  1, prints `startup refused: the environment is invalid` through the structured
+  logger, and leaves the port silent.
+- The other probes re-run against the rendered site: `public-pages-probe.py`,
+  `shell-probe.py`, `gallery-dom-probe.py`, `usability-probe.mjs` and
+  `free-tools-probe.mjs` all **PASS**. Every one of the thirteen public routes
+  answers 200 through a running server, and the three file routes answer with
+  their own content types (`text/plain`, `application/xml`, `image/png`).
+- Static controls for this sub-step: **49 of 49 mutations fired and all 5
+  immunities stayed green** (`/tmp/controls130.py`, output in
+  `/tmp/controls130-final.txt`). Four of the 49 were rules that could not fail on
+  their own defect and were tightened here: the development framing rule and the
+  relaxation-naming rule (decision 3), the two records that must carry a stable
+  error code (decision 7), and the metadata composition rule (decision 6). One
+  control found a defect in the check rather than in the code (decision 8).
+- Not built, and named rather than implied: the Lighthouse run on the homepage
+  (a segment gate item, not a sub-step one), the print-preview mode (340, 374),
+  which needs a document surface to preview and arrives with the documents, the
+  admin-editable halves of the crawl files (2526, 2528) and the sitemap index
+  with the blog's own entries (2525, 2527), which arrive with the content tables
+  they read, the service worker and its caching (3378), and a typed `/api/health`
+  route, which belongs to the API step.
+- Also deliberate: no `x-robots-tag` header and no `noindex` on the non-public
+  routes. The gallery answers 404 outside development, robots.txt refuses it, and
+  the header matrix already covers the rest; a fourth mechanism stating the same
+  thing in a fourth place is a mechanism nobody will remember to keep true.
 
 ## Sub-step 1.29 evidence -- the public site, pages B, the states and the tools
 
@@ -2697,6 +2857,34 @@ write a literal sentence, and `check:design-tokens` refuses a class step that is
 not on the scale. The single price table stays the only owner of a figure: the
 free invoice generator is a shell in this step, and it renders copy rather than a
 number.
+
+## Sub-step 1.31 starting point
+
+1.31 is "Governance A: CI workflow, CODEOWNERS, pull request template,
+CONTRIBUTING, SECURITY, CHANGELOG, LICENSE". What 1.30 hands it:
+
+**A check floor that runs without a server.** `npm run verify` is 29 entries
+(typecheck, lint, format check, environment validation, the token export and the
+twenty-four checks) and none of them needs a running server, so a CI job is
+`npm ci` and `npm run verify` with no services. The two probes in
+`docs/EVIDENCE/step-01/` do need a server - `next dev` for most of them,
+`next build && next start` for the production runs - and the evidence files say
+which port each one expects.
+
+**The licence is still unset.** `package.json` carries `UNLICENSED` and there is
+no LICENSE file; 1.31 owns both, and `check:path-comment` exempts LICENSE when it
+arrives.
+
+**Hooks that already exist.** Husky is installed with a pre-commit hook that runs
+the full verify and a commit-msg hook that refuses a subject longer than 72
+characters. A CI workflow should run the same two things rather than a second,
+weaker definition of green.
+
+**One environment variable is public and named.** `NEXT_PUBLIC_APP_URL` is the
+only variable the build reads for the origin (`lib/seo/site.ts`); the schema in
+`lib/env/validate-env.ts` is the only place a variable is declared, and
+`.env.example` lists what a deployment must set. The three Supabase variables are
+required in production by that schema and are already refused outside `lib/env`.
 
 ## Blockers
 
