@@ -3,13 +3,13 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.26 complete, 1.27 next
-Last completed sub-step: 1.26 (web hardening: the header matrix applied to every response, the allowlist sanitizer, the Trusted Types policy, Clear-Site-Data on sign-out, the SRI stance and ADR-0006).
-Next sub-step: 1.27 (usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, the explainability message component and its strings).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.27 complete, 1.28 next
+Last completed sub-step: 1.27 (usability primitives: saved views, the five second undo window with a deferred commit, autosave with a local draft and a recovery decision, the optimistic queue that rebuilds on failure, the explainability message component and its two catalogues).
+Next sub-step: 1.28 (public site pages A: homepage, features, pricing and about, with real English copy and metadata).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24, 1.25 and 1.26 done; segment gate pending)
+Segment 1D: in progress (1.24, 1.25, 1.26 and 1.27 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -103,6 +103,231 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.27 evidence -- the usability primitives
+
+1.27 is "Usability primitives: `use-saved-views`, `use-undo`, `use-autosave`,
+optimistic update helpers, explainability message component and string
+catalogue". Two commits: code `535c54e` (23 files, +5001/-5) and this progress
+file. The acceptance anchors are docs/PLAN/08 line 85 (the sub-step line),
+docs/PLAN/09_REVISION_2_ADDITIONS.md lines 24 and 60-61 (doc 09 owns the
+component and the three hooks, names the steps that apply them, and names the
+steps that supply their context), docs/PLAN/00 line 120, docs/PLAN/03 line 94,
+docs/PLAN/05 A14.2 and A14.3 and A11.2, and FEATURE_LIST items 156, 995, 1494 and
+1848-1855.
+
+### What the product gained, module by module
+
+| Module                                         | What it decides                                                                                                                                                                                                                                                                              |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/usability/saved-views.ts`                 | The view envelope: the versioned namespace, the identifier rule for an owner and a list, name sanitizing, the allowlist projection of scalars, a parser that drops exactly the entries that fail validation, and the caps of 20 views, 12 keys, 40 character names and 120 character values. |
+| `lib/usability/undo-window.ts`                 | The window: 5000 ms as a floor, a ceiling of 15000, the expiry and remaining math, the oldest-first overflow, and the decision that one timer serves the soonest expiry rather than one timer per action.                                                                                    |
+| `lib/usability/draft.ts`                       | The draft envelope: the `kd.draft.v1` namespace, a 1200 ms quiet period, a 32768 byte cap measured in bytes, 17 denied key names scanned through the whole payload, and the adopt and write decisions that keep a draft from overwriting newer work.                                         |
+| `lib/usability/optimistic.ts`                  | The queue: ordered mutations over a baseline, the projection a caller renders, `settle` folding a confirmed change into the baseline, and `rollback` rebuilding from the baseline so a later edit is not lost with a failed one.                                                             |
+| `lib/usability/explainability.ts`              | The nine reasons and the four sentences each carries, the fallback for an outcome this build cannot classify, the 64 character reference clamp, the expected-by window from 2000 to 2100 and the `YYYY-MM-DD HH:mm UTC` label.                                                               |
+| `lib/hooks/use-saved-views.ts`                 | Per owner and per list under one storage key, cleared on the `kd:logout` signal, with every outcome reported as a sentence a reader can act on rather than a boolean.                                                                                                                        |
+| `lib/hooks/use-undo.ts`                        | The deferred commit: `schedule`, `undoNow`, `flush`, the pending list, one commit per action, and `useUndoToast` for the five second message with its Undo button.                                                                                                                           |
+| `lib/hooks/use-autosave.ts`                    | Seven states (idle, pending, saving, saved, failed, blocked, recovered), the local draft written before the request, the caller's schema as the gate, and a bounded retry.                                                                                                                   |
+| `lib/hooks/use-optimistic-record.ts`           | The record: one request in flight, the request payload is the projection the reader already sees, and a failure re-applies every later edit.                                                                                                                                                 |
+| `lib/hooks/use-toast.tsx` (edited)             | One optional action per toast, rendered inside Radix's `ToastAction`. That is what lets the undo window be a message with a button rather than a message about a button.                                                                                                                     |
+| `components/shared/explainability-message.tsx` | Four sentences, one reference, an expected-by instant in a `<time>` element and one optional support link that has to pass the same URL rule as every other link in the product.                                                                                                             |
+| `lib/i18n/strings/en/usability.ts`             | Two namespaces of copy: the states of all four primitives, the saved view outcomes, and the sentences the hooks render.                                                                                                                                                                      |
+| `lib/i18n/strings/en/explainability.ts`        | The nine reasons, their four sentences each, the labels for the reference, the expected-by instant with its `{time}` placeholder and the support link.                                                                                                                                       |
+| `app/(dev)/gallery/showcase-usability.tsx`     | Five specimens running the real hooks against this browser's storage, each with a marker the rendered inventory counts in every theme.                                                                                                                                                       |
+| `scripts/checks/usability.mjs`                 | The twenty-seventh check, in eight groups.                                                                                                                                                                                                                                                   |
+| `docs/EVIDENCE/step-01/usability-probe.mjs`    | 95 decisions executed against the five pure modules by plain Node with no loader, because each module takes its ids, timestamps and storage keys as arguments.                                                                                                                               |
+
+### The six decisions that needed a written reason
+
+1. **A saved view is untrusted input and a copy of the reader's workspace at the
+   same time.** It is stored under one versioned key per owner and per list
+   (`kd.saved-views.v1.<owner>.<list>`), the parser drops exactly the entries that
+   fail validation instead of discarding the whole payload, and the hook
+   subscribes to the `kd:logout` signal so a sign-out removes the copy. Identity
+   arrives in step 3, so the owner id is a prop for now; without it in the key,
+   two people sharing a device would read each other's views, which is the
+   multi-tenant rule arriving early in the cheapest possible place.
+   Saving a view whose name already exists updates that view rather than adding a
+   second one, and the cap of 20 refuses with a sentence instead of dropping the
+   oldest view: a product that quietly deletes what a reader saved is a product
+   that will be believed about nothing else.
+2. **A destructive action is deferred, not compensated.** The window holds the
+   commit for five seconds; when the window closes, the request is sent, not
+   before. The alternative - send immediately and write a compensating record on
+   undo - needs a restore path for every kind of deletion, and leaves two writes
+   where one would do, with nothing transactional between them. The cost is
+   stated where a reviewer can hold it: nothing is sent during the window, and
+   `pagehide` and unmount both flush, so the only way to lose an action in the
+   middle is a hard crash - which loses it in the safe direction, with the record
+   still there.
+3. **The toast carries its own button, and it cannot outlive the window.** The
+   message is pushed with `duration: UNDO_WINDOW_MS` and its action runs
+   `undoNow`, so the offer expires exactly when the undo does. A toast that lived
+   six seconds beside a five second window would offer a button that lies, so the
+   check reads the duration out of the same constant the window uses.
+4. **A local draft never silently overwrites server state.** The draft is written
+   before the request, so a crash leaves the reader's work on disk; on mount it is
+   offered as a recovery candidate only when it is newer than the record the page
+   loaded, and adopting it is a decision the reader makes. The payload is gated by
+   the caller's Zod schema and by 17 denied key names, so a password, a security
+   code or an account number in a draft is refused rather than persisted.
+5. **Rollback rebuilds from the baseline.** A failure does not restore a snapshot:
+   it drops the failed mutation and re-applies the ones after it, so an edit made
+   while the request was in flight survives. One request is in flight at a time
+   and each request carries the projection, which is what makes the order of
+   responses irrelevant - and is the reason the queue is data rather than a
+   second `useState`.
+6. **A reason and its sentences live together, and the list is closed.** Nine
+   outcomes (payment declined, held and pending; refund pending; payout delayed;
+   invoice overdue; delivery failed and being retried; plus the fallback) each
+   carry four sentences: what happened, why, what happens next, and when to
+   expect it. An outcome this build cannot classify resolves to the fallback
+   instead of rendering a heading with an empty body, which is the shape a reader
+   sees at the moment they are most worried about money. The expected time is a
+   label rather than a promise, no sentence names a payment brand, and the
+   forbidden-brands check reads the same catalogue the component renders.
+
+Sub-step 1.27 has no ADR: the plan names ADR-0006 for 1.26 and puts ADR-0001 to
+ADR-0007 in 1.32, so these six decisions are recorded here and in the doc comment
+at the top of each module, in the file a reader will already have open.
+
+### `npm run verify` on the frozen tree
+
+Verbatim from the run against the tree this sub-step is committed from (27
+checks, one more than 1.26):
+
+```
+== KD SOLUTION IT verify ==
+branch arena/b7780282-kd at fbc2546
+PASS typecheck                completed with no output (  2.3s)
+PASS lint                     completed with no output (  5.4s)
+PASS format:check             All matched files use Prettier code style! (  5.8s)
+PASS env:validate             env:validate PASS (NODE_ENV=development) (  0.4s)
+PASS tokens:export            tokens:export PASS (config/design-tokens.json is current: 12 groups, 25486 bytes) (  0.4s)
+PASS check:english-only       check:english-only PASS (267 text files scanned, 1 documented exemption) (  0.1s)
+PASS check:no-todo            check:no-todo PASS (229 text files scanned) (  0.0s)
+PASS check:no-coming-soon     check:no-coming-soon PASS (229 text files scanned) (  0.1s)
+PASS check:no-tests           check:no-tests PASS (274 tracked files inspected) (  0.0s)
+PASS check:path-comment       check:path-comment PASS (255 source files carry a valid path comment) (  0.0s)
+PASS check:i18n-strings       check:i18n-strings PASS (84 JSX files checked for literal copy, 15 catalogue namespaces with 656 keys validated) (  0.7s)
+PASS check:design-tokens      check:design-tokens PASS (198 source files scanned, 700 class lists checked, spacing/radius/shadow/z-index/typography/motion scales wired from config/design-tokens.ts with reduced motion and forced colors verified) (  1.1s)
+PASS check:color-contrast     check:color-contrast PASS (4 themes, 23 color roles, 76 contrast ratios verified against WCAG 2.1 AA, paper palette 4 tokens and 3 ratios verified) (  0.4s)
+PASS check:no-console         check:no-console PASS (200 source files scanned) (  0.1s)
+PASS check:forbidden-brands   check:forbidden-brands PASS (229 text files scanned) (  0.1s)
+PASS check:migration-pairs    check:migration-pairs PASS (no migrations yet: nothing to pair) (  0.0s)
+PASS check:dead-links         check:dead-links PASS (3 routes, 4 verified links, 0 dynamic links skipped) (  0.0s)
+PASS check:secrets            check:secrets PASS (267 text files scanned) (  0.1s)
+PASS check:any-types          check:any-types PASS (172 TypeScript files scanned) (  0.1s)
+PASS check:money-math         check:money-math PASS (200 script files scanned) (  0.1s)
+PASS check:brand-assets       check:brand-assets PASS (9 assets current (mark in light and dark, plate icon, favicon pack 16/32/48, apple touch icon 180, PWA icons 192 and 512, maskable 512), palette-only colours, centring and 16 pixel legibility verified, default social image rendered and measured at the network crop size) (  2.0s)
+PASS check:layout-shells      check:layout-shells PASS (5 shells and 5 route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), 6 roles framed through one seam with no privileged default, 9 navigation surfaces verified (named landmarks, one owner of the current page, 44 pixel targets, device inset on pinned bars, drawer state owned in the component), print base verified against config/design-tokens.ts) (  0.4s)
+PASS check:nav-map            check:nav-map PASS (config/nav-map.ts verified: 6 roles filtered, one audience per surface, no destination outside the map, wiring gated on a non-empty menu, 3 commands on 2 chords) (  0.6s)
+PASS check:page-states        check:page-states PASS (8 state and accessibility modules verified (announced, actionable, named), breakpoint ladder 320 to 1920 exact, no desktop-first media query, styles/globals.css carries the wrap guard) (  0.1s)
+PASS check:motion             check:motion PASS (9 motion and media modules verified (preference read, durations from the token bridge, celebration bounded and removable), 5 durations zeroed at the preference, gallery pins the reduced pane) (  0.1s)
+PASS check:web-hardening      check:web-hardening PASS (11 security headers verified (7 in every environment, 3 on the deployed origin), Permissions-Policy refuses by default with 4 named grants, sanitizer allowlist and Trusted Types policy shaped, Clear-Site-Data gated on TLS, no hand-written script or link in 165 application files) (  0.1s)
+PASS check:usability          check:usability PASS (4 usability primitives verified (saved views with a declared key allowlist, the 5000 ms undo floor committed exactly once, a bounded autosave draft with a denied key floor, and an optimistic queue that re-applies what a failure must not take back), explainability reasons and their 4 sentences checked in both directions, 199 source files scanned for a second owner of a storage key) (  0.0s)
+RESULT: PASS (27 of 27 checks passed)
+```
+
+Counts that moved since 1.26: english-only 252 to 267 files, no-todo and
+no-coming-soon 214 to 229, no-tests 259 to 274, path-comment 240 to 255, i18n 82
+to 84 JSX files and 13 to 15 namespaces and 526 to 656 keys, design-tokens 183 to
+198 files and 621 to 700 class lists, no-console 185 to 200, forbidden-brands 214
+to 229, secrets 252 to 267, any-types 159 to 172, money-math 185 to 200,
+web-hardening 152 to 165 application files, and the new check scans 199 source
+files for a second owner of a storage key. The i18n jump is 130 keys, and 118 of
+them are the four sentences of the nine reasons plus their labels.
+
+### The new check, and the controls that prove it bites
+
+`scripts/checks/usability.mjs` is the twenty-seventh check, in eight groups: the
+files and their client boundary; the saved view engine (namespace, identifiers,
+name sanitizing, the scalar allowlist and its caps, the parser's per-entry
+refusal, the cap's refusal, the outcome union); the undo engine (the floor, the
+ceiling, the soonest expiry, the oldest-first overflow, the settled set, the
+single timer, the pagehide flush, the toast pairing); the autosave engine (the
+quiet period, the byte-measured cap, the 17 denied keys, the stale write, the
+adopt decision, the schema gate, the retry bound, the seven states and their
+copy); the optimistic engine (the ordered fold, the settle, the rebuild, the one
+request in flight); the explainability engine (the reason list checked against
+the catalogue in both directions, the fallback, the reference clamp, the UTC
+label, the support link rule); the two catalogues and the gallery wiring; and the
+rule that each storage namespace has exactly one owner in the tree.
+
+Two static controls found rules that were too loose and tightened them, which is
+the point of running them: the undo hand-back rule matched one call where the
+copy promises that a thrown error and a rejected promise are reported the same
+way, and the draft cap rule matched the declaration of the constant rather than
+the place the serialized bytes are measured against it. `expectAtLeast` exists
+because of the first one.
+
+`/tmp/controls127.py` (the control script, kept outside the repository) runs 71
+mutations and 4 immunities: 71 fired the expected finding, 4 immunities (a
+comment that names the window, an extra guard inside the commit path, an extra
+documented key in a namespace, a defensive branch in the resolver) stayed green,
+0 anchors missed, 0 unexpected results. The controls mutate the tightened anchor
+verbatim, one file at a time, with the restore in `finally`, and the whole script
+is re-run after any rule change.
+
+`/tmp/harness127.py` is the live half: seven mutations that have to be visible in
+the rendered page, each against its own freshly started dev server (a server that
+has not re-read a component is exactly how a previous inventory reported a
+finding that was not there). All seven fired the expected finding: a second toast
+surface, a renamed page marker, a locale-formatted instant, a reference code
+without the 320 pixel wrap guard, an unknown reason replaced by a known one, an
+autosave status line that stops rendering, and an explanation that drifts from
+the reason it belongs to.
+
+Two rules in the rendered inventory came out of this sub-step as well. A page
+level marker is now required to be mounted exactly once, not merely present,
+because a second toast surface is a second live region reading messages aloud and
+the first run of this inventory found exactly that shape as a theme-specific
+count difference. And the wrap guard is asserted on the `<code>` element that
+carries the reference rather than on the page, because the class appears
+elsewhere and a page wide count cannot see it go missing where it matters.
+
+### Rendered evidence
+
+- `node docs/EVIDENCE/step-01/usability-probe.mjs` - 95 decisions and 0 failures
+  against the five modules: 28 on saved views, 16 on the undo window, 23 on
+  drafts, 13 on the optimistic queue and 15 on explainability (nine reasons, 36
+  sentences, resolved through the typed key builder). It imports the `.ts` files
+  directly under Node 22.22.3, so the decisions are executed rather than read.
+  Its own run caught three wrong assertions in the first draft - a hostile
+  payload that loses three entries and not two, a projected filter comparison,
+  and an explanation sentence that was being looked up under the namespaced key -
+  which is recorded here because the probe is the artefact that is supposed to
+  catch that class of mistake.
+- `python3 docs/EVIDENCE/step-01/gallery-dom-probe.py` - 61 markers counted in
+  each of the five theme scopes and both page level markers present exactly once,
+  0 findings, RESULT PASS. The usability section reads the held payment reference
+  and its UTC instant, the failed delivery sentence, the fallback words for a
+  reason the build does not know, and the wrap guard on the reference element, in
+  every theme.
+- `python3 docs/EVIDENCE/step-01/http-hardening-probe.py 3000` - 0 findings
+  against the development server, so the two sub-steps in this segment do not
+  disagree about the response.
+- The probe's UTC decisions were passing in a container whose clock is already
+  UTC, which is the one place where they prove nothing: the probe now pins a
+  non-UTC zone before it formats its first timestamp, and a control that prints
+  local parts fails three of its decisions rather than none.
+
+### Open at the end of this sub-step
+
+- Saved views take the owner id as a prop. The session that supplies it arrives
+  in step 3; the single storage key and the sign-out subscription are already
+  shaped for it, and no saved view is written without an owner.
+- The undo window flushes on `pagehide` and unmount. A hard crash loses the
+  action in the safe direction, with nothing sent; a cross-tab replay would need
+  the server side of step 2.
+- Autosave takes its request callback as a prop, because the first editable
+  record endpoint belongs to step 5. The draft store is local only; duplicate tab
+  detection and server-side recovery arrive with those endpoints.
+- The explainability component is rendered from the gallery. The screens that
+  supply its context - a held payment, a delayed payout, an overdue invoice, a
+  failed delivery - belong to steps 5, 10, 11 and 12, which doc 09 names.
+- Five seconds is a constant rather than a preference. The floor and ceiling pair
+  (5000 to 15000) already exists for the settings surface that would change it.
 
 ## Sub-step 1.26 evidence -- the web hardening baseline
 
@@ -2071,7 +2296,12 @@ locking and the audit entry on every mutation are step 2 concerns, but the
 optimistic helper built here is what those mutations will be written against, so
 its contract has to be stated in a way a later step can rely on.
 
-## Blockers## Blockers## Blockers## Blockers
+Closed in "## Sub-step 1.27 evidence" above, code `535c54e`: every one of those
+hand-overs was used rather than worked around - the logout signal is subscribed
+by both storage hooks, the copy lives in two new namespaces, and the states it
+names are reused rather than reinvented.
+
+## Blockers
 
 None recorded.
 
