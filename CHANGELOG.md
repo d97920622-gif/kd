@@ -14,6 +14,7 @@ that introduced them and the newest entry is first within a section.
 
 ### Added
 
+- ci workflow, review ownership, governance files (step-01/1.31, 9654866)
 - nonce CSP, start-up hooks, crawler files, metadata (step-01/1.30, 0afc679)
 - public pages B, state pages, free calculators (step-01/1.29, 260a23b)
 - public pages, the site footer and the claim floor (step-01/1.28, 8c75f2b)

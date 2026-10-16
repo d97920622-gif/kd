@@ -48,6 +48,7 @@ const SECTIONS = [
 
 const HEADER = [
   '// path: CHANGELOG.md',
+  '',
   '# Changelog',
   '',
   'Every change to KD SOLUTION IT is recorded in this file. The entries are',

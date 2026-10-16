@@ -15,7 +15,10 @@ difference between them is the point:
 
 What it answers:
 
-1. Which of the eleven headers the matrix declares arrived on the response.
+1. Which of the eleven header entries the matrix declares arrived on the
+   response: nine values compared exactly, and the composed content security
+   policy and the permissions policy judged by what they must contain, because
+   neither of those two has a value this probe could copy.
 2. That the production-only headers are absent in development and present in
    production - the documented exception, measured rather than trusted.
 3. That every value is the value the matrix declares, so a header that arrives

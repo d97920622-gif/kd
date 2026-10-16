@@ -803,6 +803,6 @@ if (adr !== null) {
 reportResult(
   CHECK,
   findings,
-  `${String(entries.length)} security headers verified (${String(Object.keys(REQUIRED_ALWAYS).length)} in every environment, ${String(Object.keys(REQUIRED_IN_PRODUCTION).length)} on the deployed origin), Permissions-Policy refuses by default with ${String(GRANTED_FEATURES.length)} named grants, sanitizer allowlist and Trusted Types policy shaped, Clear-Site-Data gated on TLS, no hand-written script or link in ${String(applicationCode.length)} application files`,
+  `${String(entries.length)} security headers verified (${String(Object.keys(REQUIRED_ALWAYS).length)} in every environment, ${String(Object.keys(REQUIRED_IN_PRODUCTION).length)} on the deployed origin, the permissions policy beside them), Permissions-Policy refuses by default with ${String(GRANTED_FEATURES.length)} named grants, sanitizer allowlist and Trusted Types policy shaped, Clear-Site-Data gated on TLS, no hand-written script or link in ${String(applicationCode.length)} application files`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;

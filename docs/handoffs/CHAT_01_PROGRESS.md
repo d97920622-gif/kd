@@ -3,16 +3,16 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.30 complete, 1.31 next
-Last completed sub-step: 1.30 (platform plumbing: middleware.ts with the per-request nonce and the content
-security policy, instrumentation.ts and its Node half, the sitemap and robots baseline, the metadata
-baseline and the print contract).
-Previous sub-step: 1.29 (public site pages B: industries, contact, calculators, the free invoice generator shell, terms, privacy, the blog shell, the 404 and 500 pages and the offline page, plus the public header the 1.28 pages deferred).
-Next sub-step: 1.31 (governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.31 complete, 1.32 next
+Last completed sub-step: 1.31 (governance A: the CI workflow and the three jobs it runs, review
+ownership, the pull request template, the contributing guide, the security policy, the licence and the
+generated changelog).
+Previous sub-step: 1.30 (platform plumbing: middleware.ts with the per-request nonce and the content security policy, instrumentation.ts and its Node half, the sitemap and robots baseline, the metadata baseline and the print contract).
+Next sub-step: 1.32 (governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24 to 1.30 done; segment gate pending)
+Segment 1D: in progress (1.24 to 1.31 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -101,11 +101,170 @@ passes on the current route set. Status: pending.
 | 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | done    | 8c75f2b |
 | 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | done    | 260a23b |
 | 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | done    | 0afc679 |
-| 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | pending | -       |
+| 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | done    | 9654866 |
 | 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | pending | -       |
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.31 evidence -- the gate, the reviewers, the policies and the generated changelog
+
+1.31 is "Governance A: CI workflow, CODEOWNERS, pull request template,
+CONTRIBUTING, SECURITY, CHANGELOG, LICENSE". Two commits: code and this progress
+file, plus a regenerated `CHANGELOG.md` in the second one, because the changelog
+is generated from the history and the first commit is part of that history. The
+acceptance anchors are docs/PLAN/08 line 89 (the sub-step line), FEATURE_LIST
+item 3511 for the CI pipeline with 3515 for the hooks it joins (both in place
+since sub-step 1.7), 3502 for the dead-link scan that now runs on the runner
+through `check:dead-links`, 3516 to 3519 for the four documents, 3528 to 3530 for
+the rules the documents state (a path comment per file, one commit per sub-step,
+conventional commits), MASTER_PROMPT line 6 for the proprietary licence, lines
+260 to 266 for the `.github` layout (workflows, CODEOWNERS, pull request
+template), line 646 for `LICENSE`, and docs/PLAN/07 sections 2 to 4 for the branch
+model, the required checks and the pull request field list. FEATURE_LIST 3512 to
+3514 (preview deploy, production deploy, rollback script) are deployment work and
+belong to step 16 with the rest of CI/CD; they are named as deferred below rather
+than half-built here.
+
+### What landed, artefact by artefact
+
+| Artefact                                    | What it decides                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`                  | Three jobs on every push to a session branch and every pull request into `integration` or `main`: `verify` runs `npm run verify`, the same floor the pre-commit hook runs; `build` compiles the production bundle, asserts that the output still carries `BUILD_ID`, `robots.txt`, `sitemap.xml` and the social image, fails when the build warns about a deprecated configuration, then serves that build and reads it with the two probes; `ci` depends on both and exists so branch protection has one status check to name. |
+| `.github/CODEOWNERS`                        | Review ownership, with the default rule first because the last matching pattern wins: the repository owner as the only handle in the file, and named rules for the gate itself, the request layer and the header matrix, the security primitives, the environment schema, the specification corpus and the handoffs.                                                                                                                                                                                                            |
+| `.github/pull_request_template.md`          | The nine fields docs/PLAN/07 requires of every pull request body, each with the reason it is asked for, the gates table pointer to docs/PLAN/04, and an eleven line checklist with nothing pre-ticked.                                                                                                                                                                                                                                                                                                                          |
+| `CONTRIBUTING.md`                           | The reading order, the prerequisites (Node.js 22, the version `engines` and the workflow both pin), the setup (`npm ci`, `.env` from the template), the command table, the commit convention, the branch model, what every file must satisfy, how a new check is added, and the definition of done. It names the check scripts as the definition of the rules it summarises, rather than restating their word lists.                                                                                                            |
+| `SECURITY.md`                               | The supported version line, the private reporting channel, what a report must contain, what must never be in one, the process that follows, the in-scope and out-of-scope lists, the safe harbour statement, and the hardening baseline already in the tree. It prints no address and no response window, for the reason the contact page gives.                                                                                                                                                                                |
+| `CHANGELOG.md` (generated)                  | Every commit of this branch as an entry, grouped by the commit type that introduced it, newest first, each ending in the scope and the short commit. Regenerated by `npm run changelog` at every handoff.                                                                                                                                                                                                                                                                                                                       |
+| `scripts/changelog.mjs`                     | The generator: reads `git log`, maps `feat` to Added, `refactor`/`perf`/`chore`/`style`/`build` to Changed, `fix` to Fixed, `security` to Security, `docs` to Documentation and anything else to Other. A subject that does not parse is grouped under Other rather than dropped.                                                                                                                                                                                                                                               |
+| `LICENSE`                                   | The proprietary licence the plan declares: all rights reserved, no licence granted, permitted use limited to the owner's own deployments, third-party components under their own licences, no warranty, termination on breach. The copyright sentence is the one the site footer prints.                                                                                                                                                                                                                                        |
+| `scripts/checks/governance.mjs`             | The new 30th check: the workflow's name, triggers, permissions, timeouts, concurrency, Node major, package-script usage, artefact assertions, probe invocations and readiness loop, with no secret, no expression in a run body, no `pull_request_target`, no write permission, no `continue-on-error` and no `                                                                                                                                                                                                                 |     | true`; CODEOWNERS shape, single owner and sensitive paths; the nine template fields and no pre-ticked box; the guide's rules and its command table against `package.json`; the policy's channel, prohibitions and absent address; the licence against the manifest; and the changelog's entries against every commit a completed handoff row records. |
+| `docs/EVIDENCE/step-01/governance-probe.py` | The runtime half: the registered workflow list, the newest run on the branch, GitHub's own parse of CODEOWNERS, the private advisory setting, and the inventory of what landed.                                                                                                                                                                                                                                                                                                                                                 |
+
+### Decisions this sub-step turns on
+
+1. **CI runs the same gate as a developer, through the package scripts.** The
+   workflow calls `npm run verify`, `npm run build` and `npm run start`, and the
+   check refuses a workflow that names a single check script of its own or calls
+   `npx next` directly. A CI job that lists tools is a second definition of the
+   build, and the two copies drift on the first quiet commit; the manifest is the
+   only definition, and the runner reads it.
+2. **The workflow is a security boundary, because a pull request can reach it.**
+   No secret is interpolated anywhere in the file, no `${{ }}` expression is
+   written inside a `run:` body (a value the script needs goes through `env:`,
+   because an event field is contributor-controlled text), `pull_request_target`
+   is refused, permissions are `contents: read`, and `continue-on-error` and
+   `|| true` are refused because a gate that cannot fail is not a gate. The
+   probes run against credentials that are not valid anywhere rather than
+   against stored ones.
+3. **`NODE_ENV` is set on the serving step, not on the job.** A job-wide
+   `NODE_ENV=production` makes `npm ci` install production dependencies only,
+   and the build then fails on a missing compiler. The server still boots in the
+   production environment, because the validation, the policy and the headers it
+   exercises are the ones a deployment gets.
+4. **The check cross-reads instead of repeating.** The Node major in the
+   workflow is compared with `engines`, every environment key the workflow sets
+   is compared with the schema in `lib/env/validate-env.ts`, the owner in
+   CODEOWNERS is compared with the account in `package.json`, the licence is
+   compared with the manifest, and every commit a completed handoff row records
+   must appear as a changelog entry. Each pair can only disagree in one
+   direction: one copy was updated and the other was not.
+5. **The changelog is the history, not a summary of it.** Every entry ends in
+   the commit that caused it, entries are grouped by the type the commit
+   convention already requires, and the coverage rule fails the gate when a
+   sub-step closes without a regeneration. The generator runs at the handoff,
+   which is why this sub-step's second commit carries the regenerated file.
+6. **The governance documents may not print facts they cannot evidence.** The
+   security policy sends a reporter to GitHub's private advisory form on this
+   repository, which the probe confirms is open, and prints the process rather
+   than a response window; the supported line is the version `package.json`
+   declares; the licence restates the copyright sentence the site prints. An
+   address, a telephone number or a response time is a commitment the owner
+   makes, not a sentence a repository is free to choose.
+7. **The controls found two real defects in the check, before the commit.** The
+   `run:` scanner read `run: |` as an inline command, so the block it introduces
+   was never scanned and a control that put an event field inside a script body
+   passed; the workflow-name rule was satisfied by the job that happens to share
+   the name, so renaming the workflow changed nothing. Both are fixed, the name
+   rule now reads the top-level key, and the install rule refuses `npm install`
+   outright instead of looking for a single `npm ci`.
+8. **`engines` now requires Node 22.** The workflow pins major 22, the sandbox
+   runs 22.22.3 and `@types/node` is 22, while the manifest still allowed 20. The
+   check keeps the two numbers equal, so the next move of either one is a
+   finding rather than a discovery on a runner. The README still says Node 20:
+   it is corrected in sub-step 1.32, which owns the README.
+
+### Evidence
+
+- **The verification floor**: `npm run verify` exit 0, `RESULT: PASS (30 of 30
+checks passed)`. The 30th entry is `check:governance`
+  (`/tmp/verify-131-final.txt`). Every other check stayed green, including
+  `check:english-only` (326 text files, one documented exemption),
+  `check:no-tests`, `check:path-comment` (311 source files) and
+  `check:secrets` (326 text files).
+- **The controls**: 49 mutations and 6 immunities, 0 failures
+  (`/tmp/controls-131-final.txt`). Each control mutates one governance file,
+  requires its specific finding, then restores the file and proves the restore
+  by SHA-256. The immunities are the false-positive floor: a comment may name
+  `npx next build`, `scripts/checks/` and `${{ secrets.TOKEN }}`; a comment may
+  name a second handle; the guide may name a check without the runner; the
+  changelog may carry prose; and the policy may discuss a response window
+  without printing one.
+- **The build job, simulated locally before the push**: a fresh copy of the tree
+  built with the workflow's own environment (exit 0, `/tmp/ci-build-sim.log`),
+  the four build artefacts present, zero `dynamicIO` warnings, then
+  `npm run start -- -p 3020` served and probed:
+  `platform-probe.py --environment production` 0 findings and
+  `http-hardening-probe.py 3020 production` 0 findings. The development half of
+  the header probe was run against the live preview server on 3000: 0 findings.
+- **The run itself**: GitHub Actions run
+  [38951829955](https://github.com/d97920622-gif/kd/actions/runs/38951829955) on
+  commit `9654866`, workflow `ci`, event `push`, conclusion `success`. `verify`
+  green, `build` green in 41 s with every step (install, build, artefact
+  assertions, serve and probe), `ci` green on its `needs` check. Two platform
+  annotations are recorded rather than acted on: `actions/checkout@v4` and
+  `actions/setup-node@v4` are being forced onto the Node 24 runtime by GitHub,
+  and the `ubuntu-latest` image migrates in October 2026. Both belong to the
+  sub-step that revises the workflow (16.3); nothing in this run depended on
+  either.
+- **The governance probe**: `python3 docs/EVIDENCE/step-01/governance-probe.py`
+  0 findings (`/tmp/governance-probe-131.txt`). It reads the platform rather
+  than the files: the `ci` workflow is registered and active; the newest run on
+  this branch succeeded and belongs to HEAD `9654866`; GitHub's own parser
+  reports no CODEOWNERS errors; private vulnerability reporting, the channel
+  `SECURITY.md` sends a reporter to, is on; and branch protection on
+  `integration` is not configured yet, which is a repository setting the owner
+  switches on (the check to require is `ci`). The inventory it prints is the
+  sizes in the table above: 48 lines of CODEOWNERS, 152 lines of workflow, 888
+  lines of check, and a 54 entry changelog.
+- **One correction in a tracked evidence file**: the header of
+  `http-hardening-probe.py` claimed it verifies that the development server is
+  reachable through the preview host. It does not read that host, and it has not
+  since it became environment-aware; the item is replaced with the permissions
+  policy assertions the probe actually makes. The CI build job now runs this
+  probe on every push, so a description that overstates it would be the only
+  unverified sentence in the gate.
+
+### Deliberately not built here
+
+- **The security workflow and the deploy workflow** (`security.yml` with SAST,
+  DAST, SCA and secret scanning, `deploy.yml` with migrations and rollback) and
+  FEATURE_LIST 3512 to 3514 (preview deploy, production deploy, the one-click
+  rollback script). Step 16.3 owns them, because they need a deployment target,
+  a database and a provider credential this step does not have.
+- **Branch protection and the required check list**: a repository setting, not a
+  file. The check to require is `ci`, and the probe reports the setting as
+  unconfigured until the owner enables it after the merge into `integration`.
+- **An action major-version bump**: the workflow pins `actions/checkout@v4` and
+  `actions/setup-node@v4`, which GitHub is already running on the Node 24 runtime
+  by force. Bumping them is a change to the workflow that needs its own evidence
+  on a runner, and 16.3 is the sub-step that owns the workflow's surface.
+- **Lighthouse at 90 and the dead-link audit as a recorded gate**: the dead-link
+  scan runs in the floor on every push now (`check:dead-links`, 15 routes and 58
+  links), and the Lighthouse run needs a browser this environment does not have;
+  both are recorded at the 1D gate in sub-step 1.32.
+- **README, `docs/ADR/ADR-0001` to `0005` and `0007`, and
+  `docs/handoffs/CHAT_01_COMPLETED.md`**: sub-step 1.32.
 
 ## Sub-step 1.30 evidence -- the platform plumbing, the nonce CSP, the crawler files and the paper
 
@@ -125,25 +284,25 @@ below rather than half-built here.
 
 ### What the product gained, module by module
 
-| Module                                                                                                    | What it decides                                                                                                                                                                                                                                                                                                                                                                                                           |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lib/security/content-security-policy.ts`                                                                 | The document policy as a pure function of a nonce and an environment: `script-src` and `style-src` carry `'self'` and the nonce, production carries neither `'unsafe-inline'` nor `'unsafe-eval'`, the framing refusal and the HTTPS upgrade are deployment-only, and the four development relaxations are exported as a list. `newCspNonce()` is 128 bits from the platform's random source, base64url, no padding.      |
-| `middleware.ts`                                                                                           | The one request-time decision: a nonce per request, the policy on the request headers (where Next.js reads it to stamp its own inline scripts) and on the response (what the browser enforces), and a matcher that leaves the static prefixes alone so a stylesheet does not cost a function invocation.                                                                                                                  |
-| `instrumentation.ts`                                                                                      | The entry point that may import nothing: both hooks test `NEXT_RUNTIME` and reach the Node half through a dynamic import inside that branch, which is what keeps `node:crypto` out of the other runtime's build.                                                                                                                                                                                                          |
-| `instrumentation-node.ts`                                                                                 | The start-up refusal (`getEnv()` inside `registerService`, one structured line on the way up, `process.exit(1)` when the configuration is invalid) and the failed-request record: method, path, route, correlation id, and an error code beside the error name.                                                                                                                                                           |
-| `lib/seo/site.ts`                                                                                         | Where the origin comes from: `siteUrl()` normalizes the validated `NEXT_PUBLIC_APP_URL`, and `absoluteUrl()` and `canonicalPath()` are the only two ways a path becomes an address. Three surfaces need an absolute URL and no longer build one themselves.                                                                                                                                                               |
-| `lib/seo/sitemap.ts`                                                                                      | The section table: every public section of the navigation map decided exactly once - listed with a frequency, a priority and a sentence of reason, or excluded with a reason - and `sitemapEntries()` resolving the live entries from the map rather than from a hand-written list. A section with no decision throws.                                                                                                    |
-| `lib/seo/robots.ts`                                                                                       | The refusal table with a reason per path (`/api/`, `/_next/`, the gallery), the preview rule that refuses everything, and the sitemap line that is written only when there is a sitemap to point at.                                                                                                                                                                                                                      |
-| `lib/seo/metadata.ts`                                                                                     | `publicPageMetadata()`: a page owns three facts (title key, description key, path) and cannot lose a field it never writes. Canonical, `og:url`, the image entry and the Twitter card are composed here or nowhere.                                                                                                                                                                                                       |
-| `lib/seo/social-image.ts`                                                                                 | The social image's path, dimensions and alt text, defined once for both blocks that name it, so thirteen pages cannot disagree and no page writes an image tag of its own.                                                                                                                                                                                                                                                |
-| `app/sitemap.ts`, `app/robots.ts`, `app/opengraph-image.tsx`                                              | The three file routes at the application root, each declared `force-static` against the layout's per-request default because none of them is a document that runs scripts.                                                                                                                                                                                                                                                |
-| `app/layout.tsx` (edited)                                                                                 | The metadata baseline (metadataBase, title template, application name, open graph, Twitter card, robots, format detection, the two browser theme colours), the viewport export, the paper marker, and `dynamic = 'force-dynamic'` with the reason written above it.                                                                                                                                                       |
-| `components/layout/print-marker.tsx`                                                                      | The paper line every shell mounts once: the brand and the address, hidden on screen and shown on paper through a class rather than an inline style.                                                                                                                                                                                                                                                                       |
-| `styles/print.css` (edited)                                                                               | The two named sheets beside the paper-agnostic base: `@page a4` and `@page letter` with the token margin and `size`, and the two classes that bind a surface to a sheet.                                                                                                                                                                                                                                                  |
-| `lib/i18n/strings/en/shells.ts` (edited)                                                                  | The one new sentence: the marker's line, with the brand and the site as values rather than as words baked into markup.                                                                                                                                                                                                                                                                                                    |
-| `scripts/checks/platform-plumbing.mjs`                                                                    | The new 29th check: the module run rather than read for both policies, the entry point that may import nothing, the start-up rules, the middleware's three decisions, the sitemap and robots tables per entry window, the metadata baseline, the paper contract, and the server-only environment rule that keeps two key names inside `lib/env`, `instrumentation.ts`, `middleware.ts`, `next.config.js` and the scripts. |
-| `scripts/checks/public-site.mjs`, `scripts/checks/layout-shells.mjs` (edited)                             | The metadata composition rule (a page that hand-writes an open graph block is refused) and the paper rules (the marker mounted once by the document, the two named sheets, no marker in a shell).                                                                                                                                                                                                                         |
-| `docs/EVIDENCE/step-01/platform-probe.py` (new), `docs/EVIDENCE/step-01/http-hardening-probe.py` (edited) | The two probes: the first reads a running server for the nonce, the crawler files, the metadata, the paper contract, the 404 and the start-up record; the second now judges the composed policy per environment instead of comparing it with a constant it cannot equal.                                                                                                                                                  |
+| Module                                                                                                    | What it decides                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/security/content-security-policy.ts`                                                                 | The document policy as a pure function of a nonce and an environment: `script-src` and `style-src` carry `'self'` and the nonce, production carries neither `'unsafe-inline'` nor `'unsafe-eval'`, the framing refusal and the HTTPS upgrade are deployment-only, and the five named development relaxations are exported as a list. `newCspNonce()` is 128 bits from the platform's random source, base64url, no padding. |
+| `middleware.ts`                                                                                           | The one request-time decision: a nonce per request, the policy on the request headers (where Next.js reads it to stamp its own inline scripts) and on the response (what the browser enforces), and a matcher that leaves the static prefixes alone so a stylesheet does not cost a function invocation.                                                                                                                   |
+| `instrumentation.ts`                                                                                      | The entry point that may import nothing: both hooks test `NEXT_RUNTIME` and reach the Node half through a dynamic import inside that branch, which is what keeps `node:crypto` out of the other runtime's build.                                                                                                                                                                                                           |
+| `instrumentation-node.ts`                                                                                 | The start-up refusal (`getEnv()` inside `registerService`, one structured line on the way up, `process.exit(1)` when the configuration is invalid) and the failed-request record: method, path, route, correlation id, and an error code beside the error name.                                                                                                                                                            |
+| `lib/seo/site.ts`                                                                                         | Where the origin comes from: `siteUrl()` normalizes the validated `NEXT_PUBLIC_APP_URL`, and `absoluteUrl()` and `canonicalPath()` are the only two ways a path becomes an address. Three surfaces need an absolute URL and no longer build one themselves.                                                                                                                                                                |
+| `lib/seo/sitemap.ts`                                                                                      | The section table: every public section of the navigation map decided exactly once - listed with a frequency, a priority and a sentence of reason, or excluded with a reason - and `sitemapEntries()` resolving the live entries from the map rather than from a hand-written list. A section with no decision throws.                                                                                                     |
+| `lib/seo/robots.ts`                                                                                       | The refusal table with a reason per path (`/api/`, `/_next/`, the gallery), the preview rule that refuses everything, and the sitemap line that is written only when there is a sitemap to point at.                                                                                                                                                                                                                       |
+| `lib/seo/metadata.ts`                                                                                     | `publicPageMetadata()`: a page owns three facts (title key, description key, path) and cannot lose a field it never writes. Canonical, `og:url`, the image entry and the Twitter card are composed here or nowhere.                                                                                                                                                                                                        |
+| `lib/seo/social-image.ts`                                                                                 | The social image's path, dimensions and alt text, defined once for both blocks that name it, so thirteen pages cannot disagree and no page writes an image tag of its own.                                                                                                                                                                                                                                                 |
+| `app/sitemap.ts`, `app/robots.ts`, `app/opengraph-image.tsx`                                              | The three file routes at the application root, each declared `force-static` against the layout's per-request default because none of them is a document that runs scripts.                                                                                                                                                                                                                                                 |
+| `app/layout.tsx` (edited)                                                                                 | The metadata baseline (metadataBase, title template, application name, open graph, Twitter card, robots, format detection, the two browser theme colours), the viewport export, the paper marker, and `dynamic = 'force-dynamic'` with the reason written above it.                                                                                                                                                        |
+| `components/layout/print-marker.tsx`                                                                      | The paper line every shell mounts once: the brand and the address, hidden on screen and shown on paper through a class rather than an inline style.                                                                                                                                                                                                                                                                        |
+| `styles/print.css` (edited)                                                                               | The two named sheets beside the paper-agnostic base: `@page a4` and `@page letter` with the token margin and `size`, and the two classes that bind a surface to a sheet.                                                                                                                                                                                                                                                   |
+| `lib/i18n/strings/en/shells.ts` (edited)                                                                  | The one new sentence: the marker's line, with the brand and the site as values rather than as words baked into markup.                                                                                                                                                                                                                                                                                                     |
+| `scripts/checks/platform-plumbing.mjs`                                                                    | The new 29th check: the module run rather than read for both policies, the entry point that may import nothing, the start-up rules, the middleware's three decisions, the sitemap and robots tables per entry window, the metadata baseline, the paper contract, and the server-only environment rule that keeps two key names inside `lib/env`, `instrumentation.ts`, `middleware.ts`, `next.config.js` and the scripts.  |
+| `scripts/checks/public-site.mjs`, `scripts/checks/layout-shells.mjs` (edited)                             | The metadata composition rule (a page that hand-writes an open graph block is refused) and the paper rules (the marker mounted once by the document, the two named sheets, no marker in a shell).                                                                                                                                                                                                                          |
+| `docs/EVIDENCE/step-01/platform-probe.py` (new), `docs/EVIDENCE/step-01/http-hardening-probe.py` (edited) | The two probes: the first reads a running server for the nonce, the crawler files, the metadata, the paper contract, the 404 and the start-up record; the second now judges the composed policy per environment instead of comparing it with a constant it cannot equal.                                                                                                                                                   |
 
 ### Decisions this sub-step turns on
 
@@ -164,10 +323,11 @@ below rather than half-built here.
    `force-dynamic`, and the three routes that carry no scripts declare
    `force-static` against it. After the fix the same probe counts 44 nonce-carrying
    scripts.
-3. **Production has no `unsafe-inline` and no `unsafe-eval`, and development has
-   four named relaxations and no fifth.** Every difference between the two
-   policies is a line in an exported list, and each line names the directive it
-   widens, so a relaxation cannot arrive unnoticed. The framing refusal stays
+3. **Production has no `unsafe-inline` and no `unsafe-eval`, and development
+   widens exactly four tokens and withholds one directive.** Every difference
+   between the two policies is one of the five named lines in an exported list,
+   and each line names the directive it widens, so a relaxation cannot arrive
+   unnoticed. The framing refusal stays
    deployment-only because a development build is reviewed inside a hosting
    preview window - the 1.26 rule, kept, and now named in that list rather than
    inferred from an absence.
@@ -2885,6 +3045,47 @@ only variable the build reads for the origin (`lib/seo/site.ts`); the schema in
 `lib/env/validate-env.ts` is the only place a variable is declared, and
 `.env.example` lists what a deployment must set. The three Supabase variables are
 required in production by that schema and are already refused outside `lib/env`.
+
+## Sub-step 1.32 starting point
+
+1.32 is "Governance B: ADR-0001 to ADR-0007, README update,
+`docs/handoffs/CHAT_01_COMPLETED.md`", and it closes segment 1D and step 1.
+What it needs from the state this sub-step leaves behind:
+
+- **`docs/ADR/` holds one file**: `ADR-0006-web-hardening-baseline.md`. The
+  missing records are 0001 to 0005 and 0007, and the naming convention is
+  `ADR-NNNN-<slug>.md` (read 0006 first: the path comment, the heading shape and
+  the section order are the house style for the other six).
+- **The README is stale in three places 1.31 made checkable**: it says Node.js 20
+  or newer while `engines` requires 22 and the workflow pins major 22, it tells a
+  developer to run `npm install` while `CONTRIBUTING.md` and CI use `npm ci`, and
+  its status table predates sub-steps 1.18 to 1.31. If a README rule is worth
+  having, it belongs in `check:governance` beside the CONTRIBUTING rules, so the
+  next drift is a finding rather than a discovery.
+- **`check:governance` is the 30th verification entry**, and it holds two lists a
+  later sub-step extends: the artefact inventory (add each new governance file)
+  and the sensitive review paths (add a surface to `CODEOWNERS` in the same
+  commit that creates it). Its changelog coverage rule reads the SHAs out of
+  every completed row of the SEGMENT tables in this file, so
+  `CHAT_01_COMPLETED.md` should carry the same table shape if that rule is to
+  keep covering step 1.
+- **The changelog is regenerated with `npm run changelog` in the docs commit**,
+  and it must be regenerated after the 1.32 code commit exists in the history,
+  or the coverage rule fails the gate on a missing entry (this is how 1.31
+  closed, and it is deliberate: the file is generated, not edited).
+- **The 1D gate is the closing condition**: the production build passes (and now
+  runs on the runner on every push), Lighthouse at least 90 on the homepage
+  (which needs a browser this environment does not have, so the script and byte
+  counts the public-pages probe prints are the recorded substitute, with the
+  reason), the dead-link audit (`check:dead-links`, in the floor: 15 routes and
+  58 links at this sub-step), and `npm run verify` fully green.
+- **Facts a later change must not undo**: `engines` and the workflow's
+  `node-version` agree on major 22 (the check reads both); the workflow runs
+  `npm run verify`, `npm run build` and `npm run start` and never a single check
+  script or `npx next`; a probe added to the build job must be path-free, because
+  `public-pages-probe.py` reads `/home/user/kd` and cannot run on a runner; and
+  the branch protection setting the probe reports as unconfigured is the owner's
+  to enable after the merge, with `ci` named as the check.
 
 ## Blockers
 
