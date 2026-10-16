@@ -14,4 +14,15 @@
 export const brand = {
   name: 'KD SOLUTION IT',
   description: 'Invoicing, payments and client management for growing businesses.',
+  /**
+   * Accessible name of the mark when it stands alone: the narrow viewport
+   * header and the print header, where no adjacent text names the product.
+   */
+  logo_alt: 'KD SOLUTION IT home',
+  /**
+   * Description of the default social image, read aloud by a screen reader
+   * when the image is announced and shown by networks whose preview collapses.
+   */
+  social_image_alt:
+    'KD SOLUTION IT: invoicing, payments and client management for growing businesses.',
 } as const;

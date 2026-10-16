@@ -58,6 +58,7 @@ const ENTRIES = [
   { name: 'check:secrets', command: 'node', args: ['scripts/checks/secrets.mjs'] },
   { name: 'check:any-types', command: 'node', args: ['scripts/checks/any-types.mjs'] },
   { name: 'check:money-math', command: 'node', args: ['scripts/checks/money-math.mjs'] },
+  { name: 'check:brand-assets', command: 'node', args: ['scripts/checks/brand-assets.mjs'] },
 ];
 
 const SUMMARY_PATTERN = /(PASS \(|FAIL \(|code style|All matched files)/i;

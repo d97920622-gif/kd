@@ -23,6 +23,8 @@
     "typecheck": "tsc --noEmit",
     "env:validate": "tsx --env-file-if-exists=.env lib/env/cli.ts",
     "tokens:export": "tsx scripts/export-design-tokens.ts",
+    "brand:generate": "tsx scripts/generate-brand-assets.ts",
+    "check:brand-assets": "node scripts/checks/brand-assets.mjs",
     "verify": "node scripts/verify.mjs",
     "test": "npm run verify",
     "check:english-only": "node scripts/checks/english-only.mjs",

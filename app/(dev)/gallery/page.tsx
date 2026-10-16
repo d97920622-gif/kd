@@ -5,6 +5,7 @@ import { isDevelopment } from '@/lib/env/validate-env';
 import { t } from '@/lib/i18n';
 
 import { GALLERY_SCOPES } from './scopes';
+import { ShowcaseBrand } from './showcase-brand';
 import { ShowcaseControls } from './showcase-controls';
 import { ShowcaseData } from './showcase-data';
 import { ShowcaseFeedback } from './showcase-feedback';
@@ -72,6 +73,7 @@ export default function GalleryPage(): React.ReactElement {
           <ShowcasePanels />
           <ShowcaseFeedback />
           <ShowcaseData />
+          <ShowcaseBrand />
         </ThemeScope>
       ))}
     </main>
