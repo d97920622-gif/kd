@@ -4,7 +4,7 @@
 
 Status: in progress
 Current segment: 1B (core libraries and design system) -- in progress
-Last completed sub-step: 1.16 (shadcn/ui primitives B) at b5bb363. Next sub-step: 1.17 (form primitives).
+Last completed sub-step: 1.17 (form primitives) at a976d75. Next sub-step: the 1B segment gate, then segment 1C (sub-step 1.18).
 Segment 1A: complete
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
@@ -43,18 +43,18 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 
 ## SEGMENT 1B -- Core libraries and design system (chat 2 of 4)
 
-| Sub-step | Description                                                                                                                                      | Status  | Commit             |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ------------------ |
-| 1.8      | Structured logger: JSON lines, levels, correlation id, redaction hook, zero console usage                                                        | done    | to fill at handoff |
-| 1.9      | Error library: typed error classes, error codes, response envelope builder, no detail leakage                                                    | done    | to fill at handoff |
-| 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | done    | to fill at handoff |
-| 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | done    | to fill at handoff |
-| 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | done    | to fill at handoff |
-| 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | done    | 2f25ca8            |
-| 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | done    | 6eb05dd            |
-| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | done    | cdba8d2            |
-| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | done    | b5bb363            |
-| 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | pending | -                  |
+| Sub-step | Description                                                                                                                                      | Status | Commit             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------ |
+| 1.8      | Structured logger: JSON lines, levels, correlation id, redaction hook, zero console usage                                                        | done   | to fill at handoff |
+| 1.9      | Error library: typed error classes, error codes, response envelope builder, no detail leakage                                                    | done   | to fill at handoff |
+| 1.10     | USD money utilities: decimal.js wrappers, parse, format, arithmetic, rounding policy, money-math guard                                           | done   | to fill at handoff |
+| 1.11     | Utility set: date (UTC), formatting, slug, hash (SHA-256, HMAC), id helpers                                                                      | done   | to fill at handoff |
+| 1.12     | i18n string catalogue: lib/i18n/strings/en.ts structure, key naming, copy rules                                                                  | done   | to fill at handoff |
+| 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | done   | 2f25ca8            |
+| 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | done   | 6eb05dd            |
+| 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | done   | cdba8d2            |
+| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | done   | b5bb363            |
+| 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | done   | a976d75            |
 
 Segment 1B gate: component gallery renders every primitive in light, dark,
 high contrast and reduced motion; no hardcoded color or spacing outside
@@ -90,6 +90,103 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.17 evidence -- form primitives and the component gallery
+
+Delivered the shared form layer and the component gallery the 1B segment gate
+asks for.
+
+The shared layer is four components and five library modules:
+components/shared/form-wrapper.tsx (the four states, the one-time token, the
+submit lock), form-field.tsx (label, hint, error and control wired by id and
+aria-describedby, with the error as a live region), form-error-summary.tsx
+(every invalid field as a link, focus moved to the summary when a submission is
+refused) and submit-button.tsx (disabled and aria-busy while submitting, the
+pending label announced). lib/forms/ holds the field rules built from the
+validation catalogue, the error mapper, the response reader, the one-time
+token client and the field id helper; lib/hooks/use-zod-form.ts is the single
+React Hook Form entry point, because validate on blur, revalidate on change,
+first error only and focus the first invalid control are platform defaults that
+a caller cannot be trusted to repeat.
+
+Two rules are enforced in code rather than promised. Every submission carries a
+one-time token (MASTER_PROMPT item 11): the server render mints it, the
+submission sends it in the x-csrf-token header, spends it as the request
+leaves, and installs the replacement from the response header or body, so a
+replayed request carries a spent token. The server half lives in the request
+pipeline (lib/middleware/csrf.ts, sub-step 3.4). And no parser text can reach a
+user: a message is displayed only when it is a sentence in the validation
+catalogue, otherwise the mapper substitutes the catalogue sentence for that
+kind of failure. That is what closes the gap the catalogue leaves open, since
+the validation strings carry no {min} or {max} placeholders and a Zod default
+message is not copy.
+
+The gallery renders the same full component set five times, once per pinned
+scope, and it is the last piece of the gate. The scopes are new blocks in
+styles/globals.css (.theme-light, .theme-dark, .theme-hc-light,
+.theme-hc-dark and .theme-reduced-motion), and both token checks were extended
+so a scope cannot drift: color-contrast now verifies all eight blocks against
+config/design-tokens.ts token by token (4 themes, 23 roles, 76 ratios, with
+negative controls proving that a changed --background in one scope and a
+changed duration in the reduced motion scope both fail the check), and
+design-tokens verifies the reduced motion scope sets every duration to its
+reducedValue and collapses animation and transition for its descendants. The
+route exists in development only: app/(dev)/layout.tsx calls notFound()
+outside the development environment, so a production deployment answers 404 and
+cannot be read as a component inventory.
+
+Evidence, in the order it was produced:
+
+- `npm run verify` PASS 20/20. Counts at this sub-step: i18n-strings 32 JSX
+  files / 7 namespaces / 257 keys; design-tokens 96 source files / 197 class
+  lists; color-contrast 4 themes / 23 roles / 76 ratios, now over 8 blocks;
+  any-types 79 TypeScript files; secrets 154 files.
+- Compiled CSS probe (/tmp/probe/gallery-css-probe.mjs): 243 class tokens
+  across 36 files (components/ui, components/shared, lib/hooks, app/) with 0
+  tokens that produce no CSS, 0 of 6 negative controls compiling (w-72, w-40,
+  min-w-40, max-w-64, gap-72, mt-72 are off this project's replaced spacing
+  scale and exist in no stylesheet) and 25 declaration expectations passing,
+  including .sr-only, the fieldset reset, aria-[invalid=true] borders and the
+  destructive error fill. The probe found and fixed its own bug on the way: it
+  only collected className expressions, so a plain className="sr-only" was
+  invisible to it and the first run reported the visually hidden live region
+  missing.
+- Rendered gallery probe (/tmp/probe/gallery-dom-probe.py) against
+  `next dev`: 26 markers per scope across all five scopes, with identical
+  inventories in every scope (checkbox 4, switch 1, radio 2, combobox 2,
+  textarea 3, label 20, tablist 1, tab 2, button 35, table 1, caption 1,
+  skeleton 5, badge 12, fieldset 1, submit 3, aria-invalid 3, role=alert 4,
+  aria-live=polite 6, aria-busy 4, sr-only 1, dialog/sheet/popover/menu/
+  tooltip triggers 1 each, toast viewport 1). 0 findings.
+- `npx next build`: compiled successfully, 4 of 4 static pages, /gallery
+  prerendered. Production guard proven with `next start`: GET /gallery returns
+  HTTP 404 and 0 scope markers, so the gallery is absent from a production
+  deployment.
+- Negative control for the segment gate rule "no hardcoded color or spacing
+  outside tokens": `bg-[#ff0000] p-[13px]` injected into
+  app/(dev)/gallery/theme-scope.tsx fails check:design-tokens with 3 findings
+  (arbitrary Tailwind value, arbitrary Tailwind value, raw color literal);
+  restored, check PASS.
+
+Two defects found in already committed layers, both fixed at the source rather
+than worked around:
+
+1. `tPlural` could not be called correctly. Its parameter was typed as an
+   ordinary catalogue key, but the base of a plural pair is never a key of its
+   own, so the first real caller (the error summary) failed to type check.
+   lib/i18n/types.ts now derives EnglishPluralKey from the catalogue and
+   requires the _other member to exist, so `tPlural('forms.error_summary_title',
+n)` compiles and a key without a pair does not.
+2. check:money-math read the slash of a self-closing JSX tag as division:
+   `<ShowcaseFeedback />` matched "money identifier followed by an operator"
+   because the component name contains "fee". The check now excludes the
+   self-closing and closing tag forms and still reports `{total / 2}`.
+
+One dependency change: react-hook-form 7.90.0 and @hookform/resolvers 5.9.1.
+The repository's pre-commit hook also had to learn one thing: next-env.d.ts is
+generated by Next.js and sits in the ESLint ignore list, so lint-staged now
+uses `!(*.d).{js,jsx,mjs,ts,tsx}` and no longer hands a declaration file to the
+linter.
 
 ## Sub-step 1.16 evidence -- shadcn/ui primitives B
 
@@ -155,10 +252,11 @@ is the stronger guarantee and is what the probe now asserts), and
 popper-positioned content is wrapped in a positioning div, so "portalled"
 means outside the application root rather than a direct child of body.
 
-Open item for 1.17 and the segment gate: the component gallery route does not
-exist yet. It needs a root layout, which segment 1C owns, so the gallery is
-planned for sub-step 1.17 together with the form primitives it must display,
-and the segment gate check happens after that.
+Open item recorded here and resolved in 1.17: the component gallery route did
+not exist at 1.16. It needed a root layout, so it was planned for 1.17 together
+with the form primitives it must display. Sub-step 1.17 delivered it
+(app/(dev)/gallery/, development only, with app/layout.tsx as the root shell);
+the segment gate check runs against it now.
 
 npm run verify at b5bb363: RESULT PASS (20 of 20 checks passed).
 
@@ -361,6 +459,25 @@ rhythm from there.
   (35b1869) and the working tree matched the commit exactly. Dependencies
   were reinstalled and `npm run verify` returned PASS at 16 of 16 checks.
 
+## Segment 1B gate state (after sub-step 1.17)
+
+Every sub-step of segment 1B (1.8 to 1.17) is committed and every check is
+green. The gate itself -- "component gallery route renders every primitive in
+light, dark, high contrast and reduced motion; no hardcoded color or spacing
+value exists outside tokens" -- is verified by the probes recorded under
+"Sub-step 1.17 evidence" and can be re-run at any time:
+
+- `python3 /tmp/probe/gallery-dom-probe.py` with `npx next dev` running
+  (26 markers per scope, five scopes, identical inventories);
+- `node /tmp/probe/gallery-css-probe.mjs` (243 class tokens, 0 without CSS,
+  6 negative controls, 25 declaration expectations);
+- `npm run verify` (20 of 20);
+- `npm run check:design-tokens` after injecting `bg-[#ff0000] p-[13px]`
+  somewhere under app/ or components/ (3 findings), then revert.
+
+The two probe scripts live outside the repository on purpose: they are
+evidence, not part of the product, and the project forbids test files.
+
 ## Segment boundary note (owner decision, 2026-10-16)
 
 The plan runs one segment per chat. The owner explicitly instructed the
@@ -384,9 +501,10 @@ None recorded.
   .env.example and ignore files, `/* path: ... */` for CSS, `-- path: ...`
   for SQL, `<!-- path: ... -->` for HTML and SVG. JSON, lockfiles,
   next-env.d.ts and LICENSE are exempt.
-- `npm run verify` runs 16 entries: typecheck, lint, format:check,
-  env:validate and the twelve checks. Extend the verify entry list by
-  appending to `ENTRIES` in scripts/verify.mjs when a new check lands.
+- `npm run verify` runs 20 entries: typecheck, lint, format:check,
+  env:validate, tokens:export and the fifteen checks. Extend the verify entry
+  list by appending to `ENTRIES` in scripts/verify.mjs when a new check lands
+  (it was 16 when this note was first written; 1.15 to 1.17 added four).
 - Money-math and any-types are heuristic guards: keep count and paging
   identifiers free of money words (the guard flagged `const total =` in
   scripts/verify.mjs and the fix was `totalCount`).
