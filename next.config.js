@@ -32,6 +32,12 @@ const nextConfig = {
     // Keep route handler caching explicit; handlers opt in where required.
     dynamicIO: false,
   },
+  // Development only. The component gallery is reviewed from a browser that
+  // reaches the development server through a proxy host rather than through
+  // localhost, and Next.js blocks cross-origin requests for its internal
+  // assets in development unless the host is named here. The list applies to
+  // `next dev` alone; a production server never serves these paths.
+  allowedDevOrigins: ['*.e2b.app', 'localhost:3000'],
 };
 
 module.exports = nextConfig;

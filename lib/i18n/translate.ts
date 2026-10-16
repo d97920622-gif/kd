@@ -26,9 +26,13 @@ import {
   type StringParams,
   type StringParamValue,
   type StringPath,
+  type PluralStringPath,
 } from './types';
 
 export type EnglishStringKey = StringPath<EnglishCatalogue>;
+
+/** Every plural base key of the catalogue, the only keys tPlural accepts. */
+export type EnglishPluralKey = PluralStringPath<EnglishCatalogue>;
 
 /** Template string with {name} placeholders. */
 export type StringTemplate = string;
@@ -105,7 +109,7 @@ export function t(key: EnglishStringKey, params?: StringParams): string {
  * Resolve a plural pair. The base key names the _one and _other variants;
  * `count` is injected automatically and may be overridden by params.
  */
-export function tPlural(base: EnglishStringKey, count: number, params: StringParams = {}): string {
+export function tPlural(base: EnglishPluralKey, count: number, params: StringParams = {}): string {
   const suffix = count === 1 ? PLURAL_ONE_SUFFIX : PLURAL_OTHER_SUFFIX;
   return t(`${base}${suffix}` as EnglishStringKey, { count, ...params });
 }

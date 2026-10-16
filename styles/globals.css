@@ -19,6 +19,14 @@
  *   @media (prefers-contrast: more)   high contrast, light and dark
  *   @media (prefers-reduced-motion)   animation removed, interface intact
  *   @media (forced-colors: active)    system palette, structure preserved
+ *   .theme-*                          one theme pinned to a surface, used by
+ *                                     the component gallery to show all four
+ *                                     at once; reduced motion has a scope too
+ *
+ * Every theme value is declared twice on purpose: once for the running
+ * application and once inside a pinned scope. scripts/checks/color-contrast.mjs
+ * compares all eight blocks with config/design-tokens.ts, so a pinned scope
+ * cannot drift from the theme it mirrors.
  *
  * Colors are HSL channel triples so opacity modifiers work: bg-primary/50.
  */
@@ -244,6 +252,140 @@
     [data-disabled='true'] {
       color: GrayText;
     }
+  }
+
+  /* Explicit theme scopes. The :root, .dark and prefers-contrast blocks
+       above are what the application uses: the theme switch puts .dark on the
+       html element and the media query covers a user who asked their
+       operating system for more contrast. These four scopes pin a surface to
+       one theme whatever the page around it does, which is how the component
+       gallery renders all four side by side and how a white-label surface
+       will force a theme later. An operating system contrast preference still
+       wins inside them, because the media block above also matches. The
+       contrast check compares every scope with config/design-tokens.ts token
+       by token, so a scope can never drift from the theme it mirrors. */
+  .theme-light {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 72.2% 45.4%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142.1 76.2% 28%;
+    --success-foreground: 355.7 100% 97.3%;
+    --warning: 32.1 94.6% 43.7%;
+    --warning-foreground: 0 0% 0%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 215.4 16.3% 55%;
+    --ring: 221.2 83.2% 53.3%;
+  }
+
+  .theme-dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 0%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
+    --warning: 32.1 94.6% 53.7%;
+    --warning-foreground: 0 0% 0%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 45%;
+    --ring: 217.2 91.2% 59.8%;
+  }
+
+  .theme-hc-light {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 221.2 83.2% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 0 0% 25%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84.2% 32%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142.1 76.2% 22%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32.1 94.6% 50%;
+    --warning-foreground: 0 0% 0%;
+    --border: 0 0% 30%;
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+  }
+
+  .theme-hc-dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 217.2 91.2% 72%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 85%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 90% 72%;
+    --destructive-foreground: 0 0% 0%;
+    --success: 142.1 70.6% 68%;
+    --success-foreground: 0 0% 0%;
+    --warning: 32.1 94.6% 68%;
+    --warning-foreground: 0 0% 0%;
+    --border: 0 0% 65%;
+    --input: 0 0% 100%;
+    --ring: 0 0% 100%;
+  }
+
+  /* Reduced motion scope, the same rules as the media query above, for a
+     surface that must show motion is off while the rest of the page keeps
+     its motion: the gallery pins this scope on one pane. */
+  .theme-reduced-motion {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+
+  .theme-reduced-motion *,
+  .theme-reduced-motion *::before,
+  .theme-reduced-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 
   * {

@@ -639,6 +639,19 @@ function checkInlineStyles(file, text) {
  * token module names, with the same value for the z-index ladder, and that
  * it declares no --z-* variable the ladder does not know.
  */
+/**
+ * The declarations that make reduced motion real: animation and transition
+ * collapse, repetition stops and smooth scrolling is off. They appear in the
+ * media query for the page and in the pinned scope for a single surface, and
+ * both copies are verified, so the scope cannot become decoration.
+ */
+const COLLAPSE_RULES = {
+  'animation-duration': '0.01ms !important',
+  'animation-iteration-count': '1 !important',
+  'transition-duration': '0.01ms !important',
+  'scroll-behavior': 'auto !important',
+};
+
 /** Numeric pixel value of a CSS length such as '16px', or null. */
 function pixelValue(value) {
   if (typeof value !== 'string') {
@@ -1138,6 +1151,32 @@ function checkReducedMotion(records) {
 
   const reader = createTokenReader();
   const durations = reader.read('MOTION_DURATION_TOKENS');
+
+  // The pinned scope carries the same guarantee for a surface that must show
+  // motion is off while the rest of the page keeps its motion.
+  const scope = selectCssBlock(records, { selector: '.theme-reduced-motion' });
+  if (scope.size === 0) {
+    findings.push({
+      file: STYLESHEET,
+      line: 1,
+      column: 1,
+      message: 'the reduced motion scope .theme-reduced-motion is missing',
+    });
+  }
+  const scopeCollapse = selectCssBlock(records, {
+    selector:
+      '.theme-reduced-motion *, .theme-reduced-motion *::before, .theme-reduced-motion *::after',
+  });
+  if (scope.size > 0 && scopeCollapse.size === 0) {
+    findings.push({
+      file: STYLESHEET,
+      line: 1,
+      column: 1,
+      message:
+        'the reduced motion scope must collapse animation and transition durations for its descendants',
+    });
+  }
+
   if (isPlainObject(durations)) {
     for (const [key, token] of Object.entries(durations)) {
       if (!isPlainObject(token) || typeof token.variable !== 'string') {
@@ -1152,6 +1191,28 @@ function checkReducedMotion(records) {
           message: `reduced motion must set ${token.variable} (${key}) to ${token.reducedValue}, found ${JSON.stringify(declared)}`,
         });
       }
+      if (scope.size > 0) {
+        const scopeValue = scope.get(token.variable);
+        if (scopeValue !== token.reducedValue) {
+          findings.push({
+            file: STYLESHEET,
+            line: 1,
+            column: 1,
+            message: `the reduced motion scope must set ${token.variable} (${key}) to ${token.reducedValue}, found ${JSON.stringify(scopeValue)}`,
+          });
+        }
+      }
+    }
+  }
+
+  for (const [property, value] of Object.entries(COLLAPSE_RULES)) {
+    if (scope.size > 0 && scopeCollapse.get(property) !== value) {
+      findings.push({
+        file: STYLESHEET,
+        line: 1,
+        column: 1,
+        message: `the reduced motion scope must declare ${property}: ${value}, found ${JSON.stringify(scopeCollapse.get(property))}`,
+      });
     }
   }
 
@@ -1159,12 +1220,7 @@ function checkReducedMotion(records) {
     selector: '*, *::before, *::after',
     media: 'prefers-reduced-motion: reduce',
   });
-  const required = {
-    'animation-duration': '0.01ms !important',
-    'animation-iteration-count': '1 !important',
-    'transition-duration': '0.01ms !important',
-    'scroll-behavior': 'auto !important',
-  };
+  const required = COLLAPSE_RULES;
   if (collapse.size === 0) {
     findings.push({
       file: STYLESHEET,

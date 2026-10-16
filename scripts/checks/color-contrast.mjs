@@ -32,12 +32,26 @@ import { createTokenReader, isPlainObject } from './_tokens.mjs';
 
 const STYLESHEET = 'styles/globals.css';
 
-/** Blocks of the stylesheet, keyed by token theme name. */
+/**
+ * Blocks of the stylesheet, keyed by the token theme they must equal.
+ *
+ * The first four are what the running application uses: the base theme, the
+ * class the theme switch sets on the html element, and the two high contrast
+ * themes behind the operating system preference. The theme-* scopes pin one
+ * theme to a surface regardless of the page around it; the component gallery
+ * renders all four side by side through them. Every block is compared with
+ * config/design-tokens.ts token by token, so a pinned scope can never drift
+ * from the theme it mirrors.
+ */
 const THEME_BLOCKS = [
   { theme: 'light', selector: ':root', media: null },
   { theme: 'dark', selector: '.dark', media: null },
   { theme: 'high-contrast-light', selector: ':root', media: 'prefers-contrast: more' },
   { theme: 'high-contrast-dark', selector: '.dark', media: 'prefers-contrast: more' },
+  { theme: 'light', selector: '.theme-light', media: null },
+  { theme: 'dark', selector: '.theme-dark', media: null },
+  { theme: 'high-contrast-light', selector: '.theme-hc-light', media: null },
+  { theme: 'high-contrast-dark', selector: '.theme-hc-dark', media: null },
 ];
 
 /** Variables in a theme block that are not color roles. */

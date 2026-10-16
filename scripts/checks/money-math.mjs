@@ -46,7 +46,16 @@ const IDENTIFIER = `[A-Za-z_$][A-Za-z0-9_$]*`;
 // A monetary identifier: contains a money word and no counting word anywhere.
 const MONEY_NAME = `(?=[A-Za-z0-9_$]*(?:${MONEY_WORDS}))(?![A-Za-z0-9_$]*(?:${NON_MONEY_WORDS}))${IDENTIFIER}`;
 
-const ARITHMETIC_OPERATORS = '[-+*/%]';
+/**
+ * An operator character that is really arithmetic.
+ *
+ * A slash in JSX is punctuation, not division: `<ShowcaseFeedback />` and
+ * `</ShowcaseFeedback>` both put a slash next to a tag name, and a tag name
+ * that happens to contain a money word ("Feedback" carries "fee") would
+ * otherwise be read as a division by the identifier. The lookarounds exclude
+ * the self-closing and closing forms and leave `{total / 2}` reported.
+ */
+const ARITHMETIC_OPERATORS = '(?:[-+*%]|(?<!<)/(?!>))';
 
 const RULES = [
   {

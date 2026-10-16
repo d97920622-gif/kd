@@ -124,6 +124,25 @@ fails on a raw color, a raw size or an arbitrary value.
 | Skeleton    | `components/ui/skeleton.tsx`      | Shape of pending content, hidden from assistive technology, pulse stops under reduced motion           |
 | Badge       | `components/ui/badge.tsx`         | Status label using the semantic role pairs, never the only signal of a state                           |
 
+### Shared form layer
+
+`components/shared/` holds the form building blocks every feature composes
+instead of writing its own. They sit on React Hook Form with a Zod resolver,
+so the same schema that validates in the browser validates again on the server.
+
+| Component        | File                                       | Notes                                                                                                     |
+| ---------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| FormWrapper      | `components/shared/form-wrapper.tsx`       | Four states, one-time CSRF token, a submit lock, a locked fieldset and live error regions                 |
+| FormField        | `components/shared/form-field.tsx`         | Label, hint, error and control wired by id and `aria-describedby`; the error is a live region             |
+| FormErrorSummary | `components/shared/form-error-summary.tsx` | Every invalid field as a link, focus moves to the summary when a submission is refused                    |
+| SubmitButton     | `components/shared/submit-button.tsx`      | Disabled and `aria-busy` while submitting, pending label announced through a polite live region           |
+| Mapped errors    | `lib/forms/use-mapped-form-errors.ts`      | Flattens the error tree and replaces anything that is not catalogue copy                                  |
+| Field rules      | `lib/forms/form-field-options.ts`          | Text, email, url, phone, postal code, tax number, money, choice, multi choice, password, date, acceptance |
+| Response reading | `lib/forms/form-submission.ts`             | Parses the success and failure envelopes; server field details land under their own fields                |
+| One-time token   | `lib/forms/csrf-token.ts`                  | Sends the token, spends it on submit, installs the replacement from the response                          |
+| Form hook        | `lib/hooks/use-zod-form.ts`                | `useForm` with the platform defaults: validate on blur, revalidate on change, focus the first error       |
+| Field ids        | `lib/forms/field-id.ts`                    | `fieldIdFor(path)` keeps the control, its label and the error summary link on the same id                 |
+
 Three rules the primitives follow, each one enforced rather than promised:
 
 1. **Touch targets.** Interactive controls are at least 44x44. A control whose
@@ -143,6 +162,25 @@ Three rules the primitives follow, each one enforced rather than promised:
    visible text, such as the icon-only scroll button of a select, carries an
    accessible name from `lib/i18n/strings/en/ui.ts`. A literal string in an
    `aria-label` fails `check:i18n-strings`.
+4. **One submission per intent, one token per submission.** A form disables its
+   submit button and locks its controls while a request is in flight, refuses a
+   second submission that arrives anyway, and carries a one-time token that it
+   spends as the request leaves and replaces from the response, so a replayed
+   request is rejected by the server (`lib/middleware/csrf.ts` in sub-step 3.4).
+5. **No parser text reaches a user.** A message is displayed only when it is a
+   sentence from the catalogue; anything else, including the text of a schema a
+   later step writes by hand, is replaced by the catalogue sentence for that
+   kind of failure.
+
+### Component gallery
+
+`app/(dev)/gallery/` renders every primitive above in light, dark, high
+contrast light, high contrast dark and reduced motion, in one page. The scopes
+are pinned by the `.theme-*` blocks in `styles/globals.css`, and the contrast
+checker compares each of those blocks with `config/design-tokens.ts` token by
+token, so a scope cannot drift from the theme it mirrors. The route exists in
+development only: outside it the layout calls `notFound()`, so a production
+deployment answers 404 and cannot be read as a component inventory.
 
 ## Start here
 

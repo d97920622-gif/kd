@@ -20,7 +20,14 @@ export {
   tPlural,
 } from './translate';
 
-export type { EnglishCatalogue, EnglishStringKey, StringTemplate } from './translate';
+export type {
+  EnglishCatalogue,
+  EnglishPluralKey,
+  EnglishStringKey,
+  StringTemplate,
+} from './translate';
+
+export type { PluralStringPath } from './types';
 
 export {
   MAX_STRING_KEY_DEPTH,

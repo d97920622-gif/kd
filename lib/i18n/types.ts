@@ -58,3 +58,29 @@ export type StringPath<T> = {
  * imported as a type only, so this file carries no runtime dependency on it.
  */
 export type EnglishStringKey = StringPath<EnglishCatalogue>;
+
+/**
+ * Base keys of a plural pair: the name without its _one suffix, valid only
+ * when the matching _other member exists in the same namespace.
+ *
+ * tPlural appends the suffix itself, so it cannot take a plain leaf path: the
+ * base is never a key of its own. Deriving the base keys from the catalogue
+ * keeps the same guarantee as t() -- a base that has no pair fails the type
+ * check instead of throwing at render time.
+ */
+type PluralBaseOf<T, K extends string> = K extends `${infer Base}_one`
+  ? `${Base}_other` extends StringPath<T>
+    ? Base
+    : never
+  : never;
+
+export type PluralStringPath<T> = {
+  [K in keyof T & string]: T[K] extends StringLeaf
+    ? PluralBaseOf<T, K>
+    : T[K] extends StringNamespace
+      ? `${K}.${PluralStringPath<T[K]>}`
+      : never;
+}[keyof T & string];
+
+/** Every plural base key of the English catalogue, for example "common.results_count". */
+export type EnglishPluralKey = PluralStringPath<EnglishCatalogue>;
