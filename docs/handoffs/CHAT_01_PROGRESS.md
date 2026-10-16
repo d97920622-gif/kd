@@ -4,7 +4,7 @@
 
 Status: in progress
 Current segment: 1B (core libraries and design system) -- in progress
-Last completed sub-step: 1.15 (shadcn/ui primitives A) at cdba8d2. Next sub-step: 1.16 (shadcn/ui primitives B).
+Last completed sub-step: 1.16 (shadcn/ui primitives B) at b5bb363. Next sub-step: 1.17 (form primitives).
 Segment 1A: complete
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
@@ -53,7 +53,7 @@ Gate evidence (recorded in full in CHAT_01_COMPLETED.md section 7):
 | 1.13     | Design tokens A: spacing 4/8/12/16/24/32/48/64, radius scale, shadow scale, z-index scale                                                        | done    | 2f25ca8            |
 | 1.14     | Design tokens B: typography scale, color palette with contrast pairs, dark mode, high contrast, reduced motion, motion tokens, token JSON export | done    | 6eb05dd            |
 | 1.15     | shadcn/ui primitives A: button, input, textarea, label, checkbox, radio group, select, switch                                                    | done    | cdba8d2            |
-| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | pending | -                  |
+| 1.16     | shadcn/ui primitives B: dialog, sheet, popover, dropdown, tabs, tooltip, toast, table, skeleton, badge                                           | done    | b5bb363            |
 | 1.17     | Form primitives: React Hook Form with Zod resolver, four states, aria-live errors, submit states                                                 | pending | -                  |
 
 Segment 1B gate: component gallery renders every primitive in light, dark,
@@ -90,6 +90,77 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.16 evidence -- shadcn/ui primitives B
+
+Delivered ten primitives (dialog, sheet, popover, dropdown menu, tabs,
+tooltip, toast, table, skeleton, badge) plus lib/hooks/use-toast.tsx, which
+holds the toast queue in a reducer behind a provider rather than in a module
+level array: a module level queue would be shared by every request the same
+Node process handles, so one tenant could see another tenant's notification.
+The queue is also capped, because an unbounded list is a slow leak in a long
+lived tab.
+
+Layering is the point of this sub-step and is verified by compiled CSS:
+backdrop z-overlay (50), panel z-modal (60), menu z-dropdown (70), popover
+z-popover (80), tooltip z-tooltip (90), toast z-toast (100). A select opened
+inside a dialog, and a tooltip opened from a control inside a popover, both
+resolve without a special case.
+
+Panel widths became tokens. Width utilities in this project come from the
+spacing scale, so w-72, min-w-40 and max-w-64 produced no CSS at all: those
+classes exist in default Tailwind only because of the default scale that this
+project replaces. LAYOUT_WIDTH_TOKENS now defines menu (10rem minimum),
+popover (20rem), tooltip (16rem maximum), dialog (32rem maximum) and sheet
+(24rem maximum), wired through theme.extend width, minWidth and maxWidth so
+the Tailwind defaults (fractions, auto, full) stay available. The token check
+verifies every width has a unit and documents its usage, and the export
+includes the group.
+
+Evidence:
+
+- Class compilation probe: 205 class tokens across 19 files, compiled with
+  Tailwind against exactly those files. Zero tokens produced no CSS. Twenty
+  four declaration expectations verified, including the six layer positions,
+  the dialog fraction width with a token ceiling, the sheet fraction width,
+  the named panel widths, the slow motion token and the enter curve on overlay
+  panels, the 44px table header row, badge pills with the xs text step and the
+  skeleton pulse. Negative controls confirm p-7, gap-7, h-13, text-mdup,
+  z-9999 and the retired calc-based width generate nothing.
+- DOM render probe: 70 assertions in jsdom (installed outside the repository,
+  never a dependency of it), mounting the real components through react-dom
+  client rendering so portals, focus movement and keyboard handling actually
+  run. Verified: the dialog is labelled and described by its title and
+  description, it is portalled, focus moves inside on open and returns to the
+  trigger on Escape, and the page behind it is hidden from assistive
+  technology while open and reachable again after close; sheet variants pin
+  the panel to the left edge with a fraction width; the menu opens on
+  ArrowDown, exposes role menu with two menuitem children, focuses the first
+  item, moves with ArrowDown, marks the destructive item, closes on Escape and
+  returns focus; the popover reports aria-haspopup dialog and keeps its
+  content interactive; the tooltip appears on keyboard focus and is wired to
+  its trigger through aria-describedby; tabs expose tablist, tab and tabpanel
+  roles, keep arrow navigation working and hide the inactive panel; the toast
+  announces itself as a status inside a live region with a catalogue labelled
+  dismiss control; badges are spans with the semantic role pairs; skeletons
+  are hidden from assistive technology; table headers scope their column and
+  the wrapper scrolls.
+- Rule probes: a literal aria-label in toast.tsx fails check:i18n-strings; a
+  raw hex color and an arbitrary pixel value in skeleton.tsx fail
+  check:design-tokens with three findings. Both reverted.
+
+Two wrong assumptions were caught by the DOM probe instead of being shipped in
+this handoff: Radix does not emit aria-modal (it hides the background, which
+is the stronger guarantee and is what the probe now asserts), and
+popper-positioned content is wrapped in a positioning div, so "portalled"
+means outside the application root rather than a direct child of body.
+
+Open item for 1.17 and the segment gate: the component gallery route does not
+exist yet. It needs a root layout, which segment 1C owns, so the gallery is
+planned for sub-step 1.17 together with the form primitives it must display,
+and the segment gate check happens after that.
+
+npm run verify at b5bb363: RESULT PASS (20 of 20 checks passed).
 
 ## Sub-step 1.15 evidence -- shadcn/ui primitives A
 
