@@ -733,5 +733,80 @@
         "usage": "editable field boundary inside a card, WCAG 1.4.11"
       }
     ]
+  },
+  "print": {
+    "page_margin_mm": 16,
+    "palette": {
+      "paper": {
+        "variable": "--print-paper",
+        "value": "0 0% 100%",
+        "usage": "the sheet: page background in print, never a screen colour",
+        "contrastOnPaper": 1
+      },
+      "ink": {
+        "variable": "--print-ink",
+        "value": "0 0% 0%",
+        "usage": "body and heading text on paper",
+        "contrastOnPaper": 21
+      },
+      "mutedInk": {
+        "variable": "--print-muted-ink",
+        "value": "0 0% 33%",
+        "usage": "secondary text on paper: metadata, captions, table footnotes",
+        "contrastOnPaper": 7.55
+      },
+      "rule": {
+        "variable": "--print-rule",
+        "value": "0 0% 45%",
+        "usage": "table rules, field outlines and dividers, above the 3:1 boundary rule",
+        "contrastOnPaper": 4.76
+      }
+    },
+    "role_map": {
+      "background": "--print-paper",
+      "card": "--print-paper",
+      "popover": "--print-paper",
+      "muted": "--print-paper",
+      "secondary": "--print-paper",
+      "accent": "--print-paper",
+      "primary": "--print-paper",
+      "success": "--print-paper",
+      "warning": "--print-paper",
+      "destructive": "--print-paper",
+      "foreground": "--print-ink",
+      "card-foreground": "--print-ink",
+      "popover-foreground": "--print-ink",
+      "primary-foreground": "--print-ink",
+      "secondary-foreground": "--print-ink",
+      "accent-foreground": "--print-ink",
+      "muted-foreground": "--print-muted-ink",
+      "success-foreground": "--print-ink",
+      "warning-foreground": "--print-ink",
+      "destructive-foreground": "--print-ink",
+      "border": "--print-rule",
+      "input": "--print-rule",
+      "ring": "--print-ink"
+    },
+    "contrast_pairs": [
+      {
+        "name": "ink/paper",
+        "role": "ink",
+        "background": "paper",
+        "minimum": 7
+      },
+      {
+        "name": "muted-ink/paper",
+        "role": "mutedInk",
+        "background": "paper",
+        "minimum": 4.5
+      },
+      {
+        "name": "rule/paper",
+        "role": "rule",
+        "background": "paper",
+        "minimum": 3
+      }
+    ],
+    "note": "The paper palette is fixed for every theme: printing does not follow the reader theme."
   }
 }

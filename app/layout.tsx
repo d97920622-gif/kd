@@ -15,12 +15,14 @@ import '../styles/globals.css';
  * theme classes and the four pinned scopes are declared in that stylesheet,
  * so any page can pin a theme without loading anything else.
  *
- * The fonts are system stacks for now: `--font-sans` and `--font-mono` are
- * declared in styles/globals.css and the Tailwind font families read those
- * variables. Sub-step 1.18 adds the brand typefaces as local files and points
- * the two variables at them, so no page changes when the faces arrive. A font
- * loaded from a third-party network at build time is deliberately not used:
- * the build has to work on a machine that cannot reach it.
+ * The fonts are system stacks: `--font-sans` and `--font-mono` are declared
+ * in styles/globals.css and the Tailwind font families read those variables,
+ * so a page never names a typeface. Step 1 does not ship a self-hosted face:
+ * a webfont has to arrive as a local file with subsetting and a preload link
+ * (MASTER_PROMPT performance requirements, sub-step 16.9) rather than a
+ * download from a font network at build time, because the build has to work
+ * on a machine that cannot reach one. When the faces arrive they are pointed
+ * at these two variables and no page changes.
  *
  * No theme class is set on the html element by default. Light is the base
  * theme, the `.dark` class is the switch the theme control will set, and the

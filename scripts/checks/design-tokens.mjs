@@ -1427,6 +1427,19 @@ function cssVariableExpectations() {
     }
   }
 
+  const print = reader.read('PRINT_TOKENS');
+  if (isPlainObject(print)) {
+    for (const token of Object.values(print)) {
+      if (
+        isPlainObject(token) &&
+        typeof token.variable === 'string' &&
+        typeof token.value === 'string'
+      ) {
+        result[token.variable] = token.value;
+      }
+    }
+  }
+
   const families = reader.read('FONT_FAMILY_TOKENS');
   if (isPlainObject(families)) {
     for (const stack of Object.values(families)) {

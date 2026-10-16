@@ -57,9 +57,18 @@ const THEME_BLOCKS = [
 /** Variables in a theme block that are not color roles. */
 const NON_COLOR_VARIABLES = ['--radius', '--font-sans', '--font-mono', '--shadow-color'];
 
+/**
+ * Variables the light block declares that are not screen colour roles.
+ *
+ * `--print-*` belongs here rather than in a role table: the print palette is
+ * not a theme, it is what the printer puts on the sheet, and it is declared
+ * once for every theme. Its values are verified in both directions by
+ * checkPrintPalette below, exactly as a role would be.
+ */
 function nonColorVariablePattern(property) {
   return (
     NON_COLOR_VARIABLES.includes(property) ||
+    property.startsWith('--print-') ||
     property.startsWith('--shadow-') ||
     property.startsWith('--z-') ||
     property.startsWith('--duration-') ||
@@ -392,7 +401,134 @@ function main() {
     }
   }
 
-  const summary = `${themes.length} themes, ${roleNames.length} color roles, ${checkedPairs} contrast ratios verified against WCAG 2.1 AA`;
+  // Rule 6: the paper palette is declared, matches the token module, and
+  // holds its contrast contract. Paper is not a theme: the values are read
+  // out of PRINT_TOKENS and compared with the :root block, which is the only
+  // place they are declared.
+  let printRoles = 0;
+  let printPairs = 0;
+  {
+    const printTokens = reader.read('PRINT_TOKENS');
+    const printPairsRaw = reader.read('PRINT_CONTRAST_PAIRS');
+    const root = selectCssBlock(parseCssDeclarations(safeRead(STYLESHEET) ?? ''), {
+      selector: ':root',
+    });
+    if (!isPlainObject(printTokens)) {
+      findings.push({
+        file: reader.file,
+        line: 1,
+        column: 1,
+        message: 'PRINT_TOKENS was not found in the token module',
+      });
+    } else {
+      const values = {};
+      for (const [key, token] of Object.entries(printTokens)) {
+        if (
+          !isPlainObject(token) ||
+          typeof token.variable !== 'string' ||
+          typeof token.value !== 'string'
+        ) {
+          findings.push({
+            file: reader.file,
+            line: 1,
+            column: 1,
+            message: `print token ${key} is not a literal object with variable and value`,
+          });
+          continue;
+        }
+        printRoles += 1;
+        values[key] = token.value;
+        const declared = root.get(token.variable);
+        if (declared === undefined) {
+          findings.push({
+            file: STYLESHEET,
+            line: 1,
+            column: 1,
+            message: `the paper palette is missing ${token.variable} (${key})`,
+          });
+        } else if (declared !== token.value) {
+          findings.push({
+            file: STYLESHEET,
+            line: 1,
+            column: 1,
+            message: `${token.variable} is ${declared} but ${reader.file} declares ${token.value}`,
+          });
+        }
+      }
+
+      if (!Array.isArray(printPairsRaw)) {
+        findings.push({
+          file: reader.file,
+          line: 1,
+          column: 1,
+          message: 'PRINT_CONTRAST_PAIRS was not found in the token module',
+        });
+      } else {
+        for (const pair of printPairsRaw) {
+          if (
+            !isPlainObject(pair) ||
+            typeof pair.role !== 'string' ||
+            typeof pair.background !== 'string' ||
+            typeof pair.minimum !== 'number'
+          ) {
+            findings.push({
+              file: reader.file,
+              line: 1,
+              column: 1,
+              message:
+                'a PRINT_CONTRAST_PAIRS entry is not a literal object with role, background and minimum',
+            });
+            continue;
+          }
+          const foreground = parseHslTriple(values[pair.role]);
+          const background = parseHslTriple(values[pair.background]);
+          if (foreground === null || background === null) {
+            findings.push({
+              file: reader.file,
+              line: 1,
+              column: 1,
+              message: `print contrast pair ${pair.role} on ${pair.background} references an unknown print token`,
+            });
+            continue;
+          }
+          const ratio = contrastRatio(foreground, background);
+          printPairs += 1;
+          if (ratio < pair.minimum) {
+            findings.push({
+              file: reader.file,
+              line: 1,
+              column: 1,
+              message: `paper: ${pair.role} on ${pair.background} is ${ratio}:1, below the required ${pair.minimum}:1`,
+            });
+          }
+        }
+      }
+
+      // The declared contrast in the token module is documentation only if it
+      // disagrees with the measurement, so it is compared too.
+      for (const [key, token] of Object.entries(printTokens)) {
+        if (!isPlainObject(token) || typeof token.contrastOnPaper !== 'number') {
+          continue;
+        }
+        const foreground = parseHslTriple(token.value);
+        const background = parseHslTriple(values.paper);
+        if (foreground === null || background === null) {
+          continue;
+        }
+        const ratio = contrastRatio(foreground, background);
+        if (Math.abs(ratio - token.contrastOnPaper) > 0.011) {
+          findings.push({
+            file: reader.file,
+            line: 1,
+            column: 1,
+            message: `print token ${key} records ${token.contrastOnPaper}:1 on paper but measures ${ratio}:1`,
+          });
+        }
+      }
+    }
+  }
+
+  const summary = `${themes.length} themes, ${roleNames.length} color roles, ${checkedPairs} contrast ratios verified against WCAG 2.1 AA, paper palette ${printRoles} tokens and ${printPairs} ratios verified`;
   reportResult('color-contrast', findings, summary);
 }
 

@@ -9,8 +9,8 @@
  * committed JSON is current with `--check`.
  *
  * The export is the whole token surface: scales, typography, motion, the four
- * color themes and the contrast contract. A consumer that reads this file
- * sees exactly what a component sees.
+ * color themes, the contrast contract and the paper palette. A consumer that
+ * reads this file sees exactly what a component sees.
  *
  * Exit codes:
  *   0  file written, or the file is already current in --check mode
@@ -35,6 +35,10 @@ import {
   MINIMUM_BODY_TEXT_PX,
   MOTION_DURATION_TOKENS,
   MOTION_EASING_TOKENS,
+  PRINT_CONTRAST_PAIRS,
+  PRINT_PAGE_MARGIN_MM,
+  PRINT_ROLE_MAP,
+  PRINT_TOKENS,
   RADIUS_TOKENS,
   SHADOW_TOKENS,
   SPACING_SCALE_TOKENS,
@@ -106,6 +110,13 @@ function buildExport(): Record<string, unknown> {
       high_contrast_text_minimum: HIGH_CONTRAST_TEXT_MINIMUM,
       pairs: CONTRAST_PAIRS,
     },
+    print: {
+      page_margin_mm: PRINT_PAGE_MARGIN_MM,
+      palette: PRINT_TOKENS,
+      role_map: PRINT_ROLE_MAP,
+      contrast_pairs: PRINT_CONTRAST_PAIRS,
+      note: 'The paper palette is fixed for every theme: printing does not follow the reader theme.',
+    },
   };
 }
 
@@ -130,6 +141,9 @@ function validateExport(exported: Record<string, unknown>): string[] {
     'color.roles': COLOR_ROLES,
     'color.values': COLOR_THEME_VALUES,
     'contrast.pairs': CONTRAST_PAIRS,
+    'print.palette': PRINT_TOKENS,
+    'print.role_map': PRINT_ROLE_MAP,
+    'print.contrast_pairs': PRINT_CONTRAST_PAIRS,
   };
   for (const [name, group] of Object.entries(groups)) {
     const size = Array.isArray(group) ? group.length : Object.keys(group as object).length;

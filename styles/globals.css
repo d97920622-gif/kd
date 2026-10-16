@@ -37,6 +37,18 @@
 
 @layer base {
   :root {
+    /*
+     * Print palette (config/design-tokens.ts PRINT_TOKENS). Paper, ink and
+     * rules do not change with the theme: they are what the printer puts on
+     * the sheet, and styles/print.css maps the semantic roles onto them when
+     * the page is printed. Declared here so the token check verifies them in
+     * both directions like every other value.
+     */
+    --print-paper: 0 0% 100%;
+    --print-ink: 0 0% 0%;
+    --print-muted-ink: 0 0% 33%;
+    --print-rule: 0 0% 45%;
+
     /* Semantic colors: light theme (config/design-tokens.ts light). */
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;

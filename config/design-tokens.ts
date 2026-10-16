@@ -274,6 +274,130 @@ export const LAYOUT_WIDTH_TOKENS: Record<string, LayoutWidthToken> = {
   },
 };
 
+/**
+ * A print token: the value a role takes on paper, and the reason it exists.
+ *
+ * Print is a fifth palette, and it is not a theme. A theme is chosen by the
+ * reader; paper is chosen by the printer's ink. A reader in dark mode who
+ * prints an invoice must get black on white, because a dark surface either
+ * wastes a cartridge or, on the office printer that ignores backgrounds,
+ * produces white text on white paper. So the print palette is fixed: ink,
+ * a lighter ink for secondary text, a rule for boundaries, and paper.
+ *
+ * These are declared as variables like every other value, which means
+ * styles/print.css maps the semantic roles onto them instead of naming a
+ * colour, and the token check verifies the declaration in
+ * styles/globals.css in both directions.
+ */
+export interface PrintToken {
+  /** CSS custom property the token is declared as. */
+  readonly variable: string;
+  /** HSL channel triple, the same form every other colour uses. */
+  readonly value: string;
+  /** What the token is for. */
+  readonly usage: string;
+  /** Contrast ratio against paper, from the pair table below. */
+  readonly contrastOnPaper: number;
+}
+
+/**
+ * The print palette. Contrast is measured against paper by
+ * scripts/checks/color-contrast.mjs, which reads PRINT_CONTRAST_PAIRS, so a
+ * value edited here alone fails npm run verify.
+ *
+ * Values are chosen for a laser printer rather than a screen: pure black
+ * rather than the near black the screen theme uses, because toner is not
+ * antialiased, and a mid grey for rules, because a light grey rule disappears
+ * on paper the way it never does on a backlit display.
+ */
+export const PRINT_TOKENS: Record<string, PrintToken> = {
+  paper: {
+    variable: '--print-paper',
+    value: '0 0% 100%',
+    usage: 'the sheet: page background in print, never a screen colour',
+    contrastOnPaper: 1,
+  },
+  ink: {
+    variable: '--print-ink',
+    value: '0 0% 0%',
+    usage: 'body and heading text on paper',
+    contrastOnPaper: 21,
+  },
+  mutedInk: {
+    variable: '--print-muted-ink',
+    value: '0 0% 33%',
+    usage: 'secondary text on paper: metadata, captions, table footnotes',
+    contrastOnPaper: 7.55,
+  },
+  rule: {
+    variable: '--print-rule',
+    value: '0 0% 45%',
+    usage: 'table rules, field outlines and dividers, above the 3:1 boundary rule',
+    contrastOnPaper: 4.76,
+  },
+};
+
+/** Keys the print palette must contain, used by the token check. */
+export const REQUIRED_PRINT_KEYS: readonly string[] = ['paper', 'ink', 'mutedInk', 'rule'];
+
+/**
+ * Semantic roles remapped for print, and the print token each one takes.
+ *
+ * The mapping is the whole trick of the print stylesheet: printing does not
+ * need a second set of components, it needs the same components with the
+ * semantic variables pointing at paper values. A role that is missing here
+ * keeps its screen colour, which is how a coloured badge ends up as a grey
+ * smudge, so the list is complete for the roles a document uses and the
+ * layout check verifies that print.css maps every one of them.
+ */
+export const PRINT_ROLE_MAP: Record<string, string> = {
+  background: '--print-paper',
+  card: '--print-paper',
+  popover: '--print-paper',
+  muted: '--print-paper',
+  secondary: '--print-paper',
+  accent: '--print-paper',
+  primary: '--print-paper',
+  success: '--print-paper',
+  warning: '--print-paper',
+  destructive: '--print-paper',
+  foreground: '--print-ink',
+  'card-foreground': '--print-ink',
+  'popover-foreground': '--print-ink',
+  'primary-foreground': '--print-ink',
+  'secondary-foreground': '--print-ink',
+  'accent-foreground': '--print-ink',
+  'muted-foreground': '--print-muted-ink',
+  'success-foreground': '--print-ink',
+  'warning-foreground': '--print-ink',
+  'destructive-foreground': '--print-ink',
+  border: '--print-rule',
+  input: '--print-rule',
+  ring: '--print-ink',
+};
+
+/**
+ * The contrast contract for paper, in the same shape as CONTRAST_PAIRS.
+ *
+ * `minimum` is the WCAG 2.1 AA threshold for the job the role does: body text
+ * at 4.5, a boundary that carries information at 3. Ink on paper is measured
+ * against the 7:1 AAA threshold on purpose, because paper has no backlight,
+ * catches shadows, and is often read by someone over fifty in a corridor.
+ */
+export const PRINT_CONTRAST_PAIRS: readonly {
+  readonly name: string;
+  readonly role: string;
+  readonly background: string;
+  readonly minimum: number;
+}[] = [
+  { name: 'ink/paper', role: 'ink', background: 'paper', minimum: 7 },
+  { name: 'muted-ink/paper', role: 'mutedInk', background: 'paper', minimum: 4.5 },
+  { name: 'rule/paper', role: 'rule', background: 'paper', minimum: 3 },
+];
+
+/** Paper margins, in millimetres, for the @page rule in styles/print.css. */
+export const PRINT_PAGE_MARGIN_MM = 16;
+
 /** Keys the layout width scale must contain, used by the token check. */
 export const REQUIRED_LAYOUT_WIDTH_KEYS: readonly string[] = [
   'menu',
@@ -1127,6 +1251,11 @@ export const TOKEN_GROUPS: readonly {
     name: 'color-theme',
     keyCount: COLOR_THEME_NAMES.length,
     requiredKeys: [...COLOR_THEME_NAMES],
+  },
+  {
+    name: 'print',
+    keyCount: Object.keys(PRINT_TOKENS).length,
+    requiredKeys: REQUIRED_PRINT_KEYS,
   },
   {
     name: 'contrast-pair',

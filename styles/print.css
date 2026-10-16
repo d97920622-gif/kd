@@ -1,0 +1,198 @@
+/* path: styles/print.css */
+/**
+ * The print base: what a page becomes on paper.
+ *
+ * Printing is the one medium this application does not control. There is no
+ * hover, no scroll, no second attempt, no dark mode, and no way to ask the
+ * page a question. A document that prints badly is not a cosmetic problem for
+ * an invoicing product: an invoice that comes out of the printer with a white
+ * total on a dark card is not an invoice, it is a page someone has to retype.
+ *
+ * Five rules, in the order they matter:
+ *
+ *   1. Paper is not a theme. A reader in dark mode who prints gets black on
+ *      white, because the sheet is white and the toner is black. The light and
+ *      dark palettes are both remapped onto the fixed paper palette from
+ *      config/design-tokens.ts, so no component needs a print variant.
+ *   2. Chrome does not print. Navigation, controls, dialogs, tooltips and
+ *      anything marked `data-print="hide"` are actions, and an action is
+ *      meaningless on paper. Blocks marked `data-print="only"` exist for paper
+ *      alone: the document header, the printed date, the signature line.
+ *   3. A row is not split across pages. Tables repeat their header, rows and
+ *      figures stay whole, and headings stay with the content they introduce.
+ *   4. Meaning survives without colour. A status badge whose meaning is only a
+ *      background colour prints as nothing at all, so elements marked
+ *      `data-print="outline"` keep a visible border in ink.
+ *   5. Links keep their underline, motion stops, shadows disappear.
+ *
+ * Every colour in this file is a token reference. There is no literal colour
+ * anywhere in it, which is the same rule the application code follows.
+ * scripts/checks/layout-shells.mjs enforces that and the rest of the contract.
+ */
+
+/**
+ * Screen-only hidden block. A block that exists for paper carries
+ * `data-print="only"` and is hidden here, on screen, by default.
+ *
+ * The print rule below uses the same selector inside the media query, so the
+ * two rules differ only by source order and the print one wins.
+ */
+:root [data-print='only'] {
+  display: none;
+}
+
+@media print {
+  /*
+   * Page setup. Margins are in millimetres because that is the unit the
+   * printer speaks; a @page rule cannot read a custom property, so the value
+   * is generated from PRINT_PAGE_MARGIN_MM in config/design-tokens.ts and the
+   * layout check reads the same constant out of this file.
+   */
+  @page {
+    margin: 16mm;
+  }
+
+  /*
+   * Paper palette. The selectors cover every way a theme can be in force: the
+   * base light block, the dark class, and the pinned theme scopes the
+   * component gallery uses, each with enough specificity to beat the block
+   * that declared the screen value.
+   */
+  :root,
+  .dark,
+  .theme-light,
+  .theme-dark,
+  .theme-hc-light,
+  .theme-hc-dark {
+    --background: var(--print-paper);
+    --card: var(--print-paper);
+    --popover: var(--print-paper);
+    --muted: var(--print-paper);
+    --secondary: var(--print-paper);
+    --accent: var(--print-paper);
+    --primary: var(--print-paper);
+    --success: var(--print-paper);
+    --warning: var(--print-paper);
+    --destructive: var(--print-paper);
+    --foreground: var(--print-ink);
+    --card-foreground: var(--print-ink);
+    --popover-foreground: var(--print-ink);
+    --primary-foreground: var(--print-ink);
+    --secondary-foreground: var(--print-ink);
+    --accent-foreground: var(--print-ink);
+    --muted-foreground: var(--print-muted-ink);
+    --success-foreground: var(--print-ink);
+    --warning-foreground: var(--print-ink);
+    --destructive-foreground: var(--print-ink);
+    --border: var(--print-rule);
+    --input: var(--print-rule);
+    --ring: var(--print-ink);
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background: hsl(var(--print-paper));
+    color: hsl(var(--print-ink));
+  }
+
+  /* Rule 2: chrome. */
+  nav,
+  button,
+  [role='dialog'],
+  [role='menu'],
+  [role='listbox'],
+  [role='tooltip'],
+  [data-radix-popper-content-wrapper],
+  [data-print='hide'] {
+    display: none;
+  }
+
+  :root [data-print='only'] {
+    display: block;
+  }
+
+  /* Rule 3: pages break between rows, never through them. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  li,
+  tr,
+  img,
+  svg,
+  figure,
+  table,
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* A table that is wider than the sheet must still be readable: the columns
+     shrink, and the header repeats on every page. */
+  table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /*
+   * Rule 4: meaning without colour. A badge, a pill or a status cell whose
+   * only signal is a fill prints as blank paper, so anything that carries
+   * meaning by colour opts into an ink outline.
+   */
+  [data-print='outline'] {
+    border: 1px solid hsl(var(--print-ink));
+  }
+
+  /*
+   * Rule 5: typography, links and motion.
+   *
+   * The base text size stays what the design system set, 16px, which the
+   * printer resolves to about 12pt: the size a business document is read at.
+   * Line height is opened slightly because paper has no backlight and a
+   * tighter measure is harder to track.
+   */
+  body {
+    font-size: var(--text-base);
+    line-height: 1.45;
+  }
+
+  a {
+    color: hsl(var(--print-ink));
+    text-decoration: underline;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-shadow: none;
+    animation: none;
+    transition: none;
+    text-shadow: none;
+  }
+
+  /* Print-friendly spacing for the surfaces that usually sit in a viewport:
+     the document should start at the top of the page, not centred in it. */
+  .print-flow {
+    display: block;
+    min-height: 0;
+    padding: 0;
+  }
+}
