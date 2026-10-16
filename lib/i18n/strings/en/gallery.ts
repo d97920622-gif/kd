@@ -105,4 +105,34 @@ export const gallery = {
   label_demo_value_email_invalid: 'client@',
   label_demo_value_company: 'Example Trading Ltd',
   label_demo_value_notes: 'Visible to the team that owns this record.',
+  label_section_motion: 'Motion and media',
+  label_motion_note:
+    'Every animation in this section is decoration over information that is already on the page: a press, an arrival, a staggered list, a celebration and a reserved drawing slot. Each one reads the motion preference, and the panes below pin that preference so the reduced path can be seen on any machine.',
+  label_motion_reduced_pane: 'Pinned to reduced motion',
+  label_motion_reduced_note:
+    'The same components inside a provider pinned to reduced motion. The stutter is gone, nothing is hidden and every sentence is still here: this is the pane to check that an animation never carried information no one else could get.',
+  label_demo_press: 'Press and hold this control',
+  label_demo_press_note:
+    'The control lifts a little under a pointer and settles while it is held. The press is a transform, so the layout around it never reflows.',
+  label_demo_reveal: 'Reveal the saved panel',
+  label_demo_reveal_title: 'The saved panel',
+  label_demo_reveal_body:
+    'This panel arrives because the button above was pressed, which is how a successful save reports itself. It swaps for its replacement rather than animating in place.',
+  label_demo_reveal_replace: 'Swap it for the next result',
+  label_demo_stagger_replay: 'Replay the staggered list',
+  label_demo_stagger_note:
+    'Rows arrive in a wave. The delay stops growing after six rows and is a fraction of the fast duration token, so a long list cannot crawl in and the wave cannot drift from the motion scale.',
+  label_demo_stagger_one: 'Connect the payout account',
+  label_demo_stagger_two: 'Invite the finance lead',
+  label_demo_stagger_three: 'Set the invoice numbering',
+  label_demo_stagger_four: 'Import the opening balances',
+  label_demo_stagger_five: 'Choose the reminder schedule',
+  label_demo_stagger_six: 'Review the first invoice',
+  label_demo_stagger_seven: 'Publish the client portal',
+  label_demo_celebrate: 'Play the celebration',
+  label_demo_celebrated: 'The celebration finished and removed its own layer.',
+  label_demo_animation_title: 'Reserved drawing slot',
+  label_demo_animation_note:
+    'The slot holds its box before a drawing arrives, so nothing below it moves when the drawing loads, and it hides itself from assistive technology because the sentence beside it carries the meaning.',
+  label_demo_animation_child: 'Sequence inside the slot',
 } as const;

@@ -23,6 +23,11 @@ It answers four questions about the component gallery:
    theme scope rules? Those rules live in @layer base, which Tailwind tree
    shakes by class name, so "the page has the scope class" is not the same
    question as "the scope applies".
+5. Is the motion layer present in every theme, and is the pane that pins
+   reduced motion *actually* reduced? Framer Motion reads the operating system
+   preference rather than a class, so the pinned pane is the only way this
+   machine can show the reduced path; the probe reads that pane rather than
+   trusting the pin.
 """
 import html
 import re
@@ -83,6 +88,25 @@ MARKERS = {
     'data-icon-button="true"': 'icon button, named and tooltipped',
     'data-live-region="polite"': 'live region for announcements after load',
     'wrap-anywhere': 'the 320 pixel wrap guard on a reference code',
+    # Sub-step 1.25: the motion layer. The animations themselves run only when a
+    # control is pressed, so what an inventory can prove is that every animated
+    # component is *present* in every theme - an animation that renders in light
+    # and not in high contrast is a token that stopped resolving - and that the
+    # reduced decision is written into the markup where a reviewer can read it.
+    'data-motion="animation-slot"': 'reserved drawing slot, still and animated',
+    'data-motion="stagger-list"': 'staggered list, capped wave',
+    'data-motion="press-feedback"': 'press and hover feedback wrapper',
+    'data-motion-reduced="true"': 'components reporting the reduced decision',
+    'data-motion-pane="reduced"': 'specimen pane pinned to reduced motion',
+    'motion-safe:active:scale-95': 'button press feedback, motion safe',
+    'motion-safe:focus-visible:animate-focus-pulse': 'focus pulse, one shot',
+}
+
+# Markers that belong to the document rather than to a theme scope. The page
+# transition is mounted by app/template.tsx above the gallery's scopes, so it
+# appears once on the page and cannot be counted per scope.
+PAGE_MARKERS = {
+    'data-motion="page-transition"': 'page transition mounted by the root template',
 }
 
 # scope class -> a declaration the stylesheet must carry for it
@@ -248,6 +272,23 @@ def stylesheet_for(page: str) -> str:
     return fetch(f'{BASE_URL}{hrefs[0]}')
 
 
+def reduced_pane(page: str) -> str:
+    """The specimen pane that pins the motion preference to reduce.
+
+    Its inner HTML is the only place in the product where the reduced path can be
+    judged on a machine whose operating system says nothing about motion, so the
+    pane is measured rather than described: everything inside it must report the
+    reduced decision, and the celebration must not render inside it at all.
+    """
+    start = page.find('data-motion-pane="reduced"')
+    if start < 0:
+        raise SystemExit('the reduced motion pane is missing from the rendered page')
+    end = page.find('data-gallery-scope=', start)
+    if end < 0:
+        end = len(page)
+    return page[start:end]
+
+
 def main() -> int:
     page = fetch(PAGE_URL)
     stylesheet = stylesheet_for(page)
@@ -284,6 +325,33 @@ def main() -> int:
                 )
 
     print()
+    print('page level motion markers:')
+    for marker, description in PAGE_MARKERS.items():
+        count = page.count(marker)
+        print(f'  {description[:52]:54} {count}')
+        if count == 0:
+            findings.append(f'{description} is missing from the page')
+
+    pane = reduced_pane(page)
+    reduced_true = pane.count('data-motion-reduced="true"')
+    reduced_false = pane.count('data-motion-reduced="false"')
+    print()
+    print('reduced motion pane (preference pinned, not inherited):')
+    print(f'  components reporting reduced motion: {reduced_true}')
+    print(f'  components reporting full motion:    {reduced_false}')
+    print(f'  celebrations rendered inside it:     {pane.count("data-motion=" + chr(34) + "confetti" + chr(34))}')
+    if reduced_true < 2:
+        findings.append('the reduced pane does not report the reduced decision on its components')
+    if reduced_false > 0:
+        findings.append(
+            'a component inside the reduced pane reports full motion: the pin is not reaching it'
+        )
+    if 'data-motion="confetti"' in pane:
+        findings.append(
+            'the celebration rendered inside the reduced pane: a full screen layer a reader did not ask for'
+        )
+
+    print()
     print('stylesheet scope rules the browser loads:')
     for scope, declaration in SCOPE_DECLARATIONS.items():
         present = f'.{scope}' in stylesheet and declaration in stylesheet
@@ -306,6 +374,7 @@ def main() -> int:
 
     print()
     print(f'markers checked per scope: {len(MARKERS)}')
+    print(f'page level markers checked: {len(PAGE_MARKERS)}')
     print(f'findings: {len(findings)}')
     for finding in findings:
         print(f'  FAIL {finding}')

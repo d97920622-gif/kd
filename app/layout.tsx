@@ -1,6 +1,7 @@
 // path: app/layout.tsx
 import { type Metadata } from 'next';
 
+import { MotionProvider } from '@/components/motion/motion-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { t } from '@/lib/i18n';
 
@@ -42,6 +43,13 @@ import '../styles/print.css';
  * One tooltip provider wraps the whole application. A tooltip has to have a
  * provider above it, and mounting one per page would give each page its own
  * delay and its own layer, which is how two tooltips end up visible at once.
+ *
+ * One motion provider wraps it too (sub-step 1.25). Motion is a reading
+ * preference before it is a design decision: the reader's operating system
+ * already says whether they want movement, and one provider above every route
+ * is what lets each animated component ask once instead of subscribing to the
+ * media query itself. It renders no element of its own beyond Framer Motion's
+ * context, so the document structure is unchanged.
  */
 export const metadata: Metadata = {
   title: {
@@ -59,7 +67,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-background font-sans text-base text-foreground antialiased">
-        <TooltipProvider>{children}</TooltipProvider>
+        <MotionProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -14,6 +14,23 @@ import { cn } from '@/lib/utils/cn';
  * size and no arbitrary value, so the button is complete in light, dark and
  * both high contrast themes without a single conditional style.
  *
+ * Three motion decisions live on the base class (sub-step 1.25):
+ *
+ *   - **Hover and press are both stated.** A pointer that rests on a button
+ *     gets the hover background from its variant, and a press shrinks it by the
+ *     Tailwind scale step. A press is the one piece of feedback a keyboard user
+ *     never sees, which is why the press is never the *only* feedback: focus
+ *     and disabled states are visible on their own.
+ *   - **Both are `motion-safe`.** `active:scale-95` is a transform, so a reader
+ *     who asked for less motion is given the press without the movement rather
+ *     than a snap the stylesheet only shortens. The `motion-safe` variant is
+ *     the class-level form of the same promise the duration tokens make.
+ *   - **Focus pulses once.** `focus-visible:animate-focus-pulse` runs the
+ *     one-shot pulse from tailwind.config.ts: the global `:focus-visible`
+ *     outline slides from a wider offset into place, never thinning and never
+ *     disappearing. The indicator is the outline; the pulse is only its
+ *     approach.
+ *
  * Touch targets: default (44px tall) and lg (48px tall) meet the 44x44
  * minimum, and icon is 44x44. The sm step (36px) exists for dense desktop
  * toolbars driven by a pointer; a dense surface that must stay touch safe
@@ -29,7 +46,7 @@ import { cn } from '@/lib/utils/cn';
  *   </Button>
  */
 export const buttonVariants = cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-fast ease-standard disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition duration-fast ease-standard motion-safe:active:scale-95 motion-safe:focus-visible:animate-focus-pulse disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {

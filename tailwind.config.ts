@@ -136,6 +136,27 @@ const config = {
         },
       },
       keyframes: {
+        /*
+         * The focus pulse (FEATURE_LIST A3.37). One expansion of a ring drawn in
+         * the focus token colour, on the element that has just received
+         * keyboard focus, and nothing else: it does not move the element, does
+         * not change its size and does not shift the layout, so a reader who
+         * does not perceive motion still sees the same focus ring the global
+         * `:focus-visible` rule paints.
+         *
+         * The pulse animates `outline-offset` rather than widening the outline
+         * itself. The outline is the focus indicator, and animating its width
+         * would make the indicator appear to arrive late; its distance from the
+         * control is a property that can move without the ring ever being
+         * thinner than the mandated two pixels, and it cannot affect layout.
+         * The end value is the offset the global `:focus-visible` rule already
+         * sets, so a reader with motion allowed sees the ring slide into the
+         * position a reader without it starts from.
+         */
+        'focus-pulse': {
+          from: { outlineOffset: '8px' },
+          to: { outlineOffset: '2px' },
+        },
         'accordion-down': {
           from: { height: '0' },
           to: { height: 'var(--radix-accordion-content-height)' },
@@ -146,6 +167,10 @@ const config = {
         },
       },
       animation: {
+        // The motion tokens are read through their variables, so a reader with
+        // reduced motion gets the zero-duration value the stylesheet sets
+        // rather than a second, longer animation the config declares.
+        'focus-pulse': 'focus-pulse var(--duration-slow) var(--ease-standard) 1',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
