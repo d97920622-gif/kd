@@ -102,6 +102,28 @@
       }
     }
   },
+  "layout_width": {
+    "menu": {
+      "value": "10rem",
+      "usage": "minimum width of a dropdown menu, so two short items are not cramped"
+    },
+    "popover": {
+      "value": "20rem",
+      "usage": "a floating popover: a date picker or a filter panel with controls inside"
+    },
+    "tooltip": {
+      "value": "16rem",
+      "usage": "maximum tooltip width before the hint wraps to a second line"
+    },
+    "dialog": {
+      "value": "32rem",
+      "usage": "maximum dialog panel width, a form or a confirmation at a readable measure"
+    },
+    "sheet": {
+      "value": "24rem",
+      "usage": "maximum width of an edge panel, wide enough for a field and its label"
+    }
+  },
   "radius": {
     "none": {
       "value": "0px",

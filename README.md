@@ -103,16 +103,26 @@ comes from the design tokens, so light, dark, high contrast light and high
 contrast dark are complete without a conditional style, and `npm run verify`
 fails on a raw color, a raw size or an arbitrary value.
 
-| Primitive   | File                            | Notes                                                                                       |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| Button      | `components/ui/button.tsx`      | Variants default, destructive, outline, secondary, ghost, link; sizes sm, default, lg, icon |
-| Input       | `components/ui/input.tsx`       | 44px tall, 16px text so iOS never zooms on focus, destructive boundary when invalid         |
-| Textarea    | `components/ui/textarea.tsx`    | Starts at the 64px token, vertical resize only                                              |
-| Label       | `components/ui/label.tsx`       | Radix association, dims with a disabled control through the peer variants                   |
-| Checkbox    | `components/ui/checkbox.tsx`    | Role checkbox, checked and indeterminate states, 44x44 pointer target                       |
-| Radio group | `components/ui/radio-group.tsx` | Roving tabindex and arrow key navigation, 44x44 pointer target                              |
-| Select      | `components/ui/select.tsx`      | Combobox with listbox, keyboard and type-ahead navigation, hidden native select for forms   |
-| Switch      | `components/ui/switch.tsx`      | Role switch, thumb travel of one token step, 44px vertical pointer target                   |
+| Primitive   | File                              | Notes                                                                                                  |
+| ----------- | --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Button      | `components/ui/button.tsx`        | Variants default, destructive, outline, secondary, ghost, link; sizes sm, default, lg, icon            |
+| Input       | `components/ui/input.tsx`         | 44px tall, 16px text so iOS never zooms on focus, destructive boundary when invalid                    |
+| Textarea    | `components/ui/textarea.tsx`      | Starts at the 64px token, vertical resize only                                                         |
+| Label       | `components/ui/label.tsx`         | Radix association, dims with a disabled control through the peer variants                              |
+| Checkbox    | `components/ui/checkbox.tsx`      | Role checkbox, checked and indeterminate states, 44x44 pointer target                                  |
+| Radio group | `components/ui/radio-group.tsx`   | Roving tabindex and arrow key navigation, 44x44 pointer target                                         |
+| Select      | `components/ui/select.tsx`        | Combobox with listbox, keyboard and type-ahead navigation, hidden native select for forms              |
+| Switch      | `components/ui/switch.tsx`        | Role switch, thumb travel of one token step, 44px vertical pointer target                              |
+| Dialog      | `components/ui/dialog.tsx`        | Modal surface: focus moves in and returns to the trigger, page behind hidden from assistive technology |
+| Sheet       | `components/ui/sheet.tsx`         | Edge panel built on the dialog: top, bottom, left and right                                            |
+| Popover     | `components/ui/popover.tsx`       | Interactive surface anchored to its trigger, opened by pointer or keyboard, never by hover             |
+| Dropdown    | `components/ui/dropdown-menu.tsx` | Menu contract: arrow keys, type-ahead, Escape, destructive items separated, submenus                   |
+| Tabs        | `components/ui/tabs.tsx`          | Arrow navigation, one visible panel, the tab list scrolls instead of wrapping at 320px                 |
+| Tooltip     | `components/ui/tooltip.tsx`       | Hint on hover and on focus, never the only copy of a requirement, never an accessible name             |
+| Toast       | `components/ui/toast.tsx`         | Live-region toast; queue and viewport wiring in `lib/hooks/use-toast.tsx`                              |
+| Table       | `components/ui/table.tsx`         | Real table elements with scoped headers, a caption and a horizontal scroll wrapper                     |
+| Skeleton    | `components/ui/skeleton.tsx`      | Shape of pending content, hidden from assistive technology, pulse stops under reduced motion           |
+| Badge       | `components/ui/badge.tsx`         | Status label using the semantic role pairs, never the only signal of a state                           |
 
 Three rules the primitives follow, each one enforced rather than promised:
 
@@ -123,7 +133,12 @@ Three rules the primitives follow, each one enforced rather than promised:
 2. **Focus is never removed.** No primitive sets `outline-none`; the focus
    indicator comes from the global `:focus-visible` rule, and the contrast
    check proves it reaches 3:1 against both the page and the card surface in
-   every theme.
+   every theme. Overlay primitives move focus into the surface when they open
+   and return it to the trigger when they close, which is verified by
+   rendering them in a DOM rather than by reading the source. Panel sizes are
+   tokens too: `LAYOUT_WIDTH_TOKENS` defines the menu, popover, tooltip,
+   dialog and sheet widths, because the width utilities come from the spacing
+   scale and an off-scale step such as `w-72` does not exist in this project.
 3. **Display text comes from the catalogue.** A part of a control that has no
    visible text, such as the icon-only scroll button of a select, carries an
    accessible name from `lib/i18n/strings/en/ui.ts`. A literal string in an

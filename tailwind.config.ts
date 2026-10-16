@@ -7,9 +7,12 @@ import {
   FONT_FAMILY_CLASS_MAP,
   FONT_SIZE_CLASS_MAP,
   FONT_WEIGHT_CLASS_MAP,
+  MAX_WIDTH_CLASS_MAP,
+  MIN_WIDTH_CLASS_MAP,
   RADIUS_CLASS_MAP,
   SHADOW_CLASS_MAP,
   SPACING_TOKENS,
+  WIDTH_CLASS_MAP,
   Z_INDEX_CLASS_MAP,
 } from './config/design-tokens.ts';
 
@@ -72,6 +75,11 @@ const config = {
     transitionDuration: DURATION_CLASS_MAP,
     transitionTimingFunction: EASING_CLASS_MAP,
     extend: {
+      // Panel widths keep the Tailwind defaults (fractions, auto, full) and
+      // add the named surfaces from LAYOUT_WIDTH_TOKENS on top.
+      width: WIDTH_CLASS_MAP,
+      minWidth: MIN_WIDTH_CLASS_MAP,
+      maxWidth: MAX_WIDTH_CLASS_MAP,
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

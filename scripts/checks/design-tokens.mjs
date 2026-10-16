@@ -92,6 +92,9 @@ const EXPECTED_TAILWIND_SCALES = [
   { property: 'fontWeight', identifier: 'FONT_WEIGHT_CLASS_MAP' },
   { property: 'transitionDuration', identifier: 'DURATION_CLASS_MAP' },
   { property: 'transitionTimingFunction', identifier: 'EASING_CLASS_MAP' },
+  { property: 'width', identifier: 'WIDTH_CLASS_MAP' },
+  { property: 'minWidth', identifier: 'MIN_WIDTH_CLASS_MAP' },
+  { property: 'maxWidth', identifier: 'MAX_WIDTH_CLASS_MAP' },
 ];
 
 const STYLESHEET = 'styles/globals.css';
@@ -978,6 +981,66 @@ function checkMotion(reader) {
  * token module does not define, and the reduced motion and forced colors
  * blocks must contain the rules that make them real.
  */
+/**
+ * Layout width integrity: the panel widths the primitives use must exist, and
+ * every one of them must be a length with a unit. A width token without a
+ * unit silently becomes zero pixels in CSS.
+ */
+function checkLayoutWidths(reader) {
+  const findings = [];
+  const widths = reader.read('LAYOUT_WIDTH_TOKENS');
+  const requiredKeys = reader.read('REQUIRED_LAYOUT_WIDTH_KEYS');
+  if (!isPlainObject(widths)) {
+    findings.push({
+      file: TOKEN_FILE,
+      line: 1,
+      column: 1,
+      message: 'LAYOUT_WIDTH_TOKENS was not found',
+    });
+    return findings;
+  }
+  if (Array.isArray(requiredKeys)) {
+    for (const key of requiredKeys) {
+      if (!Object.prototype.hasOwnProperty.call(widths, key)) {
+        findings.push({
+          file: TOKEN_FILE,
+          line: 1,
+          column: 1,
+          message: `the layout width scale is missing the ${key} token`,
+        });
+      }
+    }
+  }
+  for (const [key, token] of Object.entries(widths)) {
+    if (!isPlainObject(token) || typeof token.value !== 'string') {
+      findings.push({
+        file: TOKEN_FILE,
+        line: 1,
+        column: 1,
+        message: `layout width ${key} must declare a string value`,
+      });
+      continue;
+    }
+    if (!/^(\d+(\.\d+)?(rem|px|ch|em)|calc\(.+)$/.test(token.value.trim())) {
+      findings.push({
+        file: TOKEN_FILE,
+        line: 1,
+        column: 1,
+        message: `layout width ${key} must be a length with a unit, found ${JSON.stringify(token.value)}`,
+      });
+    }
+    if (typeof token.usage !== 'string' || token.usage.trim().length === 0) {
+      findings.push({
+        file: TOKEN_FILE,
+        line: 1,
+        column: 1,
+        message: `layout width ${key} must document its usage`,
+      });
+    }
+  }
+  return findings;
+}
+
 function checkStylesheetVariables() {
   const findings = [];
   const text = safeRead(STYLESHEET);
@@ -1301,6 +1364,7 @@ function main() {
   findings.push(...checkStylesheetVariables());
   findings.push(...checkTokenImports(files));
   findings.push(...checkTypography(createTokenReader()));
+  findings.push(...checkLayoutWidths(createTokenReader()));
   findings.push(...checkMotion(createTokenReader()));
 
   const configText = safeRead(TAILWIND_CONFIG);

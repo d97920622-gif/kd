@@ -31,6 +31,7 @@ import {
   FONT_SIZE_TOKENS,
   FONT_WEIGHT_TOKENS,
   HIGH_CONTRAST_TEXT_MINIMUM,
+  LAYOUT_WIDTH_TOKENS,
   MINIMUM_BODY_TEXT_PX,
   MOTION_DURATION_TOKENS,
   MOTION_EASING_TOKENS,
@@ -72,6 +73,7 @@ function buildExport(): Record<string, unknown> {
       scale: SPACING_SCALE_TOKENS,
       support: SPACING_SUPPORT_TOKENS,
     },
+    layout_width: LAYOUT_WIDTH_TOKENS,
     radius: RADIUS_TOKENS,
     shadow: SHADOW_TOKENS,
     z_index: Z_INDEX_TOKENS,
@@ -116,6 +118,7 @@ function validateExport(exported: Record<string, unknown>): string[] {
   const groups: Record<string, unknown> = {
     'spacing.scale': SPACING_SCALE_TOKENS,
     'spacing.support': SPACING_SUPPORT_TOKENS,
+    layout_width: LAYOUT_WIDTH_TOKENS,
     radius: RADIUS_TOKENS,
     shadow: SHADOW_TOKENS,
     z_index: Z_INDEX_TOKENS,

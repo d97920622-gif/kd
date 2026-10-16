@@ -16,14 +16,18 @@
  *      z-modal). Arbitrary values such as p-[13px] are rejected by the check.
  *   2. A new value is never invented in a component. If a scale needs a new
  *      step, it is added here with a documented reason.
- *   3. Color lives here too: COLOR_THEME_VALUES holds the four themes
+ *   3. A surface that needs one specific width uses a LAYOUT_WIDTH_TOKENS
+ *      entry (menu, popover, tooltip, dialog, sheet). An off-scale width
+ *      step, such as w-72, does not exist in this project because the width
+ *      utilities come from the spacing scale.
+ *   4. Color lives here too: COLOR_THEME_VALUES holds the four themes
  *      (light, dark, high-contrast light, high-contrast dark) and
  *      CONTRAST_PAIRS is the WCAG contract every theme must satisfy.
- *   4. styles/globals.css declares the variables and nothing else; the values
+ *   5. styles/globals.css declares the variables and nothing else; the values
  *      there must equal the values here. scripts/checks/design-tokens.mjs and
  *      scripts/checks/color-contrast.mjs enforce both directions, so a raw
  *      hex value or a drifting CSS block fails npm run verify.
- *   5. config/design-tokens.json is generated from this file by
+ *   6. config/design-tokens.json is generated from this file by
  *      npm run tokens:export for design tooling; verify fails when it is
  *      stale. Never edit the JSON by hand.
  */
@@ -226,6 +230,79 @@ function mapZValues(): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, token] of Object.entries(Z_INDEX_TOKENS)) {
     result[key] = String(token.value);
+  }
+  return result;
+}
+
+/** A layout width token: the CSS value and the reason it exists. */
+export interface LayoutWidthToken {
+  readonly value: string;
+  readonly usage: string;
+}
+
+/**
+ * Layout widths for surfaces that must not size themselves from their
+ * content.
+ *
+ * These exist because width utilities in this project come from the spacing
+ * scale, and the spacing scale deliberately has no 288px or 320px step: a
+ * panel that needs one specific width gets a named token here instead of a
+ * raw value or an off-scale step. Every entry is a maximum or a minimum
+ * unless the surface is a floating panel, which has no content to measure
+ * before it is shown.
+ */
+export const LAYOUT_WIDTH_TOKENS: Record<string, LayoutWidthToken> = {
+  menu: {
+    value: '10rem',
+    usage: 'minimum width of a dropdown menu, so two short items are not cramped',
+  },
+  popover: {
+    value: '20rem',
+    usage: 'a floating popover: a date picker or a filter panel with controls inside',
+  },
+  tooltip: {
+    value: '16rem',
+    usage: 'maximum tooltip width before the hint wraps to a second line',
+  },
+  dialog: {
+    value: '32rem',
+    usage: 'maximum dialog panel width, a form or a confirmation at a readable measure',
+  },
+  sheet: {
+    value: '24rem',
+    usage: 'maximum width of an edge panel, wide enough for a field and its label',
+  },
+};
+
+/** Keys the layout width scale must contain, used by the token check. */
+export const REQUIRED_LAYOUT_WIDTH_KEYS: readonly string[] = [
+  'menu',
+  'popover',
+  'tooltip',
+  'dialog',
+  'sheet',
+];
+
+/** Tailwind width map: floating panels that need a fixed width. */
+export const WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths(['popover']);
+
+/** Tailwind minWidth map: surfaces that need a floor but may grow. */
+export const MIN_WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths(['menu']);
+
+/** Tailwind maxWidth map: surfaces that need a ceiling on a wide screen. */
+export const MAX_WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths([
+  'tooltip',
+  'dialog',
+  'sheet',
+]);
+
+function mapLayoutWidths(keys: readonly string[]): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const key of keys) {
+    const token = LAYOUT_WIDTH_TOKENS[key];
+    if (token !== undefined) {
+      result[key] = token.value;
+    }
   }
   return result;
 }
@@ -925,6 +1002,11 @@ export const TOKEN_GROUPS: readonly {
     name: 'z-index',
     keyCount: Object.keys(Z_INDEX_TOKENS).length,
     requiredKeys: REQUIRED_Z_LAYERS,
+  },
+  {
+    name: 'layout-width',
+    keyCount: Object.keys(LAYOUT_WIDTH_TOKENS).length,
+    requiredKeys: REQUIRED_LAYOUT_WIDTH_KEYS,
   },
   {
     name: 'font-size',
