@@ -25,8 +25,8 @@ What it answers:
    environment being probed rather than by equality.
 4. That a static asset carries the matrix too, because a header that covers
    documents but not the files they load is a header with a hole in it.
-5. That the development server is still reachable through the preview proxy
-   host, which is the surface the framing exception exists for.
+5. That the permissions policy refuses by default: the directives the matrix
+   refuses are refused, and the two it grants are granted, on the same response.
 
 It reads the headers from a plain HTTP response with urllib, so nothing about
 the check depends on a browser.

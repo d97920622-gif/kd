@@ -71,6 +71,7 @@ const ENTRIES = [
     command: 'node',
     args: ['scripts/checks/platform-plumbing.mjs'],
   },
+  { name: 'check:governance', command: 'node', args: ['scripts/checks/governance.mjs'] },
 ];
 
 const SUMMARY_PATTERN = /(PASS \(|FAIL \(|code style|All matched files)/i;

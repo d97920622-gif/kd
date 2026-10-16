@@ -1,0 +1,66 @@
+KD SOLUTION IT PROPRIETARY LICENSE
+
+Copyright (c) 2026 KD SOLUTION IT. All rights reserved.
+
+This repository, including its source code, database schema and migrations,
+design system, documentation, brand assets and configuration, is the
+confidential and proprietary property of KD SOLUTION IT ("the Owner").
+
+1. NO LICENSE GRANTED
+
+No licence, express or implied, is granted to any person or organisation to use,
+copy, modify, merge, publish, distribute, sublicense, sell or otherwise exploit
+any part of this repository, except as set out in section 2.
+
+2. PERMITTED USE
+
+The Owner, and the people the Owner authorises in writing, may use this
+repository to build, test, operate and maintain the KD SOLUTION IT platform,
+including deployments operated for the Owner's customers.
+
+3. RESTRICTIONS
+
+Except as permitted in section 2, you must not: copy or reproduce any part of
+this repository; modify it or create derivative works from it; distribute,
+publish, sublicense or sell it or any part of it; make it available to any third
+party, including by hosting it as a service; or reverse engineer, decompile or
+disassemble it, except where such an act is expressly permitted by applicable
+law.
+
+4. CONFIDENTIALITY
+
+This repository is confidential information. You must keep it confidential, use
+it only as permitted above, and report any unauthorised access or disclosure to
+the Owner.
+
+5. THIRD-PARTY COMPONENTS
+
+Third-party components referenced by this repository, as declared in
+package.json, remain the property of their respective owners and are governed by
+their own licences. Nothing in this licence grants rights to those components,
+and nothing in it reduces the obligations their licences impose.
+
+6. NO WARRANTY
+
+This repository is provided as it is, without warranty of any kind, express or
+implied, including any warranty of merchantability, fitness for a particular
+purpose or non-infringement. The Owner does not warrant that it is free of
+defects or that it will operate without interruption.
+
+7. LIMITATION OF LIABILITY
+
+To the maximum extent permitted by law, the Owner is not liable for any direct,
+indirect, incidental, special, consequential or exemplary damages arising from
+the use of, or the inability to use, this repository, however caused and
+regardless of the theory of liability.
+
+8. TERMINATION
+
+Any permission granted under section 2 terminates automatically if you breach
+this licence. On termination you must stop using this repository and destroy
+every copy of it in your control.
+
+9. PERMISSIONS BEYOND THIS LICENCE
+
+Any distribution, sublicensing or other use outside section 2 is granted only in
+writing by the Owner, and only the Owner can grant it.

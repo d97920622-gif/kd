@@ -1,0 +1,152 @@
+# path: .github/workflows/ci.yml
+# The continuous integration gate for KD SOLUTION IT (sub-step 1.31).
+#
+# One workflow, three jobs, one rule: the gate that runs here is the gate a
+# developer runs locally. `verify` executes `npm run verify`, which is the same
+# aggregate floor the pre-commit hook runs, so a rule cannot be green on a
+# laptop and absent here. `build` compiles the production bundle, asserts that
+# the output still carries the crawler files the platform serves, serves that
+# build and probes it over HTTP. `ci` depends on both and exists so branch
+# protection has one stable required status check to name
+# (`docs/PLAN/07_BRANCH_AND_GIT_WORKFLOW.md` section 2).
+#
+# What is deliberately not here yet: the security workflow with SAST, DAST, SCA
+# and secret scanning, and the deploy workflow with migrations and rollback.
+# Step 16.3 owns both, because they need a deployment target and a database.
+#
+# Three rules protect the workflow itself:
+#   - nothing interpolates a secret into a shell line, because nothing here
+#     needs one: the build job runs against credentials that are not valid
+#     anywhere, and the probes read a local server;
+#   - no expression is written inside a `run:` script. Event fields are
+#     attacker-controlled text on a pull request, and a value that reaches a
+#     shell line is a command a contributor chooses. Values the script needs
+#     are passed through `env:` instead;
+#   - the jobs run the package scripts (`npm run verify`, `npm run build`,
+#     `npm run start`) rather than a hand-written list of tools, so CI cannot
+#     drift from what the manifest defines as the build and the gate.
+
+name: ci
+
+on:
+  push:
+    branches:
+      - integration
+      - main
+      - 'arena/**'
+  pull_request:
+    branches:
+      - integration
+      - main
+  workflow_dispatch:
+
+# Read-only by default. A gate that checks out the repository, builds it and
+# probes it needs no token scope beyond reading it.
+permissions:
+  contents: read
+
+# A branch pushed twice in a minute is checked once: the newer run cancels the
+# older one, so the verdict that survives belongs to the newest commit.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run the verification floor
+        run: npm run verify
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # The build and the probes need a complete environment, and none of these
+    # values is a credential: the URL is reserved for documentation and the two
+    # keys are long enough to satisfy the schema and invalid everywhere else.
+    # Real values live in the deployment environment and never in this file.
+    #
+    # NODE_ENV is deliberately absent here and set on the serving step instead.
+    # A job-wide NODE_ENV=production would make `npm ci` install production
+    # dependencies only, and the build would then fail on a missing compiler.
+    env:
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3020
+      SUPABASE_URL: https://ci.supabase.invalid
+      SUPABASE_ANON_KEY: ci-anon-key-not-a-credential
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key-not-a-credential
+      LOG_LEVEL: info
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build the production bundle
+        run: |
+          npm run build 2>&1 | tee /tmp/ci-build.log
+          if grep -q 'dynamicIO' /tmp/ci-build.log; then
+            echo 'the build warns about a deprecated configuration'
+            exit 1
+          fi
+      - name: Assert the build carries the platform files
+        run: |
+          test -f .next/BUILD_ID
+          test -f .next/server/app/robots.txt.body
+          test -f .next/server/app/sitemap.xml.body
+          test -f .next/server/app/opengraph-image.body
+      - name: Serve the build and probe it
+        # The production environment is set here and not at job level: the
+        # server must boot the validation, the policy and the headers a
+        # deployment boots, and the install above must not have been a
+        # production-only install.
+        env:
+          NODE_ENV: production
+        run: |
+          npm run start -- -p 3020 > /tmp/ci-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -sf -o /dev/null http://127.0.0.1:3020/; then
+              break
+            fi
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:3020/
+          python3 docs/EVIDENCE/step-01/platform-probe.py \
+            --base http://127.0.0.1:3020 --environment production \
+            --server-log /tmp/ci-server.log
+          python3 docs/EVIDENCE/step-01/http-hardening-probe.py 3020 production
+
+  ci:
+    name: ci
+    # The aggregate check: it runs even when a job failed, so a red run cannot
+    # leave the required status check unreported.
+    if: always()
+    needs:
+      - verify
+      - build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require both jobs to have passed
+        env:
+          VERIFY_RESULT: ${{ needs.verify.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          echo "verify=$VERIFY_RESULT build=$BUILD_RESULT"
+          test "$VERIFY_RESULT" = 'success'
+          test "$BUILD_RESULT" = 'success'

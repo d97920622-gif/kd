@@ -1,0 +1,48 @@
+# path: .github/CODEOWNERS
+#
+# Review ownership for KD SOLUTION IT (sub-step 1.31).
+#
+# Git reads this file top to bottom and the LAST matching pattern wins, so the
+# default rule comes first and the narrow rules come after it. The owner named
+# here is the account that owns the repository; a team handle would require an
+# organisation, and this repository has one owner
+# (`docs/PLAN/07_BRANCH_AND_GIT_WORKFLOW.md`, section 2).
+#
+# The file is a policy list rather than a copy of the directory tree: it names
+# the surfaces where a change means something more than a change. Each is here
+# for a reason written beside it, and a surface that stops being sensitive
+# should leave this file in the same commit that stops making it sensitive.
+
+* @d97920622-gif
+
+# The gate itself. A change to the workflow, the review rules or the licence
+# changes what "verified" and "permitted" mean for every later commit.
+/.github/ @d97920622-gif
+/LICENSE @d97920622-gif
+/package.json @d97920622-gif
+/package-lock.json @d97920622-gif
+/tsconfig.json @d97920622-gif
+
+# The request layer and the response contract: the nonce middleware, the
+# start-up refusal, the header matrix and the Next.js configuration that
+# applies it.
+/middleware.ts @d97920622-gif
+/instrumentation.ts @d97920622-gif
+/instrumentation-node.ts @d97920622-gif
+/next.config.js @d97920622-gif
+/config/security-headers.ts @d97920622-gif
+
+# The security primitives and the environment schema. The schema is where the
+# server-only keys are declared, which makes it the file that decides whether a
+# secret can reach a bundle.
+/lib/security/ @d97920622-gif
+/lib/env/ @d97920622-gif
+
+# The owner-supplied specification and the plan: read-only input. An
+# implementation is changed to fit the plan, never the other way round.
+/MASTER_PROMPT.md @d97920622-gif
+/FEATURE_LIST.md @d97920622-gif
+/docs/PLAN/ @d97920622-gif
+
+# The handoffs: the state a later chat resumes from.
+/docs/handoffs/ @d97920622-gif
