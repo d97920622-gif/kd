@@ -57,6 +57,16 @@ export interface SidebarNavProps {
   readonly header?: React.ReactNode;
   /** Rendered below the list, pinned: settings, help, version. */
   readonly footer?: React.ReactNode;
+  /**
+   * Whether this component declares the navigation landmark.
+   *
+   * True by default, because a rail standing on its own page owes the reader a
+   * named landmark. False when the frame around it already declares one: the
+   * shell's sidebar slot wraps its content in a `<nav>` with its own accessible
+   * name (sub-step 1.20), and a rail that declared a second one would hand a
+   * screen reader two nested navigation regions with the same content.
+   */
+  readonly ownsLandmark?: boolean;
   readonly className?: string;
 }
 
@@ -66,19 +76,21 @@ export function SidebarNav({
   labelKey = 'common.label_navigation_main',
   header,
   footer,
+  ownsLandmark = true,
   className,
-}: SidebarNavProps): React.ReactElement {
+}: SidebarNavProps): React.ReactElement | null {
   const resolved = sections.map((section) => resolveNavSection(section, activeHref));
-
-  return (
-    <nav
-      aria-label={t(labelKey)}
-      data-layout="sidebar"
-      className={cn(
-        'hidden w-sidebar shrink-0 border-r border-border bg-card text-card-foreground md:flex md:flex-col',
-        className,
-      )}
-    >
+  // Nothing to show is not an empty rail. A rail with no entries and no header
+  // is a landmark a screen reader announces and the reader has to walk into to
+  // find empty, so the component renders nothing at all - which is also what a
+  // frame should render when the map has nothing for this reader, and what the
+  // development specimen measures.
+  const hasEntries = resolved.some((section) => section.entries.length > 0);
+  if (!hasEntries && header === undefined && footer === undefined) {
+    return null;
+  }
+  const content = (
+    <>
       {header === undefined ? null : (
         <div className="flex min-h-touch items-center gap-3 border-b border-border px-4 py-3">
           {header}
@@ -107,6 +119,25 @@ export function SidebarNav({
       </div>
 
       {footer === undefined ? null : <div className="border-t border-border p-3">{footer}</div>}
+    </>
+  );
+
+  const surfaceClassName = cn(
+    'hidden w-sidebar shrink-0 border-r border-border bg-card text-card-foreground md:flex md:flex-col',
+    className,
+  );
+
+  if (!ownsLandmark) {
+    return (
+      <div data-layout="sidebar" className={surfaceClassName}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <nav aria-label={t(labelKey)} data-layout="sidebar" className={surfaceClassName}>
+      {content}
     </nav>
   );
 }

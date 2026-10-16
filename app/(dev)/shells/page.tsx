@@ -1,18 +1,17 @@
 // path: app/(dev)/shells/page.tsx
-import { FileText, PanelLeft, Wallet } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import { AdminShell } from '@/components/layout/admin-shell';
 import { AuthShell } from '@/components/layout/auth-shell';
 import { BottomNavigation } from '@/components/layout/bottom-navigation';
-import { Breadcrumbs, type BreadcrumbItem } from '@/components/layout/breadcrumbs';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { ClientPortalShell } from '@/components/layout/client-portal-shell';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { MobileDrawer } from '@/components/layout/mobile-drawer';
-import { type NavEntryInput, type NavSectionInput } from '@/components/layout/nav-items';
+import { type NavEntryInput } from '@/components/layout/nav-items';
 import { OfflineBanner } from '@/components/layout/offline-banner';
 import { PublicShell } from '@/components/layout/public-shell';
-import { AUDIENCE_ROLES } from '@/components/layout/role-framing';
+import { AUDIENCE_ROLES, type PlatformRole } from '@/components/layout/role-framing';
 import { ShellTopBar } from '@/components/layout/shell-slots';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
@@ -20,8 +19,17 @@ import { StickyActionBar } from '@/components/layout/sticky-action-bar';
 import { TopBar } from '@/components/layout/top-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  activeHrefFor,
+  breadcrumbsFor,
+  NAV_MAP,
+  navigationFor,
+  plannedEntriesFor,
+  publishedHrefs,
+  type NavAudience,
+} from '@/config/nav-map';
 import { isDevelopment } from '@/lib/env/validate-env';
-import { t } from '@/lib/i18n';
+import { t, type EnglishStringKey } from '@/lib/i18n';
 import { formatMoney } from '@/lib/utils/currency';
 
 /**
@@ -142,14 +150,14 @@ export default function ShellsPage(): React.ReactElement {
               <TopBar
                 leading={
                   <MobileDrawer
-                    sections={SPECIMEN_NAV_SECTIONS}
+                    sections={SPECIMEN_NAVIGATION.sections}
                     activeHref={SPECIMEN_ACTIVE_HREF}
                     header={<SpecimenIdentity />}
                   />
                 }
                 trailing={<Badge variant="secondary">{t('shells.label_status_paid')}</Badge>}
               >
-                <Breadcrumbs items={SPECIMEN_BREADCRUMBS} />
+                <Breadcrumbs items={SPECIMEN_REGISTERED_TRAIL} />
               </TopBar>
             </ShellTopBar>
           </div>
@@ -161,7 +169,7 @@ export default function ShellsPage(): React.ReactElement {
           </h3>
           <div className="flex border border-border bg-background">
             <SidebarNav
-              sections={SPECIMEN_NAV_SECTIONS}
+              sections={SPECIMEN_NAVIGATION.sections}
               activeHref={SPECIMEN_ACTIVE_HREF}
               header={<SpecimenIdentity />}
             />
@@ -173,7 +181,10 @@ export default function ShellsPage(): React.ReactElement {
             {t('shells.label_nav_specimen_bottom')}
           </h3>
           <div className="border border-border bg-background p-2">
-            <BottomNavigation entries={SPECIMEN_NAV_ENTRIES} activeHref={SPECIMEN_ACTIVE_HREF} />
+            <BottomNavigation
+              entries={SPECIMEN_NAVIGATION.primary}
+              activeHref={SPECIMEN_ACTIVE_HREF}
+            />
           </div>
         </div>
 
@@ -182,7 +193,7 @@ export default function ShellsPage(): React.ReactElement {
             {t('shells.label_nav_specimen_footer')}
           </h3>
           <div className="border border-border bg-background">
-            <SiteFooter links={SPECIMEN_NAV_ENTRIES} activeHref={SPECIMEN_ACTIVE_HREF} />
+            <SiteFooter links={SPECIMEN_LINKS} activeHref={SPECIMEN_ACTIVE_HREF} />
           </div>
         </div>
 
@@ -202,6 +213,22 @@ export default function ShellsPage(): React.ReactElement {
           </div>
         </div>
 
+        <div className="grid gap-2" data-nav-drop="workspace-owner">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_planned_drop')}
+          </h3>
+          <p className="max-w-sheet text-base text-muted-foreground">
+            {t('shells.label_nav_map_planned_note')}
+          </p>
+          <div className="flex border border-border bg-background">
+            <SidebarNav
+              sections={navigationFor('workspace', 'owner').sections}
+              activeHref="/invoices"
+              labelKey="shells.label_nav_workspace"
+            />
+          </div>
+        </div>
+
         <div className="grid gap-2">
           <h3 className="text-base font-medium text-muted-foreground">
             {t('shells.label_nav_specimen_offline')}
@@ -213,6 +240,160 @@ export default function ShellsPage(): React.ReactElement {
             <OfflineBanner />
           </div>
         </div>
+      </section>
+
+      <section aria-labelledby="specimen-trail-heading" className="grid gap-4">
+        <h2 id="specimen-trail-heading" className="text-2xl font-semibold">
+          {t('shells.label_nav_specimen_trails_heading')}
+        </h2>
+        <div className="grid gap-3 border border-border bg-background p-4">
+          {SPECIMEN_TRAILS_RESOLVED.map((trail) => (
+            <div key={trail.id} className="grid gap-1" data-trail={trail.id}>
+              <p className="text-sm text-muted-foreground">{t(trail.labelKey)}</p>
+              <Breadcrumbs items={trail.items} labelKey={trail.labelKey} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="specimen-nav-map-heading" className="grid gap-4">
+        <h2 id="specimen-nav-map-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_nav_map')}
+        </h2>
+        <p className="max-w-sheet text-base text-muted-foreground">
+          {t('shells.label_nav_map_note')}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {t('shells.label_nav_map_published')}: {publishedHrefs().join(', ')}
+        </p>
+
+        <h3 className="text-base font-medium text-muted-foreground">
+          {t('shells.label_nav_map_readers_heading')}
+        </h3>
+        <table data-nav-map="readers" className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-border text-left">
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_audience')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_role')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_modules')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_planned')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_primary')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_trail')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {SPECIMEN_READERS.map((reader) => {
+              const navigation = navigationFor(reader.audience, reader.role);
+              const offered = navigation.sections
+                .flatMap((section) => section.entries)
+                .map((entry) => t(entry.labelKey));
+              const primary = navigation.primary.map((entry) => t(entry.labelKey));
+              const planned = plannedEntriesFor(reader.audience, reader.role).map((entry) =>
+                t(entry.labelKey),
+              );
+              const trail = breadcrumbsFor(SPECIMEN_PATH, reader.audience, reader.role).map(
+                (item) => t(item.labelKey),
+              );
+              return (
+                <tr
+                  key={`${reader.audience}-${reader.role ?? 'anonymous'}`}
+                  data-nav-reader={`${reader.audience}:${reader.role ?? 'anonymous'}`}
+                  className="border-b border-border align-top"
+                >
+                  <td className="py-2">{reader.audience}</td>
+                  <td className="py-2">{reader.role ?? t('shells.label_nav_map_anonymous')}</td>
+                  <td className="py-2">
+                    {offered.length === 0 ? t('shells.label_nav_map_none') : offered.join(', ')}
+                  </td>
+                  <td className="py-2">{planned.length}</td>
+                  <td className="py-2">
+                    {primary.length === 0 ? t('shells.label_nav_map_none') : primary.join(', ')}
+                  </td>
+                  <td className="py-2">
+                    {trail.length === 0 ? t('shells.label_nav_map_none') : trail.join(', ')}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p className="max-w-sheet text-base text-muted-foreground">
+          {t('shells.label_nav_map_planned_note')}
+        </p>
+
+        <h3 className="text-base font-medium text-muted-foreground">
+          {t('shells.label_nav_map_blocks_heading')}
+        </h3>
+        <table data-nav-map="blocks" className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-border text-left">
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_block')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_heading')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_live')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_planned')}
+              </th>
+              <th scope="col" className="py-2 font-medium">
+                {t('shells.label_nav_map_column_hierarchy')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {NAV_MAP.map((block) => {
+              const live = block.entries.filter((entry) => entry.planned !== true);
+              const planned = block.entries.filter((entry) => entry.planned === true);
+              const hierarchy = block.entries
+                .filter((entry) => entry.parentId !== undefined)
+                .map((entry) => {
+                  const parent = block.entries.find((candidate) => candidate.id === entry.parentId);
+                  return parent === undefined
+                    ? t(entry.labelKey)
+                    : `${t(entry.labelKey)} / ${t(parent.labelKey)}`;
+                });
+              return (
+                <tr
+                  key={block.id}
+                  data-nav-block={block.id}
+                  className="border-b border-border align-top"
+                >
+                  <td className="py-2">{block.id}</td>
+                  <td className="py-2">{t(block.labelKey)}</td>
+                  <td className="py-2">
+                    {live.length === 0
+                      ? t('shells.label_nav_map_none')
+                      : live.map((entry) => t(entry.labelKey)).join(', ')}
+                  </td>
+                  <td className="py-2">
+                    {planned.length === 0
+                      ? t('shells.label_nav_map_none')
+                      : planned.map((entry) => t(entry.labelKey)).join(', ')}
+                  </td>
+                  <td className="py-2">
+                    {hierarchy.length === 0 ? t('shells.label_nav_map_none') : hierarchy.join('; ')}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </section>
 
       <section aria-labelledby="specimen-dashboard-heading" className="grid gap-4">
@@ -277,71 +458,81 @@ export default function ShellsPage(): React.ReactElement {
 }
 
 /**
- * The path this specimen is being read at.
+ * The specimen reads the navigation map, and it is the only page that asks for
+ * the development audience.
  *
- * Every navigation surface on the page is given the same active href, so a
- * probe can assert the property that matters across all of them at once: one
- * entry claims the current page, and the surfaces agree about which one.
+ * That audience holds the two routes this build actually serves. Everything else
+ * in the map - the workspace modules, the platform console, the client portal,
+ * the public site - is planned, because step 1 has not built a product page yet,
+ * and a planned entry has no href to render. So the surfaces below show what the
+ * map hands them, and the day a product page lands, this page shows that too
+ * without a line changing here.
+ *
+ * The trail examples cover the three cases the generator distinguishes: a
+ * registered path, a path below a registered entry, and a path the map has never
+ * heard of.
  */
-const SPECIMEN_ACTIVE_HREF = '/shells';
+const SPECIMEN_AUDIENCE: NavAudience = 'development';
+const SPECIMEN_PATH = '/shells';
+const SPECIMEN_NESTED_PATH = '/shells/invoice-editor';
+const SPECIMEN_UNKNOWN_PATH = '/not-in-the-map';
+
+/** Every audience against the roles that matter to it, for the filter table. */
+const SPECIMEN_READERS: readonly {
+  readonly audience: NavAudience;
+  readonly role: PlatformRole | null;
+}[] = [
+  { audience: 'public', role: null },
+  { audience: 'public', role: 'client' },
+  { audience: 'workspace', role: 'owner' },
+  { audience: 'workspace', role: 'staff' },
+  { audience: 'workspace', role: 'client' },
+  { audience: 'platform', role: 'super_admin' },
+  { audience: 'platform', role: 'ceo' },
+  { audience: 'platform', role: 'admin_staff' },
+  { audience: 'platform', role: 'owner' },
+  { audience: 'client', role: 'client' },
+  { audience: 'client', role: 'staff' },
+  { audience: 'development', role: null },
+];
+
+/** The trail examples, each rendered with its own landmark name. */
+const SPECIMEN_TRAILS: readonly {
+  readonly id: string;
+  readonly path: string;
+  readonly labelKey: EnglishStringKey;
+}[] = [
+  {
+    id: 'registered',
+    path: SPECIMEN_PATH,
+    labelKey: 'shells.label_nav_specimen_trail_registered',
+  },
+  { id: 'nested', path: SPECIMEN_NESTED_PATH, labelKey: 'shells.label_nav_specimen_trail_nested' },
+  {
+    id: 'unknown',
+    path: SPECIMEN_UNKNOWN_PATH,
+    labelKey: 'shells.label_nav_specimen_trail_unknown',
+  },
+];
 
 /**
- * The entries the surfaces share.
- *
- * Two real entries and one reserved entry, which is the whole set of routes
- * this build has: the homepage arrives with the public pages in segment 1D, and
- * check:dead-links is the reason an entry here cannot point at it early. Every
- * navigation entry on this page is a link the build can actually serve.
- *
- * The reserved entry is what makes the specimen worth rendering: it must appear
- * nowhere, and if a surface ever renders the list it was given instead of the
- * list it resolved, the word "Payouts" turns up in a menu and the probe fails.
- * Its href is a route that exists, so a leak would be a navigation defect and
- * not a broken link - the two failures stay distinguishable.
+ * The trail examples: one registered path, one path below a registered entry,
+ * one path the map has never heard of. The last two are the interesting ones -
+ * a generator that guessed a parent would produce a trail for the second, and a
+ * generator that invented a home link would produce one for the third.
  */
-const SPECIMEN_NAV_ENTRIES: readonly NavEntryInput[] = [
-  {
-    id: 'specimen-layouts',
-    href: '/shells',
-    labelKey: 'shells.label_nav_specimen_layouts',
-    icon: <PanelLeft aria-hidden="true" className="size-5" />,
-  },
-  {
-    id: 'specimen-gallery',
-    href: '/gallery',
-    labelKey: 'shells.label_nav_specimen_gallery',
-    icon: <FileText aria-hidden="true" className="size-5" />,
-  },
-  {
-    id: 'specimen-payouts',
-    href: '/gallery',
-    labelKey: 'shells.label_nav_specimen_payouts',
-    icon: <Wallet aria-hidden="true" className="size-5" />,
-    reserved: true,
-  },
-];
+const SPECIMEN_TRAILS_RESOLVED = SPECIMEN_TRAILS.map((trail) => ({
+  ...trail,
+  items: breadcrumbsFor(trail.path, SPECIMEN_AUDIENCE, null),
+}));
 
-const SPECIMEN_NAV_SECTIONS: readonly NavSectionInput[] = [
-  {
-    id: 'specimen-workspace',
-    labelKey: 'shells.label_nav_workspace',
-    entries: SPECIMEN_NAV_ENTRIES,
-  },
-];
-
-/**
- * The trail: a parent, the section and the page the reader is on.
- *
- * The trail starts at the gallery rather than at a home link, because there is
- * no homepage in this build yet and a breadcrumb that points at a route nobody
- * serves is a dead link with a friendly face. When segment 1D adds the public
- * root, the first step becomes the home entry in `common.label_navigation_home`.
- */
-const SPECIMEN_BREADCRUMBS: readonly BreadcrumbItem[] = [
-  { id: 'specimen-crumb-parent', labelKey: 'shells.label_nav_specimen_gallery', href: '/gallery' },
-  { id: 'specimen-crumb-section', labelKey: 'shells.label_nav_specimen_layouts', href: '/shells' },
-  { id: 'specimen-crumb-current', labelKey: 'shells.label_document_title' },
-];
+/** The navigation the map publishes for this page's own audience. */
+const SPECIMEN_NAVIGATION = navigationFor(SPECIMEN_AUDIENCE, null);
+const SPECIMEN_ACTIVE_HREF = activeHrefFor(SPECIMEN_PATH, SPECIMEN_AUDIENCE, null);
+const SPECIMEN_REGISTERED_TRAIL = breadcrumbsFor(SPECIMEN_PATH, SPECIMEN_AUDIENCE, null);
+const SPECIMEN_LINKS: readonly NavEntryInput[] = SPECIMEN_NAVIGATION.sections.flatMap(
+  (section) => section.entries,
+);
 
 /** Workspace identity, as the rail and the drawer carry it. */
 function SpecimenIdentity(): React.ReactElement {

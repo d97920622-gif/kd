@@ -57,6 +57,26 @@ only a rendered page can show:
      declares. A utility that compiles to nothing is a surface that silently
      loses its padding on the one device it was written for.
 
+ 10. The navigation map is the source the page renders from (sub-step 1.22).
+     Three things about the map are only visible in a response:
+
+     - **The generated trail is right for all three paths.** A registered path
+       produces one item that is not a link and claims the current page; a path
+       below a registered entry produces the ancestor as a link and no current
+       claim, because the page the reader is on is not in the map; a path the map
+       has never heard of produces no trail at all rather than a home link the
+       reader did not ask for.
+     - **The role filter runs.** The specimen prints what the map offers each of
+       twelve audience and role pairs, and the probe checks the counts against
+       the roles: the owner is offered more workspace modules than staff, a client
+       is offered no workspace module at all, and every role outside an audience
+       gets nothing from it.
+     - **No planned entry reaches a surface.** The labels to look for are read
+       out of the page's own map table, and none of them may appear inside a
+       navigation landmark anywhere in the response. The drop box is the
+       specimen's own negative control: a rail asked for by an audience the map
+       has nothing live for renders no landmark and no anchor.
+
 It deliberately does not open a print preview or a headless browser: the build
 has no browser dependency, and a probe that needs one would not run in this
 repository. What it can prove is that the rules and the markup that the rules
@@ -314,14 +334,44 @@ def single_class(attributes: str, prefix: str) -> str:
     return ''
 
 
+# marker, accessible name, label size class, links, items. The breadcrumb has
+# one item and no link: the item is the page the reader is on, and the trail is
+# generated from the map (sub-step 1.22), which is why the size class is None -
+# the trail is text the reader scans, not a destination they aim at.
 EXPECTED_NAV_LANDMARKS = [
-    ('sidebar', 'Main navigation', 'text-base'),
-    ('bottom-navigation', 'Primary navigation', 'text-xs'),
-    ('breadcrumbs', 'Breadcrumb', None),
+    ('sidebar', 'Main navigation', 'text-base', 2, 2),
+    ('bottom-navigation', 'Primary navigation', 'text-xs', 2, 2),
+    ('breadcrumbs', 'Breadcrumb', None, 0, 1),
 ]
 
 EXPECTED_NAV_ENTRIES = 2
-RESERVED_ENTRY_LABEL = 'Payouts'
+PROBE_NONE = 'None'
+PROBE_ANONYMOUS = 'No session'
+# The three trails the specimen draws from the map (sub-step 1.22), in the order
+# the page renders them, and what each must contain:
+#   registered - the path is an entry: one item, not a link, marked current;
+#   nested     - the path is below an entry: the ancestor as a link, no current
+#                claim, because the page the reader is on is not in the map;
+#   unknown    - the map knows nothing: no trail at all, not a guessed one.
+EXPECTED_TRAILS = [
+    ('registered', 1, False, True),
+    ('nested', 1, True, False),
+    ('unknown', 0, False, False),
+]
+# The reader table the specimen renders from the map. The three workspace rows
+# are the visible proof that the role filter runs: the owner is offered the
+# business modules, staff fewer of them, and a client none at all.
+EXPECTED_READER_ROWS = 12
+EXPECTED_WORKSPACE_OWNER_PLANNED = 15
+EXPECTED_WORKSPACE_STAFF_PLANNED = 13
+EXPECTED_WORKSPACE_CLIENT_PLANNED = 0
+EXPECTED_PUBLIC_PLANNED = 10
+EXPECTED_PLATFORM_PLANNED = 8
+EXPECTED_CLIENT_PLANNED = 4
+EXPECTED_DEV_LIVE = 2
+# The specimen's own drop box: a rail asked for by an audience the map has
+# nothing live for must render no landmark and no anchor at all.
+DROP_MARKER = 'data-nav-drop="workspace-owner"'
 
 EXPECTED_SAFE_AREA_VARIABLES = {
     '--safe-top': 'env(safe-area-inset-top, 0px)',
@@ -344,10 +394,133 @@ EXPECTED_UTILITY_RULES = [
 ]
 
 
+def table_rows(markup: str, table_marker: str) -> list[list[str]]:
+    """The cells of every row of the table carrying a data-nav-map marker."""
+    table = re.search(rf'<table data-nav-map="{re.escape(table_marker)}"[\s\S]*?</table>', markup)
+    if table is None:
+        return []
+    rows = []
+    for row in re.findall(r'<tr\b[\s\S]*?</tr>', table.group(0)):
+        cells = [
+            visible_text(cell) for cell in re.findall(r'<td\b[^>]*>[\s\S]*?</td>', row)
+        ]
+        if cells:
+            rows.append(cells)
+    return rows
+
+
+def planned_labels(markup: str) -> list[str]:
+    """Every label the specimen's map table declares as planned.
+
+    Read out of the rendered table rather than from a list kept here: the page
+    prints what the map declares, and a probe with its own copy of the answer
+    would keep passing after the map changed.
+    """
+    labels = []
+    for row in table_rows(markup, 'blocks'):
+        if len(row) >= 4 and row[3] != PROBE_NONE:
+            labels.extend(part.strip() for part in row[3].split(','))
+    return [label for label in labels if label != '']
+
+
+def trail_blocks(markup: str) -> dict[str, str]:
+    """The trail examples, keyed by the path kind the specimen labels them with."""
+    blocks = {}
+    for name, _, _, _ in EXPECTED_TRAILS:
+        marker = f'data-trail="{name}"'
+        index = markup.find(marker)
+        if index < 0:
+            blocks[name] = ''
+            continue
+        start = markup.rfind('<', 0, index)
+        following = [
+            position
+            for position in (
+                markup.find(f'data-trail="{other}"', index) for other, _, _, _ in EXPECTED_TRAILS
+            )
+            if position > index
+        ]
+        section_end = markup.find('<section', index)
+        ends = following + ([] if section_end < 0 else [section_end])
+        end = min(ends) if ends else len(markup)
+        blocks[name] = markup[start:end]
+    return blocks
+
+
+def verify_navigation_map(markup: str, findings: list[str]) -> None:
+    """Sub-step 1.22: the map, as the rendered page reports it."""
+    print('navigation map (generated trails, role filtering, planned entries)')
+
+    for name, expected_items, expect_link, expect_current in EXPECTED_TRAILS:
+        block = trail_blocks(markup).get(name, '')
+        problems = []
+        if block == '':
+            problems.append('the specimen renders no trail for this path')
+        else:
+            navs = re.findall(r'<nav\b[\s\S]*?</nav>', block)
+            if expected_items == 0:
+                if navs:
+                    problems.append('a trail was drawn for a path the map does not know')
+            elif len(navs) != 1:
+                problems.append(f'{len(navs)} trails, expected 1')
+            else:
+                links = re.findall(r'<a\b', navs[0])
+                current = len(re.findall(r'aria-current="page"', navs[0]))
+                if (len(links) > 0) != expect_link:
+                    problems.append(
+                        f'{"a" if links else "no"} link in the trail, expected'
+                        f' {"one" if expect_link else "none"}'
+                    )
+                if current != (1 if expect_current else 0):
+                    problems.append(
+                        f'{current} items claim the current page, expected'
+                        f' {1 if expect_current else 0}'
+                    )
+        print(f'  trail {name:13}{"ok" if not problems else "; ".join(problems)}')
+        for problem in problems:
+            findings.append(f'breadcrumb trail for a {name} path: {problem}')
+
+    rows = table_rows(markup, 'readers')
+    problems = []
+    if len(rows) != EXPECTED_READER_ROWS:
+        problems.append(f'{len(rows)} reader rows, expected {EXPECTED_READER_ROWS}')
+    by_reader = {f'{row[0]}:{row[1]}': row for row in rows if len(row) >= 6}
+    expected_planned = {
+        'workspace:owner': EXPECTED_WORKSPACE_OWNER_PLANNED,
+        'workspace:staff': EXPECTED_WORKSPACE_STAFF_PLANNED,
+        'workspace:client': EXPECTED_WORKSPACE_CLIENT_PLANNED,
+        'public:client': EXPECTED_PUBLIC_PLANNED,
+        'platform:super_admin': EXPECTED_PLATFORM_PLANNED,
+        'client:client': EXPECTED_CLIENT_PLANNED,
+    }
+    for reader, expected in expected_planned.items():
+        row = by_reader.get(reader)
+        if row is None:
+            problems.append(f'the specimen does not report what {reader} is offered')
+        elif row[3] != str(expected):
+            problems.append(f'{reader} is offered {row[3]} planned modules, expected {expected}')
+    # The filter itself: a role that does not belong to an audience is offered
+    # nothing, whatever the audience declares.
+    for reader in ('workspace:client', 'platform:owner', 'client:staff'):
+        row = by_reader.get(reader)
+        if row is not None and row[2] != PROBE_NONE:
+            problems.append(f'{reader} is offered modules from an audience it is not part of')
+    dev = by_reader.get(f'development:{PROBE_ANONYMOUS}')
+    if dev is None:
+        problems.append('the specimen does not report what this page itself is offered')
+    elif dev[2].count(',') + 1 != EXPECTED_DEV_LIVE:
+        problems.append(f'the development audience offers {dev[2]} entries, expected the two this build serves')
+    print(f'  {"role filter":20}{"ok" if not problems else "; ".join(problems)}')
+    for problem in problems:
+        findings.append(f'role filter: {problem}')
+
+    print()
+
+
 def verify_navigation_surfaces(markup: str, css: str, findings: list[str]) -> None:
     """Sub-step 1.21: the navigation surfaces, as the server sends them."""
     print('navigation surfaces')
-    for marker, label, size_class in EXPECTED_NAV_LANDMARKS:
+    for marker, label, size_class, expected_links, expected_items in EXPECTED_NAV_LANDMARKS:
         surface = element_with_marker(markup, marker)
         problems: list[str] = []
         if surface == '':
@@ -360,8 +533,11 @@ def verify_navigation_surfaces(markup: str, css: str, findings: list[str]) -> No
             current = len(re.findall(r'aria-current="page"', surface))
             if current != 1:
                 problems.append(f'{current} entries claim the current page, expected 1')
-            if len(links) != EXPECTED_NAV_ENTRIES:
-                problems.append(f'{len(links)} entries, expected {EXPECTED_NAV_ENTRIES}')
+            items = len(re.findall(r'<li\b', surface))
+            if len(links) != expected_links:
+                problems.append(f'{len(links)} links, expected {expected_links}')
+            if items != expected_items:
+                problems.append(f'{items} items, expected {expected_items}')
             for entry, name in zip(links, names):
                 if 'min-h-touch' not in entry:
                     problems.append('an entry has no 44 pixel touch target')
@@ -435,13 +611,51 @@ def verify_navigation_surfaces(markup: str, css: str, findings: list[str]) -> No
     for problem in top_problems:
         findings.append(f'top bar: {problem}')
 
-    # The reserved entry is the negative control the specimen carries in the
-    # page itself: it is in the list every surface was handed, and it must not
-    # reach the reader.
-    reserved = len(re.findall(re.escape(RESERVED_ENTRY_LABEL), markup))
-    print(f'  {"reserved entry":20}{"ok" if reserved == 0 else f"rendered {reserved} times"}')
-    if reserved != 0:
-        findings.append(f'the reserved entry appears {reserved} times in the rendering')
+    # No planned entry reaches a surface. The specimen renders the map's own
+    # table above the surfaces, so the labels to look for come from the page
+    # rather than from a list this probe maintains: whatever the map declares as
+    # planned must appear in the table and in no navigation landmark anywhere.
+    planned = planned_labels(markup)
+    leaked = []
+    for landmark in re.findall(r'<nav\b[\s\S]*?</nav>', markup):
+        for label in planned:
+            if label in visible_text(landmark):
+                leaked.append(label)
+    print(
+        f'  {"planned entries":20}'
+        + (
+            f'ok ({len(planned)} planned labels, none inside a navigation landmark)'
+            if not leaked
+            else f"leaked into a navigation landmark: {', '.join(sorted(set(leaked)))}"
+        )
+    )
+    if leaked:
+        findings.append(
+            f'planned entries reach the navigation: {", ".join(sorted(set(leaked)))}'
+        )
+
+    # The drop box is the negative control the specimen carries in the page
+    # itself: a rail asked for by an audience with nothing live in it renders no
+    # landmark and no anchor, rather than an empty region the reader walks into.
+    drop_start = markup.find(DROP_MARKER)
+    drop = '' if drop_start < 0 else markup[drop_start:]
+    drop = re.split(r'</section>|<section\b', drop, maxsplit=1)[0]
+    drop_navs = len(re.findall(r'<nav\b', drop))
+    drop_links = len(re.findall(r'<a\b', drop))
+    print(
+        f'  {"drop box":20}'
+        + (
+            'ok (no landmark, no anchor)'
+            if drop_start >= 0 and drop_navs == 0 and drop_links == 0
+            else f'{"missing" if drop_start < 0 else f"{drop_navs} landmarks, {drop_links} anchors"}'
+        )
+    )
+    if drop_start < 0:
+        findings.append('the specimen has no drop box for an audience with nothing live')
+    elif drop_navs != 0 or drop_links != 0:
+        findings.append(
+            f'the drop box renders {drop_navs} navigation elements and {drop_links} anchors, expected none'
+        )
 
     # While the browser reports a connection, the banner has nothing to say.
     offline = len(re.findall(r'data-layout="offline-banner"', markup))
@@ -635,6 +849,9 @@ def main() -> int:
 
     print()
     verify_navigation_surfaces(markup, without_comments(css), findings)
+
+    print()
+    verify_navigation_map(markup, findings)
 
     print()
     print(f'findings: {len(findings)}')

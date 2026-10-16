@@ -22,6 +22,7 @@ import { common } from './en/common';
 import { errors } from './en/errors';
 import { forms } from './en/forms';
 import { gallery } from './en/gallery';
+import { nav } from './en/nav';
 import { shells } from './en/shells';
 import { ui } from './en/ui';
 import { validation } from './en/validation';
@@ -32,6 +33,7 @@ export const en = {
   errors,
   forms,
   gallery,
+  nav,
   shells,
   ui,
   validation,
@@ -40,4 +42,4 @@ export const en = {
 /** Shape of the English catalogue, used to derive the key union. */
 export type EnglishCatalogue = typeof en;
 
-export { brand, common, errors, forms, gallery, shells, ui, validation };
+export { brand, common, errors, forms, gallery, nav, shells, ui, validation };

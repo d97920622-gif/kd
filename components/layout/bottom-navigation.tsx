@@ -48,6 +48,12 @@ export interface BottomNavigationProps {
   readonly activeHref?: string | null;
   /** Accessible name of the navigation landmark. */
   readonly labelKey?: EnglishStringKey;
+  /**
+   * Whether this component declares the navigation landmark. False when the
+   * shell's bottom-bar slot already declares one around it (sub-step 1.20), so
+   * that the reader gets one navigation region rather than two nested ones.
+   */
+  readonly ownsLandmark?: boolean;
   readonly className?: string;
 }
 
@@ -58,6 +64,7 @@ export function BottomNavigation({
   entries,
   activeHref = null,
   labelKey = 'shells.label_nav_bottom',
+  ownsLandmark = true,
   className,
 }: BottomNavigationProps): React.ReactElement | null {
   const resolved = resolveNavEntries(entries, activeHref).slice(0, BOTTOM_NAVIGATION_MAX_ITEMS);
@@ -65,27 +72,41 @@ export function BottomNavigation({
     return null;
   }
 
+  const surfaceClassName = cn(
+    // The bottom inset is padding on the bar rather than a fixed offset on
+    // the list: a bar that grows by the device's own report keeps its items
+    // where a thumb reaches them, and the class resolves through the
+    // --safe-bottom token rather than a number picked for one phone.
+    'w-full border-t border-border bg-card pb-[var(--safe-bottom)] text-card-foreground md:hidden',
+    className,
+  );
+
+  const list = (
+    <ul className="grid auto-cols-fr grid-flow-col">
+      {resolved.map((entry) => (
+        <li key={entry.id} className="min-w-0">
+          <NavLink entry={entry} layout="bar" />
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (!ownsLandmark) {
+    return (
+      <div data-layout="bottom-navigation" data-print="hide" className={surfaceClassName}>
+        {list}
+      </div>
+    );
+  }
+
   return (
     <nav
       aria-label={t(labelKey)}
       data-layout="bottom-navigation"
-      className={cn(
-        // The bottom inset is padding on the bar rather than a fixed offset on
-        // the list: a bar that grows by the device's own report keeps its items
-        // where a thumb reaches them, and the class resolves through the
-        // --safe-bottom token rather than a number picked for one phone.
-        'w-full border-t border-border bg-card pb-[var(--safe-bottom)] text-card-foreground md:hidden',
-        className,
-      )}
       data-print="hide"
+      className={surfaceClassName}
     >
-      <ul className="grid auto-cols-fr grid-flow-col">
-        {resolved.map((entry) => (
-          <li key={entry.id} className="min-w-0">
-            <NavLink entry={entry} layout="bar" />
-          </li>
-        ))}
-      </ul>
+      {list}
     </nav>
   );
 }

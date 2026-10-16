@@ -24,10 +24,16 @@ import { cn } from '@/lib/utils/cn';
  *     hierarchy is parent-then-child; a list of links with a chevron painted
  *     between them conveys that visually and nothing else. In an `ol` it is
  *     conveyed by the structure, so the separator is decorative and `aria-hidden`.
- *   - **The last item is the current page, and it is not a link.** `aria-current`
- *     belongs on the item that is current, and a link to the page the reader is
- *     already on is a control that appears to do something and does nothing. The
- *     current item is text with `aria-current="page"`.
+ *   - **The item without a link is the current page.** `aria-current` belongs on
+ *     the item that is current, and a link to the page the reader is already on
+ *     is a control that appears to do something and does nothing. So the current
+ *     item is text with `aria-current="page"` - and it is identified by the
+ *     absence of an href rather than by its position in the list. The
+ *     distinction matters the moment the trail stops short of the page it is
+ *     drawn on: a page below a registered entry (`/invoices/1042`) receives the
+ *     registered ancestors as links and appends its own item, and a component
+ *     that marked whatever came last as current would announce the parent as the
+ *     page the reader is actually on.
  *
  * The visible leaf label may be truncated on a narrow screen; the full label
  * stays in the accessible name through the `title` attribute on the item, so
@@ -68,7 +74,7 @@ export function Breadcrumbs({
     <nav aria-label={t(labelKey)} data-layout="breadcrumbs" className={cn('min-w-0', className)}>
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm">
         {items.map((item, index) => {
-          const isLast = index === items.length - 1;
+          const isCurrent = item.href === undefined || item.href === null;
           const label = t(item.labelKey);
           return (
             <li key={item.id} className="flex min-h-touch min-w-0 items-center gap-x-1">
@@ -78,9 +84,9 @@ export function Breadcrumbs({
                   className="size-4 shrink-0 text-muted-foreground"
                 />
               )}
-              {isLast || item.href === undefined || item.href === null ? (
+              {isCurrent ? (
                 <span
-                  aria-current={isLast ? 'page' : undefined}
+                  aria-current={isCurrent ? 'page' : undefined}
                   title={label}
                   className="truncate font-medium text-foreground"
                 >
