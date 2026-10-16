@@ -3,13 +3,17 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.27 complete, 1.28 next
-Last completed sub-step: 1.27 (usability primitives: saved views, the five second undo window with a deferred commit, autosave with a local draft and a recovery decision, the optimistic queue that rebuilds on failure, the explainability message component and its two catalogues).
-Next sub-step: 1.28 (public site pages A: homepage, features, pricing and about, with real English copy and metadata).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.28 complete, 1.29 next
+Last completed sub-step: 1.28 (public site pages A: the homepage, features, pricing and about pages
+with real English copy and metadata, the public site footer through the shell, and the claim floor
+that refuses a sentence this build cannot evidence).
+Previous sub-step: 1.27 (usability primitives: saved views, the five second undo window with a deferred commit, autosave with a local draft and a recovery decision, the optimistic queue that rebuilds on failure, the explainability message component and its two catalogues).
+Next sub-step: 1.29 (public site pages B: contact, industries, calculators, the free invoice generator
+shell, terms, privacy, the blog shell, 404, 500 and offline).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24, 1.25, 1.26 and 1.27 done; segment gate pending)
+Segment 1D: in progress (1.24, 1.25, 1.26, 1.27 and 1.28 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -94,8 +98,8 @@ passes on the current route set. Status: pending.
 | 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | done    | 4c9f2a2 |
 | 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | done    | dcd6b0f |
 | 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | done    | fb97830 |
-| 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | pending | -       |
-| 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | pending | -       |
+| 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | done    | 535c54e |
+| 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | done    | 8c75f2b |
 | 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | pending | -       |
 | 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | pending | -       |
 | 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | pending | -       |
@@ -103,6 +107,161 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.28 evidence -- the public site, pages A
+
+1.28 is "Public site pages A: homepage, features, pricing and about, with real
+English copy and metadata". Two commits: code (the four namespaces, the four
+pages, the footer, the shell wiring and the twenty-eighth check) and this
+progress file. The acceptance anchors are docs/PLAN/08 line 86 (the sub-step
+line; line 87 is 1.29 and no other plan file names either), FEATURE_LIST items
+205-228 - the homepage sections 205-216, the product page 217-221 and the
+company page 222-228, with the legal group 229-235 left to 1.29 - FEATURE_LIST
+item 193-199 for the heading order, the mandatory image alternative and the
+aria-live rule, and the four plan slugs with a monthly and an annual figure at
+item 698. docs/PLAN/05 has no public site requirement at all (a grep for the
+four page names returns nothing), so FEATURE_LIST group G is the feature source
+for this sub-step and the plan supplies only the position in the sequence.
+
+### What the product gained, module by module
+
+| Module                                        | What it decides                                                                                                                                                                                                                                                                                                               |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/i18n/strings/en/home.ts`                 | 49 keys: the hero, six capabilities, the three steps of the first month, four trust points, a three plan pricing preview, the closing call to action and the honest-build note. Every sentence is a claim the build can already evidence, and the file comment says why that is the rule here rather than a style preference. |
+| `lib/i18n/strings/en/features.ts`             | The product page: one group per module with its points, the same six capabilities read from the product side, and the metadata pair.                                                                                                                                                                                          |
+| `lib/i18n/strings/en/pricing.ts`              | The only owner of every price in the product. Four plans, monthly and annual figures as digit strings, what each plan includes, four notes (USD, the annual sentence, change notice, data ownership) and the enterprise sentence for a price that is agreed rather than published.                                            |
+| `lib/i18n/strings/en/about.ts`                | What the company is, how it works, who it is for and what it refuses to say. No founding year, no headcount, no address, no customer and no certification: those are facts the owner supplies, and the contact page of 1.29 carries them.                                                                                     |
+| `lib/i18n/strings/en.ts` (edited)             | The four namespaces registered at the three insertion points. 19 namespaces and 841 keys now, which is what `check:i18n-strings` reports.                                                                                                                                                                                     |
+| `lib/i18n/strings/en/nav.ts` (edited)         | The two labels the new public entries need: the section label and the home entry.                                                                                                                                                                                                                                             |
+| `config/nav-map.ts` (edited)                  | The `public-site` block: `home` goes live at `/` and is not a primary entry, `features`, `pricing` and `about` move from planned to live with their icons. Every public destination in the product is now published by the map, so the dead link check and the shell can both read it.                                        |
+| `app/(public)/page.tsx`                       | The homepage: six sections, an h1 and h2 headings, server rendered copy, metadata from the catalogue, and the pricing preview reading the same keys the pricing page renders.                                                                                                                                                 |
+| `app/(public)/features/page.tsx`              | The features page: a group per module, each point a real behaviour of the product.                                                                                                                                                                                                                                            |
+| `app/(public)/pricing/page.tsx`               | The four plan cards. `TierBase` plus a discriminated union - a published tier carries its two price keys, an agreed tier carries none - so the enterprise card renders the catalogue sentence instead of a figure and the type system refuses a plan with a missing price.                                                    |
+| `app/(public)/about/page.tsx`                 | The about page: what the platform is, how it is built, who it is for and the honesty rule stated in the copy.                                                                                                                                                                                                                 |
+| `components/layout/site-footer.tsx` (edited)  | The brand link home is now a prop: `homeHref` and `homeLabelKey`, defaulting to the shell label. A footer that hard-coded `/` would be a second owner of a destination the map already owns.                                                                                                                                  |
+| `components/navigation/public-footer.tsx`     | The client bridge. It renders the shared footer from `useNavigation('public', null)` and owns no list of its own, which is what keeps `components/layout/` free of the navigation map import.                                                                                                                                 |
+| `components/layout/public-shell.tsx` (edited) | Renders the footer after `<MainContent />`, so every public page gets the chrome once. The doc comment records why the footer arrives here in 1.28 and why the header waits for 1.29.                                                                                                                                         |
+| `scripts/checks/public-site.mjs`              | The twenty-eighth check, in five groups.                                                                                                                                                                                                                                                                                      |
+| `docs/EVIDENCE/step-01/public-pages-probe.py` | The rendered half: nine kinds of assertion against a running server, with no browser and no test framework.                                                                                                                                                                                                                   |
+
+### The seven decisions that needed a written reason
+
+1. **The G1 trust widgets are not rendered, and the reason is recorded rather
+   than hidden.** FEATURE_LIST items 205-216 name the sections a homepage
+   usually fills with a testimonial, a customer logo wall, a customer count and
+   an uptime figure. This build has none of them: no customer has agreed to be
+   named, no measurement has been run and no audit exists, so each of those
+   sections would be a claim with the same typography as a true one. The
+   homepage renders the sections it can fill - capabilities, the three steps of
+   the first month, four trust points that describe behaviour, the pricing
+   preview and the closing call to action - and the copy states the rule in one
+   sentence: these pages describe the platform as it is built. The section is
+   not faked and it is not silently dropped either. `check:public-site` refuses
+   24 claim patterns across the four namespaces, so the step that eventually has
+   a real customer to name has to add its vocabulary to this build first. This
+   is the Zero Tolerance rule taking the place of a planned section, and it is
+   recorded here because a future reader will otherwise see a missing section.
+2. **A price is data with one owner, and no page does arithmetic on it.**
+   `lib/i18n/strings/en/pricing.ts` holds every figure as a digit string, so the
+   billing module of a later step can read the plan table without this file
+   becoming a numeric source of truth. The pricing page renders the figure
+   behind a `data-plan-figure` marker that also carries the plan slug, which is
+   what lets the rendered probe read a price out of the markup instead of
+   trusting a substring. The enterprise plan publishes no figure at all: it has
+   no price keys, its card renders a catalogue sentence, and the check fails a
+   published tier that is missing either its monthly or its annual figure rather
+   than inventing a default. No other public page may write a currency amount,
+   and the check reads every one of them to prove it.
+3. **The footer is chrome, so it arrives through the shell rather than through
+   the route group layout.** `components/layout/` may not import
+   `config/nav-map.ts` - that rule is older than this sub-step - so the footer
+   reaches the shell as a client bridge that asks the map for the public
+   audience and hands the footer its two props. The shell renders it after
+   `<MainContent />`, which means one footer per document and no page has to
+   remember it. The check fails a shell that writes an `href` of its own.
+4. **The public header waits for 1.29.** The header is the surface that also
+   carries the contact destination and the language switch of the next
+   sub-step, so building it now would mean building half of it twice. The shell
+   is shaped for it: `PublicShell` already owns the skip link and the single
+   main landmark, and the header arrives between them without moving either.
+5. **Metadata is copy like any other copy.** Each page exports a typed
+   `metadata` object whose title and description are `t()` calls of that page's
+   own namespace, and the open graph pair repeats the same two keys rather than
+   a second phrasing. The check reads the metadata block rather than the file:
+   the page's own field has to be a catalogue call of its own namespace, the
+   preview has to agree with it, titles are 20 to 70 characters, descriptions
+   50 to 160, and no two pages may share a title. A literal title is invisible
+   to `check:i18n-strings`, which is exactly the defect this rule exists for.
+6. **The heading outline is a structure, and 1.28 is where it starts to be
+   load bearing.** One h1 per page, at least one h2, and no level skipped on the
+   way down (FEATURE_LIST items 193-199). The check reads it from the source and
+   the rendered probe reads it from the response, so a section that is
+   reordered by a later sub-step fails in one of the two places.
+7. **The rendered half is measured without a browser.** The project ships no
+   test framework (Rule 4), so the evidence for what a reader actually receives
+   is `docs/EVIDENCE/step-01/public-pages-probe.py`: it fetches each page,
+   reads the title, the description, the page marker, the heading levels, the
+   footer, the plan figures and the claim vocabulary out of the response, counts
+   the homepage sections and the plan cards, and measures what the page costs to
+   open. It runs against a dev server and against `next start`, and it found a
+   real class of defect that the source checks cannot see: React writes a
+   comment marker between two adjacent text nodes, so `$12` arrives as
+   `$<!-- -->12`, and a probe that matched a price against the raw response
+   would report a missing figure that renders correctly. The probe now reads
+   through those markers where a node boundary matters and reads the raw
+   response where a claim would matter.
+
+### Evidence
+
+- `npm run verify`: **PASS (28 of 28 checks passed)**, on the frozen tree, exit
+  code 0. Five tooling entries (typecheck, lint, format:check, env:validate,
+  tokens:export) and 23 checks.
+- The counts that moved with this sub-step, quoted from that run:
+  `check:i18n-strings` 89 JSX files and 19 catalogue namespaces with 841 keys;
+  `check:dead-links` 7 routes with 19 verified links and no skipped dynamic
+  link; `check:public-site` 4 pages, 4 namespaces, 183 keys checked for a
+  reader, 24 claim words and 7 company fact shapes refused in copy;
+  `check:usability` 209 source files scanned for a second owner of a storage
+  key; `check:no-tests` 285 tracked files inspected with no test file found.
+- `node scripts/checks/public-site.mjs` on its own: PASS.
+- Rendered evidence, dev server: `python3
+docs/EVIDENCE/step-01/public-pages-probe.py 3000` -> **0 findings**. Four
+  pages, four status 200 responses, one h1 each with the full outline reported,
+  the footer once per document with the brand link pointing home and no link
+  missing, no claim vocabulary anywhere in a response, the homepage sections 1
+  each with 6 capability cards, 3 steps, 4 trust points and 3 preview tiers, and
+  the hero copy present in the server response with no JavaScript executed.
+- Rendered evidence, production server: `next build` passed and prerendered 13
+  pages, including the four new routes at 2.49 kB each and 116 kB first load.
+  `npx next start -p 3020` then answered the same probe with **0 findings**:
+  the same four pages, 4 plan cards reading `$0`, `$12`, `$29` and "Agreed per
+  engagement", 19 script requests and 802436 bytes as served, no image without
+  a declared size and a 49853 byte homepage document.
+- The production build also settles the one structural risk of this sub-step:
+  `app/(public)/page.tsx` resolves to `/` and there is no parallel `app/page.tsx`,
+  so no route is claimed twice.
+- Static controls for the twenty-eighth check: 29 of 29 mutations fired and
+  both immunities stayed green (`/tmp/controls128.py`, output in
+  `/tmp/controls-128-run3.txt`). Four of them found rules that could never have
+  fired and were fixed in this sub-step rather than in the next one: the
+  `'use client'` directive and the `href="` literal in the shell were read from
+  the stripped copy, where the string stripper had already blanked them; the
+  metadata rule was satisfied by the open graph title while the page's own title
+  had become a literal; and the figure marker rule was satisfied by the other
+  card branch. A check that cannot fail on its own defect is worse than no
+  check, because it is quoted as evidence.
+- Verify history for this sub-step: run 1 FAIL (3 of 27: format, the empty
+  enterprise price keys, the money word read out of an attribute name), run 2
+  PASS (27 of 27), run 3 FAIL (1 of 28: format on the new check only), final run
+  PASS (28 of 28).
+- Known warning, deferred on purpose: `next dev` reports that
+  `experimental.dynamicIO` has been renamed to `cacheComponents` in Next 15.5.
+  `next.config.js` is owned by sub-step 1.30 (platform plumbing), so the flag is
+  left as it is until that sub-step, and it is recorded here so it is not
+  mistaken for a new failure later.
+- Unproven and still owed by the segment gate: the Lighthouse run on the
+  homepage, the dead link audit over the full public site (it grows as 1.29
+  lands the remaining routes) and the trusted-types boundary.
 
 ## Sub-step 1.27 evidence -- the usability primitives
 
@@ -2300,6 +2459,53 @@ Closed in "## Sub-step 1.27 evidence" above, code `535c54e`: every one of those
 hand-overs was used rather than worked around - the logout signal is subscribed
 by both storage hooks, the copy lives in two new namespaces, and the states it
 names are reused rather than reinvented.
+
+## Sub-step 1.29 starting point
+
+1.29 is "Public site pages B: contact, industries, calculators, the free invoice
+generator shell, terms, privacy, blog shell, 404, 500, offline". What 1.28 hands
+it:
+
+**A shell that already carries the chrome.** `PublicShell` renders the skip link,
+the single main landmark and the public footer, and `app/(public)/layout.tsx`
+wraps every public route in it, so a new page is a component with a metadata
+export and nothing else. The header is the one piece deliberately left for 1.29:
+it is the surface that carries the contact destination and the language switch,
+and building it in 1.28 would have meant building half of it twice. It arrives
+between the skip link and the main landmark without moving either.
+
+**A navigation map that already publishes the shapes.** `config/nav-map.ts` has
+the `public-site` block with `home`, `features`, `pricing` and `about` live, and
+the remaining public routes are still planned entries: a planned entry may carry
+no destination, and the check fails one that does. Flipping `contact`,
+`industries`, `calculators`, `terms`, `privacy` and `blog` to live means giving
+each one a real route in the same commit, because `check:dead-links` cross
+checks every published destination against the route inventory.
+
+**A claim floor to extend rather than relax.** `scripts/checks/public-site.mjs`
+refuses 24 claim patterns and 7 company fact shapes in the four namespaces of
+1.28. The legal pages, the contact page and the industry pages add namespaces
+that this check does not yet read: the contact page in particular is where a
+phone number, an address and an email become legitimate, so the fact patterns
+have to move from "refused everywhere" to "refused everywhere except the one
+namespace where the owner supplies them". That is a deliberate change of the
+rule and it should be made in the open rather than by weakening the list.
+
+**The state and error surfaces already exist.** The 404, 500 and offline pages
+are `app/not-found.tsx`, `app/error.tsx` and an offline route, and they read the
+`ERROR_CODES` and correlation ids of 1.24 rather than inventing copy. They also
+have to keep the heading outline rule: one h1, no skipped level, which the
+rendered probe already reads.
+
+**What must not regress.** The rendered probe
+`docs/EVIDENCE/step-01/public-pages-probe.py` reads four pages by name and
+checks the footer, the heading outline and the claim vocabulary in each
+response; it grows with 1.29 rather than being replaced. `check:i18n-strings`
+scans every `.tsx` under `app/` and `components/`, so the new pages may not
+write a literal sentence, and `check:design-tokens` refuses a class step that is
+not on the scale. The single price table stays the only owner of a figure: the
+free invoice generator is a shell in this step, and it renders copy rather than a
+number.
 
 ## Blockers
 
