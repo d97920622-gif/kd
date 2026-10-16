@@ -3,12 +3,12 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19, 1.20, 1.21 and 1.22 complete, 1.23 next
-Last completed sub-step: 1.22 (navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring).
-Next sub-step: 1.23 (command palette and keyboard shortcuts page with focus management and ARIA labels).
+Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19, 1.20, 1.21, 1.22 and 1.23 complete, segment gate next
+Last completed sub-step: 1.23 (command palette over the map and the registry, one chord spelling, public keyboard shortcuts reference page).
+Next: the segment 1C gate (navigation renders correctly for every role; the dead-link check passes on the current route set) -- no sub-step follows inside 1C.
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
-Segment 1C: in progress (1.18, 1.19, 1.20, 1.21 and 1.22 complete; segment gate pending)
+Segment 1C: in progress (1.18, 1.19, 1.20, 1.21, 1.22 and 1.23 complete; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -66,14 +66,14 @@ docs/EVIDENCE/step-01/gate-1B.md, commit 2cd305d).
 
 ## SEGMENT 1C -- Brand, layout, navigation (chat 3 of 4)
 
-| Sub-step | Description                                                                                                                  | Status  | Commit  |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 1.18     | Brand assets: logo variants, favicon pack 16/32/180/192/512, apple touch icon, PWA icons, OG image, brand voice guide        | done    | b8511e6 |
-| 1.19     | Layout shells: public and auth layouts with skip links, focus order, print base                                              | done    | e95c963 |
-| 1.20     | Layout shells: dashboard, admin and client portal layouts with role-aware framing                                            | done    | 2e3c0aa |
-| 1.21     | Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar | done    | 5411c93 |
-| 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring   | done    | 37c481b |
-| 1.23     | Command palette and keyboard shortcuts page with focus management and ARIA labels                                            | pending | -       |
+| Sub-step | Description                                                                                                                  | Status | Commit  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- | ------ | ------- |
+| 1.18     | Brand assets: logo variants, favicon pack 16/32/180/192/512, apple touch icon, PWA icons, OG image, brand voice guide        | done   | b8511e6 |
+| 1.19     | Layout shells: public and auth layouts with skip links, focus order, print base                                              | done   | e95c963 |
+| 1.20     | Layout shells: dashboard, admin and client portal layouts with role-aware framing                                            | done   | 2e3c0aa |
+| 1.21     | Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar | done   | 5411c93 |
+| 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring   | done   | 37c481b |
+| 1.23     | Command palette and keyboard shortcuts page with focus management and ARIA labels                                            | done   | d048e01 |
 
 Segment 1C gate: navigation renders correctly for every role; dead-link check
 passes on the current route set. Status: pending.
@@ -94,6 +94,126 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.23 evidence -- the command palette, one chord spelling and the shortcuts page
+
+FEATURE_LIST E3 asks for six things in one sub-step: a global palette on Cmd+K and
+Ctrl+K, fuzzy search over commands, pages and (later) records, shortcuts on the
+actions, a reference page reachable with `?`, Vim keys as an option, and focus
+management with ARIA labels. Step 1 answers the five that do not need records.
+
+**One chord, written once.** `lib/utils/key-chord.ts` owns what a chord _is_:
+`mod+k` is Control on Windows and Linux and Command on macOS, matching is exact
+in both directions (Control+Shift+K is not Control+K, and a chord that does not
+declare Control is not fired while Control is down), a letter chord compares
+shift, and a symbol chord does not - `?` is Shift+/ on most layouts, so a chord
+that demanded shift as well would depend on the keyboard. The same module turns a
+chord into the keycap labels a reader sees (`Ctrl`, `K`) and into the
+`aria-keyshortcuts` value assistive technology reads (`Control+k Meta+k`). The
+label is deliberately ASCII: rendering the Command glyph needs the platform,
+which means the browser, which means a hydration mismatch to fix a word. The
+reference page carries the sentence that names both keys instead.
+
+**One registry.** `config/commands.ts` declares every command the product can
+run. An entry command names a map entry rather than a path, so a command cannot
+be the second place a route lives and cannot outlive the page it points at; an
+action command names one of the closed set in `COMMAND_ACTIONS`; and a chord
+appears exactly once in the file. The registry also builds the reference page's
+rows (`shortcutRows`), which is what keeps the page and the palette from
+disagreeing: an entry row is listed only when the map offers that entry to this
+reader, so the page never documents a shortcut to a page the reader cannot open.
+
+**One list, two readers.** `components/navigation/command-rows.ts` builds the
+palette's rows from the map and the registry: pages from the reader's own
+role-filtered navigation, actions from the registry, ranked inside each group so
+a group heading is never floated above the rows it labels. The palette
+(`command-palette.tsx`) and the development specimen call the same function, so
+the rendered evidence measures the code path a reader's keystrokes go through
+rather than a second one written for the evidence.
+
+**Focus, as a contract.** `command-list.tsx` is a real listbox: `role="listbox"`
+with `role="option"` children, `aria-selected` on the active row,
+`aria-current="page"` on the row the map resolves as the current page, group
+headings referenced by `aria-labelledby`, and no focusable option at all -
+navigation moves `aria-activedescendant`, which the palette's input owns
+together with `role="combobox"`, `aria-expanded`, `aria-controls` and
+`aria-autocomplete="list"`. The dialog is the product's own `DialogContent`, so
+the focus trap and the return of focus to the trigger are Radix's, and the
+palette declares neither `role="dialog"` nor `aria-modal` a second time. The
+trigger is a named button carrying `aria-haspopup="dialog"` and the chord it
+advertises. `?` opens the reference page only outside a text field, because a
+question mark belongs to the sentence first.
+
+**The public page.** `/shortcuts` is the first page the public site serves. It is
+generated from the registry and the map - no hand-written table, no second list -
+and it mounts the palette for the public audience, which is both the honest host
+for a reader with no session and what makes the evidence measurable in a
+production response rather than only in development. Its entry flips from planned
+to live in `config/nav-map.ts` in the same commit (`public-resources` block, with
+`nav.label_section_resources` and `nav.label_public_shortcuts`), so
+`check:dead-links` verifies the route on the day it appears. The workspace and
+platform frames mount the same component in `TopBar`'s `trailing` slot; the
+client portal gets none, because it is a document rather than a workspace.
+
+**The audit.** Seven rules were added to `scripts/checks/nav-map.mjs` (the check
+from 1.22, which owns the map and its readers): the registry's public surface and
+its canonical chords (no `ctrl`/`cmd`, no two commands on one chord, action ids
+inside `COMMAND_ACTIONS`); entry commands that name an entry the map declares and
+that is live; the palette taking its pages from the role-filtered navigation and
+never from the raw map, rendering the product dialog, declaring the five
+combobox attributes, matching chords through `key-chord.ts` and standing down
+inside a field; the option list with no `tabIndex`; the matcher gating shift on a
+letter key and matching Control or Meta; the reference page reading the registry;
+a chord literal written nowhere but the registry; a fourth place moving focus
+(three are listed: the palette, the form error summary and the mapped-form-errors
+hook); and at least one host mounting `<CommandPalette>`.
+
+**Controls.** Fifteen negative controls, each patched, required to fail with the
+message the rule promises, and reverted: eleven against the check (the palette
+losing `aria-activedescendant`, a focusable option, a `ctrl+k` chord, two
+commands on one chord, a shortcut to a planned page, a chord spelled in the
+palette, a listener that ignores text fields, a matcher that demands shift for
+`?`, a reference page that stops reading the registry, a fourth `.focus()` call,
+and - as immunity - a chord named only in a comment, which must _not_ fire), and
+four against the rendered page (rows that stop marking the current page, the
+public list built for the wrong audience, a trigger that stops advertising its
+chord, and a reference page that loses its table marker). All fifteen behaved as
+intended.
+
+**Rendered evidence.** The probe gained a command-surface section and a
+shortcuts-page section, and it fetches `/shortcuts` as a stranger would. Measured:
+the specimen's list for the development audience is exactly
+`specimen-shells, specimen-gallery, palette.open, main.focus`; the list for the
+public audience is exactly `shortcuts, palette.open, main.focus`; each list has
+one active row and one current row, and the current row is the one the map
+resolves (`specimen-shells` at `/shells`, `shortcuts` at `/shortcuts`); no
+option is focusable; every group names a heading that exists in the same list;
+and neither list can reach the other audience's page, because the row was never
+built. On `/shortcuts`: the title and the `h1` are the catalogue's own words, the
+table carries one row per registered shortcut in registry order, each row has a
+keycap, a named action and a group, the page's own row is a live link to
+`/shortcuts`, no raw chord token appears in the text a reader reads, the keycap
+label is `Ctrl`, and the trigger advertises `Control+k Meta+k` and hides the
+keycaps from assistive technology.
+
+**Production.** `next build` OK, 9 static pages (`/shortcuts` 675 B and 140 kB
+first load, `/shells` 6.2 kB, `/gallery` 80.7 kB). With `next start` on port
+3020: `/shortcuts` answers 200 with no specimen marker in the response, while
+`/`, `/shells`, `/gallery`, `/dashboard`, `/admin` and `/client-portal` answer
+404 and carry no specimen marker.
+
+**Not verified, and not claimed.** There is still no browser dependency in this
+build, so no keystroke is synthesised: the chord matcher, the active-descendant
+walk, the focus trap and the return of focus to the trigger are verified in
+source and in the rendered attributes, not by pressing a key. Vim keys
+(FEATURE_LIST E3.175) stay optional and unimplemented - the chord module matches
+whatever a later step declares, and the option is a row in the registry when a
+reader-facing setting exists. Record search (E3.172) waits for the records: the
+palette's third source is a reserved block in the registry, not a stub.
+
+**Gates.** `npm run verify`: `RESULT: PASS (23 of 23 checks passed)`.
+`check:i18n-strings`: 10 namespaces, 414 keys. `check:dead-links`: 3 routes, 3
+verified links, 0 dynamic. `check:nav-map`: 6 roles, 3 commands, 2 chords.
 
 ## Sub-step 1.22 evidence -- the navigation map, the role filter and the generated trails
 
@@ -1024,42 +1144,35 @@ with its gate passed, and segment 1B continues under the permission-gated
 rhythm (one sub-step per commit, verify between sub-steps, stop for
 confirmation).
 
-## Sub-step 1.23 starting point
+## Segment 1C gate -- what stands between here and segment 1D
 
-1.23 is "Command palette and keyboard shortcuts page with focus management and
-ARIA labels". What the accepted work hands it:
+Segment 1C's gate is two clauses, and both are now measured rather than
+asserted:
 
-**The map, and nothing else, decides what exists.** `navigationFor(audience,
-role)` returns the sections and the bottom-bar entries for one reader;
-`activeHrefFor` resolves the current destination; `publishedHrefs()` lists
-everything live. A palette is a third surface over the same list, so it should
-render the map's live entries and offer nothing planned - the check already
-fails a planned entry that carries a destination, and the probe already fails a
-planned label that reaches a navigation landmark, so a palette that invents a
-route fails both.
+**Navigation renders correctly for every role.** The specimen renders every
+audience and role pair through the real surfaces, and the probe reports what each
+one is offered: the workspace owner 15 planned modules and the staff 13, a client
+none, the platform roles the platform console, the client portal its own four,
+and a role outside an audience nothing at all. The two live destinations are
+offered to the development audience and the public shortcuts page to every
+reader, including one with no session. Nothing planned is rendered anywhere: no
+planned label reaches a navigation landmark, and the palette cannot offer a page
+the map does not serve that reader.
 
-**The chrome already has the slot for the trigger.** `TopBar`'s `trailing` slot
-exists for search, notifications and the account menu, and its docstring says
-the command palette is sub-step 1.23; `ShellTopBar` owns the sticky position and
-the `header` landmark. The palette's own trigger therefore belongs in a
-route-group layout or in the wiring module, not inside `TopBar`.
+**The dead-link check passes on the current route set.** `check:dead-links`
+reads the map's literals and the app tree: 3 routes (`/shells`, `/gallery`,
+`/shortcuts`), 3 verified links, 0 dynamic links skipped. Both new routes of the
+segment (`/shells` in 1.21, `/shortcuts` in 1.23) went live in the same commit as
+the page, which is the discipline the gate exists to enforce.
 
-**Focus management is a source contract, not a measured one.** There is no
-browser dependency in this build, so `check:layout-shells` (or a new check) must
-carry the palette's contract the way it carries the drawer's: a controlled open
-state owned by the component, a named dialog, a labelled listbox, entries
-rendered through one renderer, Escape and arrow keys handled, and no focusable
-element left behind in the chrome. The keyboard shortcuts page (`?`) needs the
-same treatment: a public route is required, and `check:dead-links` will verify
-its href once the map publishes it - so the entry moves from planned to live in
-`config/nav-map.ts` in the same commit that adds the page.
+**Then segment 1D**, which owns sub-steps 1.24 to 1.32: the page-state system,
+motion and media, web hardening, usability primitives, the public site pages,
+admin and workspace dashboards, and the step 1 close-out. Two step-1 gates that
+segment 1C could not close stay open and must not be claimed: the Lighthouse score
+on a homepage (there is no homepage until 1.28) and the typed `/api/health`
+response.
 
-**Two rules 1.22 established that 1.23 must not break.** Entries render through
-`NavLink` - the one place that decides what "current page" announces - and
-`aria-current` is derived, never written as a literal. A palette entry is
-marked as the current page the same way, or it is not marked at all.
-
-## Blockers
+## Blockers## Blockers
 
 None recorded.
 
