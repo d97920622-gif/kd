@@ -3,13 +3,13 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.24 complete, 1.25 next
-Last completed sub-step: 1.24 (page-state system: skeleton layouts, boundary with a bounded retry, empty/permission/error/success states, the 320 pixel layer, accessibility primitives).
-Next sub-step: 1.25 (motion and media: providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.25 complete, 1.26 next
+Last completed sub-step: 1.25 (motion and media: the token bridge for Framer Motion, the motion provider, page transitions, press feedback, stagger, confetti, the happy-path arrival, the illustration baseline and the reduced-motion contract).
+Next sub-step: 1.26 (web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24 done; segment gate pending)
+Segment 1D: in progress (1.24 and 1.25 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -92,7 +92,7 @@ passes on the current route set. Status: pending.
 | Sub-step | Description                                                                                                                                    | Status  | Commit  |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | done    | 4c9f2a2 |
-| 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | pending | -       |
+| 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | done    | dcd6b0f |
 | 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | pending | -       |
 | 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | pending | -       |
 | 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | pending | -       |
@@ -103,6 +103,304 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.25 evidence -- the motion layer, the reduced-motion contract and the illustration baseline
+
+1.25 is "Motion and media: Framer Motion providers, page transitions, stagger,
+confetti, illustration baseline, reduced-motion handling". Two commits: code
+`dcd6b0f` (22 files, +2086/-3) and this progress file. The acceptance anchors are
+FEATURE_LIST A3 items 26 to 37 (hover and transition micro-interactions, the
+motion token system, Framer Motion, page-to-page transitions, button press
+feedback, scale and fade, stagger on list items, confetti on payment success,
+Lottie support, reduced-motion support, the happy-path animation and a subtle
+focus pulse), items 517 and 1734 (the onboarding and payment-success
+celebrations), F4 item 202 (reduced motion as an accessibility requirement) and
+K1 (the illustration system).
+
+### What the product gained, module by module
+
+| Module                                  | What it decides                                                                                                                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/motion/tokens.ts`                  | The only conversion from a token to a number Framer Motion can use: 320ms becomes 0.32 seconds, a cubic-bezier becomes four control points.   |
+| `components/motion/motion-provider.tsx` | Reads the preference once, configures Framer Motion once, and hands every component below a transition with the preference already applied.   |
+| `components/motion/page-transition.tsx` | The fade and eight-pixel rise a navigation gets, mounted once by `app/template.tsx`.                                                          |
+| `components/motion/stagger-list.tsx`    | Rows that arrive in a wave, capped after six rows, with the step derived from a duration token.                                               |
+| `components/motion/confetti.tsx`        | The celebration: hidden from assistive technology, never intercepting a pointer, capped at 24 pieces and 6 seconds, and gone when it is over. |
+| `components/motion/reveal.tsx`          | The happy-path arrival (A3.36): a panel that settles into place once, when something went right.                                              |
+| `components/motion/press-feedback.tsx`  | Press and hover feedback for the controls that are not a `Button`: cards, tiles, rows.                                                        |
+| `components/motion/animation-slot.tsx`  | The illustration and animation baseline: a reserved box, three named ratios, a still that is required, and no renderer dependency.            |
+| `app/template.tsx`                      | The one place a navigation is animated, as a server component that renders one client boundary.                                               |
+
+Two files were edited to carry behaviour rather than to add a module:
+`components/ui/button.tsx` gained the class-level half of A3.30 and A3.37
+(`motion-safe:active:scale-95`, `motion-safe:focus-visible:animate-focus-pulse`,
+and a transition that covers transform as well as colour), and
+`tailwind.config.ts` gained the one-shot `focus-pulse` keyframes and animation.
+The reduced-motion half of the stylesheet did not change: 1.14 and 1.24 had
+already zeroed every duration token under `@media (prefers-reduced-motion:
+reduce)`, and 1.25 is the layer that has to consume it.
+
+### The bridge is the only place a number appears
+
+The design system declares durations and easings once and the stylesheet turns
+them into custom properties. Framer Motion cannot animate a custom property: it
+wants seconds and control points. Writing those numbers again in a component is
+how a product ends up with two motion systems, and the drift is invisible
+because both look plausible. So the conversion lives in one module, and
+`check:motion` fails any other file in `app/`, `components/` or `lib/` that
+reads the token tables:
+
+```
+export function motionDuration(key: MotionDurationKey, reduce = false): number {
+  const token = MOTION_DURATION_TOKENS[key];
+  const value = reduce ? token.reducedValue : token.value;
+  return parseMilliseconds(value) / MS_PER_SECOND;
+}
+```
+
+The key types are `keyof typeof MOTION_DURATION_TOKENS` and
+`keyof typeof MOTION_EASING_TOKENS`, so a token added to the design system is
+reachable with no edit here and a token removed from it stops compiling at every
+call site. `npm run verify` reports the scales as wired with reduced motion
+verified, which is the other half of the same contract.
+
+### Reduced motion is decided once and then inherited
+
+`MotionConfig reducedMotion="user"` makes Framer Motion itself drop transform
+and layout animation for a reader who asked for less motion, and
+`useMotionPreference()` gives the components below the same flag so they can
+shorten their own durations to the token's reduced value - which is zero for
+every duration in the system. The preference is read in exactly one place:
+`check:motion` fails any other animated module that calls `useReducedMotion()`,
+because a second subscription is how two parts of one page end up disagreeing
+about what the reader asked for.
+
+The provider takes one non-product prop, and it exists so the reduced path can be
+_seen_ in this repository rather than asserted: the gallery mounts a second
+provider with `force="reduce"`. Framer Motion reads the operating system
+preference and not a CSS class, so on a machine whose operating system says
+nothing about motion the pinned pane is the only place the reduced path is
+visible - and the DOM probe reads that pane rather than trusting the pin.
+
+### The seven decisions that needed a written reason
+
+1. **No exit animation.** The App Router has already swapped the content when the
+   template mounts, so an exit animation is a stall on every click, and a slow
+   device makes it longer. `check:motion` fails an `exit=` on either the page
+   transition or the happy-path arrival.
+2. **The celebration removes itself for a reader who asked for less motion.** It
+   does not freeze: a still frame of confetti is still a full-screen layer. The
+   sentence that says the milestone happened is rendered by the page and stays.
+3. **The stagger step is a fraction of a token, not a number.** Forty rows at 60
+   milliseconds each takes two and a half seconds to arrive; the cap stops the
+   wave at six rows and the step is `motionDuration('fast') * 0.35`, so a change
+   to `--duration-fast` moves the stagger with it.
+4. **The focus pulse animates `outline-offset`.** The outline is the focus
+   indicator: animating its width makes the indicator appear late, and a second
+   `box-shadow` ring is a second thing to keep themed. Sliding the ring's
+   distance from 8 pixels to the 2 the global rule already sets is a pulse that
+   cannot move the layout, cannot thin the ring and cannot leave a theme behind.
+   (It also keeps the config clear of the `boxShadow` key entirely, which
+   `check:design-tokens` reads as a second shadow scale.)
+5. **A still is required, not optional.** `AnimationSlot` takes a `still` prop
+   with no question mark, so an animation that has no reduced-motion answer does
+   not compile. A prop that can be omitted will be omitted, and the reader who
+   needs it is the one who finds out.
+6. **The press scale is `motion-safe`.** The class-level variant is the same
+   promise the tokens make: a reader with reduced motion gets the press without
+   the movement rather than a shortened snap.
+7. **The completion callback lives in a ref.** A parent passing an arrow function
+   - which is every parent - would otherwise hand the celebration a new callback
+     on each render and restart the fall timer, so a page that rendered twice would
+     never finish the celebration and never remove its layer.
+
+### The illustration and media baseline, and the Lottie stance
+
+Section K asks for an illustration system and for animation support, and A3.34
+names Lottie. What this sub-step delivers is the _contract_ rather than a
+renderer: `AnimationSlot` reserves the box before a drawing arrives (one of three
+named aspect ratios, a width from the layout tokens), hides itself from
+assistive technology by default, and swaps the animation for the still when the
+reader asked for less motion. Any renderer - a Lottie player, an SVG with a
+timeline, a video - drops into that slot unchanged.
+
+The stance, recorded here so the next step inherits it rather than rediscovering
+it: no Lottie runtime is added in step 1, because step 1 ships no animated Lottie
+asset to play and an unused player is a renderer and a network dependency for a
+drawing nobody has authored yet. The first surface that owns an animation -
+onboarding in the middle of step 4, the payment-success page in step 8 - brings
+the file and the minimum player through the dependency gate, and it renders
+inside `AnimationSlot`, so the box, the accessible name rule, the still and the
+reduced-motion behaviour are already decided. Media follows the same posture:
+`next.config.js` already declares AVIF and WebP, `check:motion` fails a raw
+`<img>` anywhere in `app/`, `components/` or `lib/`, and images arrive through
+`next/image` with the layout reservation the slot exists to guarantee.
+
+### `npm run verify` on the frozen tree
+
+Verbatim from the run against the committed tree (25 checks):
+
+```
+== KD SOLUTION IT verify ==
+branch arena/b7780282-kd at dcd6b0f
+PASS typecheck                completed with no output (  2.6s)
+PASS lint                     completed with no output (  6.6s)
+PASS format:check             All matched files use Prettier code style! (  6.0s)
+PASS env:validate             env:validate PASS (NODE_ENV=development) (  0.4s)
+PASS tokens:export            tokens:export PASS (config/design-tokens.json is current: 12 groups, 25486 bytes) (  0.4s)
+PASS check:english-only       check:english-only PASS (241 text files scanned, 1 documented exemption) (  0.1s)
+PASS check:no-todo            check:no-todo PASS (203 text files scanned) (  0.0s)
+PASS check:no-coming-soon     check:no-coming-soon PASS (203 text files scanned) (  0.1s)
+PASS check:no-tests           check:no-tests PASS (248 tracked files inspected) (  0.0s)
+PASS check:path-comment       check:path-comment PASS (230 source files carry a valid path comment) (  0.1s)
+PASS check:i18n-strings       check:i18n-strings PASS (80 JSX files checked for literal copy, 12 catalogue namespaces with 504 keys validated) (  0.6s)
+PASS check:design-tokens      check:design-tokens PASS (174 source files scanned, 593 class lists checked, spacing/radius/shadow/z-index/typography/motion scales wired from config/design-tokens.ts with reduced motion and forced colors verified) (  1.1s)
+PASS check:color-contrast     check:color-contrast PASS (4 themes, 23 color roles, 76 contrast ratios verified against WCAG 2.1 AA, paper palette 4 tokens and 3 ratios verified) (  0.5s)
+PASS check:no-console         check:no-console PASS (176 source files scanned) (  0.1s)
+PASS check:forbidden-brands   check:forbidden-brands PASS (203 text files scanned) (  0.1s)
+PASS check:migration-pairs    check:migration-pairs PASS (no migrations yet: nothing to pair) (  0.0s)
+PASS check:dead-links         check:dead-links PASS (3 routes, 3 verified links, 0 dynamic links skipped) (  0.0s)
+PASS check:secrets            check:secrets PASS (241 text files scanned) (  0.1s)
+PASS check:any-types          check:any-types PASS (151 TypeScript files scanned) (  0.1s)
+PASS check:money-math         check:money-math PASS (176 script files scanned) (  0.1s)
+PASS check:brand-assets       check:brand-assets PASS (9 assets current (mark in light and dark, plate icon, favicon pack 16/32/48, apple touch icon 180, PWA icons 192 and 512, maskable 512), palette-only colours, centring and 16 pixel legibility verified, default social image rendered and measured at the network crop size) (  2.5s)
+PASS check:layout-shells      check:layout-shells PASS (5 shells and 5 route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), 6 roles framed through one seam with no privileged default, 9 navigation surfaces verified (named landmarks, one owner of the current page, 44 pixel targets, device inset on pinned bars, drawer state owned in the component), print base verified against config/design-tokens.ts) (  0.5s)
+PASS check:nav-map            check:nav-map PASS (config/nav-map.ts verified: 6 roles filtered, one audience per surface, no destination outside the map, wiring gated on a non-empty menu, 3 commands on 2 chords) (  0.7s)
+PASS check:page-states        check:page-states PASS (8 state and accessibility modules verified (announced, actionable, named), breakpoint ladder 320 to 1920 exact, no desktop-first media query, styles/globals.css carries the wrap guard) (  0.1s)
+PASS check:motion             check:motion PASS (9 motion and media modules verified (preference read, durations from the token bridge, celebration bounded and removable), 5 durations zeroed at the preference, gallery pins the reduced pane) (  0.1s)
+RESULT: PASS (25 of 25 checks passed)
+```
+
+Counts that moved since 1.24: english-only 218 to 241 files, no-todo 179 to 203,
+no-tests 224 to 248, path-comment 206 to 230, i18n 11 to 12 namespaces and 476 to
+504 keys, design-tokens 151 to 174 files and 488 to 593 class lists, any-types
+140 to 151, money-math 164 to 176.
+
+### The new check, and the controls that prove it bites
+
+`scripts/checks/motion.mjs` is the twenty-fifth check. It verifies ten groups,
+all of them static reads: the dependency is a runtime dependency; the bridge
+imports the token module with its extension and is the only reader of the token
+tables; no duration is a number written in a component and no layout property is
+animated; every animated module reads the preference and shows the decision as
+`data-motion-reduced`; the provider configures `MotionConfig` and exposes exactly
+the declared durations and easings; the template mounts the transition and the
+transition has no exit, no focusability, no announcement and a rise within eight
+pixels; the stagger is capped and token-derived; the celebration is hidden,
+unclickable, on the toast layer, capped, removable and ref-called; the still is
+required and the reduced path renders it; the button carries the motion-safe
+press and pulse, the keyframes exist and the stylesheet zeroes every duration at
+the preference; no raw `<img>` exists and the format list is declared; the copy
+namespace is registered and the gallery renders and pins the layer.
+
+Static negative controls, one file at a time with a restore in `finally`
+(`/tmp/controls125.py`): **44 of 44 behaved as intended**, 42 mutations fired a
+finding and 2 immunities passed. The first run found 5 misses, and every one was
+a rule that matched a comment instead of the code, or a declaration instead of
+the call site:
+
+| Miss | What the rule matched                                  | The fix                                                           |
+| ---- | ------------------------------------------------------ | ----------------------------------------------------------------- |
+| C7   | `reducedMotion=` in the provider's doc comment         | the attribute on its own line: `^\s+reducedMotion=`               |
+| C18  | `pointer-events-none` in the celebration's doc comment | the class list: `pointer-events-none fixed inset-0`               |
+| C21  | the declaration of the ref, not its two call sites     | two `onDoneRef.current?.()` calls and no direct `onDone?.()`      |
+| C35  | the finding text still described the ring colour       | the rule and the message now both describe the two animated stops |
+| C40  | the reduced pane's own `<Confetti seconds={1} />`      | the celebration instance, matched with its `onDone` wiring        |
+
+Rendered negative controls (`/tmp/controls125_probe.py`), one file at a time with
+a wait for the dev server to recompile: **4 of 4 fired**. The pane stops pinning
+reduced motion (the probe names the component that reports full motion), the
+staggered list loses its marker (the inventory notices), a component inside the
+pane reports full motion, and the page transition loses its page-level marker.
+After both runs every controlled file was byte-identical to its backup
+(`diff -q` clean across the 18 source files), and the probe passed again on the
+restored tree.
+
+### Rendered evidence
+
+`docs/EVIDENCE/step-01/gallery-dom-probe.py` grew from 37 to 44 markers per
+scope, seven of them for this sub-step and one at page level, because an
+animation only exists while it runs: the inventory proves each animated component
+renders in all five scopes, and the pane proves the reduced decision reached
+them. Verbatim:
+
+```
+page size: 633954 bytes
+stylesheet size: 58981 bytes
+scopes found: 5
+reserved drawing slot, still and                 2               2               2               2               2
+staggered list, capped wave                      3               3               3               3               3
+press and hover feedback wrapper                 1               1               1               1               1
+components reporting the reduced                 3               3               3               3               3
+specimen pane pinned to reduced m                1               1               1               1               1
+button press feedback, motion saf               33              33              33              33              33
+focus pulse, one shot                           33              33              33              33              33
+
+page level motion markers:
+  page transition mounted by the root template           1
+
+reduced motion pane (preference pinned, not inherited):
+  components reporting reduced motion: 3
+  components reporting full motion:    0
+  celebrations rendered inside it:     0
+
+buttons in the page: 255
+form controls in the page: 100
+controls with a semantic role: 45
+labels with a for attribute: 30
+accessible name issues: 0
+
+markers checked per scope: 44
+page level markers checked: 1
+findings: 0
+RESULT: PASS
+```
+
+The 33 press and focus classes are every button on the page inheriting the base
+class list, which is the point of putting A3.30 and A3.37 on the primitive: the
+feedback is not a component a page remembers to use.
+
+### Production build and the guard
+
+`npx next build` after `rm -rf .next`: compiled successfully in 16.3 seconds,
+**9 static pages**. `/gallery` 87 kB (281 kB first load, up from 85.1 kB and
+234 kB before the motion layer, which is the cost of the animation library on a
+development-only route), `/shells` 6.2 kB, `/shortcuts` 675 B, `/_not-found`
+993 B, shared first load 103 kB.
+
+`npx next start -H 0.0.0.0 -p 3020` then answered:
+
+```
+/              404  8196   page-transition markers: 1
+/shells        404  6741   page-transition markers: 0
+/gallery       404  6744   page-transition markers: 0
+/shortcuts     200 19493   page-transition markers: 1
+/dashboard     404  8196   page-transition markers: 1
+/admin         404  8196   page-transition markers: 1
+/client-portal 404  8196   page-transition markers: 1
+```
+
+The guard was stopped, `.next` removed and the development server restarted on
+0.0.0.0:3000; `/shells` 200 351446 B, `/gallery` 200 633952 B, `/shortcuts` 200
+37841 B, and the probe passed on that server.
+
+The 404 responses are the intended state of a step that has built the shell and
+the system and not yet the public pages: 1.28 and 1.29 build them. The marker on
+the not-found page is the template doing its job - a navigation to a missing page
+is still a navigation - and the smaller 404 for the two development-only routes
+is the route group's own refusal, which renders before the shared not-found.
+
+### Open at the end of this sub-step
+
+- Lighthouse on the homepage: owed to the segment gate, and the homepage does not
+  exist until 1.28.
+- The typed `/api/health` route: step 1 has no API surface yet.
+- The animation library is a client-side cost on the two animated routes; the
+  public pages built in 1.28 and 1.29 must keep `PageTransition` the only motion
+  they pull in on first paint.
+- No browser dependency in this repository, so the motion itself is verified
+  through markup, tokens, the stylesheet and the DOM probe rather than by
+  rendering frames.
 
 ## Sub-step 1.24 evidence -- the page-state system, the 320 pixel layer and the accessibility primitives
 
@@ -1348,31 +1646,37 @@ audit rules that silently stopped matching - the fix was not only the rule but a
 count in the check's summary line, so a rule that matches nothing is visible in
 `npm run verify`.
 
-## Sub-step 1.25 starting point
+## Sub-step 1.26 starting point
 
-1.25 is "Motion and media: Framer Motion providers, page transitions, stagger,
-confetti, illustration baseline, reduced-motion handling". What 1.24 hands it:
+1.26 is "Web hardening primitives: Trusted Types policy, COOP, COEP, CORP,
+Permissions-Policy, Clear-Site-Data on logout, SRI baseline, header matrix tests,
+docs/ADR/ADR-0006-web-hardening-baseline.md". What 1.25 hands it:
 
-**Reduced motion is already a token.** `styles/globals.css` zeroes the motion
-tokens under `@media (prefers-reduced-motion: reduce)` and the
-`.theme-reduced-motion` scope does the same inside the gallery, so a provider
-must read the same tokens (`--duration-*`, `--ease-*`) rather than inventing
-durations. The gallery's reduced-motion scope is the place a transition that
-ignores the preference becomes visible.
+**The header surface is still untouched.** `next.config.js` carries strict build
+settings, `poweredByHeader: false` and the image format list, and nothing else:
+no `headers()` block, no CSP, no cross-origin isolation. The file's own doc
+comment says security headers arrive in 1.26 and 1.30 and that appends go through
+the append protocol, so the hardening belongs there rather than in a middleware
+that does not exist yet.
 
-**The state family is the illustration baseline.** `StateIllustration` draws four
-geometric scenes with `currentColor` and token classes, at 96x72, legible at 320
-pixels; `components/branding/logo-mark.tsx` and the `lib/seo/og-image.ts`
-renderer already share one geometry. A new illustration should follow the same
-rules: drawn, not exported, no raw colour, hidden from assistive technology.
+**One client boundary now exists per route, by design.** `app/template.tsx` is a
+server component that renders `PageTransition`, and `MotionProvider` wraps the
+tree in the root layout. A Permissions-Policy or a Trusted Types policy that
+breaks inline script or a transform will show up on every route, so the header
+matrix has to be checked against the two animated routes and not only against a
+blank page. Trusted Types in particular is a _policy_ and not a header: it needs
+a named policy created in one module, and a `require-trusted-types-for 'script'`
+directive that the typed data layer of later steps will satisfy through
+`lib/security/`.
 
-**What must not regress.** `check:page-states` now reads the state modules and
-the stylesheets; `check:design-tokens` owns the motion scales and requires the
-reduced-motion and forced-colors handling; `scripts/checks/layout-shells.mjs`
-checks that no pinned surface uses `fixed`. A provider that mounts a motion
-context in the root layout has to keep the root render server-safe: the root
-layout is where `TooltipProvider` already lives, and every client boundary below
-it is the caller's.
+**What must not regress.** `check:motion` now fails a raw `<img>` and reads
+`next.config.js` for the image formats; `check:page-states` reads the stylesheet
+for the 320 pixel layer; `check:layout-shells` owns the skip link and one
+landmark per page. A header block that adds `Cross-Origin-Embedder-Policy:
+require-corp` breaks every cross-origin image, so the audit has to say which
+resources are same-origin first, and `docs/ADR/ADR-0006-web-hardening-baseline.md`
+is where that decision gets recorded - including SRI, which cannot be computed
+for the Next.js chunk graph without a build-time manifest.
 
 ## Blockers## Blockers## Blockers## Blockers
 
