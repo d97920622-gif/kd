@@ -3,12 +3,12 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19, 1.20 and 1.21 complete, 1.22 next
-Last completed sub-step: 1.21 (layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar).
-Next sub-step: 1.22 (navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring).
+Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19, 1.20, 1.21 and 1.22 complete, 1.23 next
+Last completed sub-step: 1.22 (navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring).
+Next sub-step: 1.23 (command palette and keyboard shortcuts page with focus management and ARIA labels).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
-Segment 1C: in progress (1.18, 1.19, 1.20 and 1.21 complete; segment gate pending)
+Segment 1C: in progress (1.18, 1.19, 1.20, 1.21 and 1.22 complete; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -72,7 +72,7 @@ docs/EVIDENCE/step-01/gate-1B.md, commit 2cd305d).
 | 1.19     | Layout shells: public and auth layouts with skip links, focus order, print base                                              | done    | e95c963 |
 | 1.20     | Layout shells: dashboard, admin and client portal layouts with role-aware framing                                            | done    | 2e3c0aa |
 | 1.21     | Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar | done    | 5411c93 |
-| 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring   | pending | -       |
+| 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring   | done    | 37c481b |
 | 1.23     | Command palette and keyboard shortcuts page with focus management and ARIA labels                                            | pending | -       |
 
 Segment 1C gate: navigation renders correctly for every role; dead-link check
@@ -94,6 +94,112 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.22 evidence -- the navigation map, the role filter and the generated trails
+
+MASTER_PROMPT's navigation integrity clause lists six things. Step 1 had two
+routes and five hand-written hrefs when this sub-step started; it now has one
+map, and everything the product offers is declared in it.
+
+**The map.** `config/nav-map.ts` holds five audiences (public, workspace,
+platform, client, development), eight blocks, and thirty-nine entries: two live
+and thirty-seven planned. The two live entries are the two routes this build
+actually serves; the planned ones name the workspace modules, the account
+modules, the platform console, the client portal and the public site that later
+steps build, and they carry no `href` field at all - the type is what keeps a
+destination out of the file until the page exists, which is the one mistake a
+navigation file makes that review never catches. Functions: `navigationFor`
+(sections plus the bottom-bar entries for one audience and one role),
+`activeHrefFor` (exact match first, then the longest registered ancestor at a
+segment boundary, so `/invoices/1042` belongs to `/invoices` and
+`/invoices-archive` belongs to nothing), `breadcrumbsFor` (the trail, current
+item as text and ancestors as links, or no trail at all for a path the map does
+not know), `liveEntriesFor`, `plannedEntriesFor` and `publishedHrefs`.
+
+**The seam.** `components/navigation/use-navigation.ts` is the only place that
+joins the map to `usePathname`, and
+`components/navigation/shell-navigation.tsx` renders the rail and the bottom bar
+into the shells' existing slots. Both live outside `components/layout/`, because
+`check:layout-shells` fails any module in that directory that imports the map or
+reads a request header: the surfaces stay presentational and the frame is what
+knows who is reading. `app/(dashboard)/layout.tsx` asks the map for the
+workspace audience, `app/(admin)/layout.tsx` for the platform one, and each
+fills a slot only when the map returns something, so the landmark the shell
+paints is never an empty region. The client portal gets no wiring: its modules
+are planned, and the map returns nothing for it.
+
+**Surfaces.** `SidebarNav` and `BottomNavigation` gained an `ownsLandmark` mode
+(false where the shell's slot declares the landmark, so the reader gets one
+navigation region rather than two nested ones) and `SidebarNav` now renders
+nothing at all when it has no entries and no header. `Breadcrumbs` marks the
+item without a destination as the current page instead of the last item in the
+list, which is what lets a trail stop short of the page it is drawn on.
+
+**Copy.** A ninth catalogue namespace, `nav` (45 keys: eight section headings,
+twenty-seven module names and ten public-site labels), registered in
+`lib/i18n/strings/en.ts` by appending one import, one entry and one re-export
+line. Seventeen more `shells.*` keys cover the specimen's map section.
+
+**The audit.** `scripts/checks/nav-map.mjs` (the twenty-third check) verifies,
+from source: the module's public surface; every block's audience and heading
+key; unique entry ids; catalogue keys that exist; a planned entry with no href
+and a live entry with one; an internal href; one destination published once;
+role lists made of real roles, empty only for public pages and never on a page
+that requires no session; parents that exist; the primary cap of five per
+audience; **every route registered** (development routes in the development
+block, product routes anywhere in the map); the development audience asked for
+only under `app/(dev)/`; no destination written into the navigation chrome
+(`components/layout/` and the route-group layouts); no role filtering anywhere
+but the map; the hook being a client module that reads the path and filters the
+map; the wiring rendering both surfaces with `ownsLandmark={false}`;
+`ownsLandmark={false}` appearing nowhere else; and each layout asking for its
+own audience and gating on a non-empty menu. `check:dead-links` reads the map's
+literals, so the two destinations it publishes are the two it verifies, and the
+first entry a later step adds with no page behind it fails the gate.
+
+**Controls.** Twenty-three negative controls, one per new rule, each patched,
+required to fail with the message the rule promises, and reverted: planned
+entry with an href, unknown label key, duplicate id, unknown role, gated module
+with no roles, missing audience block, six primary entries, unknown parent,
+duplicate destination, an unregistered route, an unexported function, an href in
+a layout, a component filtering by role, the development audience in a product
+module, `ownsLandmark={false}` in the specimen, one surface wired and not the
+other, a layout whose gate is not the map, a layout asking the wrong audience, a
+surface importing the map, an empty rail that no longer drops itself, a
+registered trail rendered as a link, a trail drawn for an unknown path, a
+planned label inside a navigation landmark, and a reader row filtered by the
+wrong role. All fired; all reverted.
+
+**Rendered evidence.** `docs/EVIDENCE/step-01/shell-probe.py` gained a tenth
+section, and the specimen gained three sections that render what the map
+publishes. Measured in the response: the trail for a registered path is one item,
+not a link, claiming `aria-current="page"`; the trail for `/shells/invoice-editor`
+is the ancestor as a link with no current claim; the trail for a path the map
+does not know renders no trail at all; all twelve audience-and-role rows report
+what the map offers them (the owner is offered 15 planned workspace modules,
+staff 13, a client 0, and a role outside an audience gets nothing from it); none
+of the 37 planned labels appears inside any navigation landmark in the page; and
+the specimen's drop box - a rail asked for by an audience the map has nothing
+live for - renders no landmark and no anchor. Four probe controls (two entries
+claiming the current page, a planned label as an entry name, the offline banner
+rendering while online, an entry with no readable name) each failed the probe and
+were reverted.
+
+**Production.** `next build` OK, 8 static pages (`/shells` 5.31 kB, `/gallery`
+80.4 kB). With `next start` on port 3020: `/`, `/shells`, `/gallery`,
+`/dashboard`, `/admin` and `/client-portal` all answer 404, and none of those
+responses carries a top bar, a map table or a specimen label.
+
+**Not verified, and not claimed.** There is no browser dependency in this build,
+so the drawer's focus trap, computed safe-area padding and keyboard traversal are
+not measured: the panel is a Radix portal, verified in source by
+`check:layout-shells`, and the device insets are verified as the four variables
+and the eight utilities the probe reads out of the compiled stylesheet. Lighthouse and the public-site dead-link inventory stay
+deferred to segment 1D.
+
+**Gates.** `npm run verify`: `RESULT: PASS (23 of 23 checks passed)`.
+`check:i18n-strings`: 9 namespaces, 391 keys. `check:dead-links`: 2 routes, 2
+verified links, 0 dynamic. `check:design-tokens`: 142 files, 439 class lists.
 
 ## Sub-step 1.21 evidence -- the navigation surfaces and the device insets
 
@@ -918,36 +1024,40 @@ with its gate passed, and segment 1B continues under the permission-gated
 rhythm (one sub-step per commit, verify between sub-steps, stop for
 confirmation).
 
-## Sub-step 1.22 starting point
+## Sub-step 1.23 starting point
 
-1.22 is "Navigation source: config/nav-map.ts with reserved growth blocks, role
-filter hook, breadcrumb generator, dead-link wiring". Two facts from the
-accepted work to build on rather than re-decide.
+1.23 is "Command palette and keyboard shortcuts page with focus management and
+ARIA labels". What the accepted work hands it:
 
-**The surfaces already take their entries as props, deliberately.** 1.21 built
-the rail, the drawer, the bottom bar, the trail and the footer to accept
-`NavEntryInput` / `NavSectionInput` / `BreadcrumbItem` values and to resolve
-labels through the catalogue, and `check:layout-shells` now fails any module in
-`components/layout/` that imports `config/nav-map`. The map is therefore wired
-in the route-group layouts (or in a small server component they render), not in
-the surfaces: that is what keeps a surface renderable in the specimen, and it is
-the seam 1.22 should fill.
+**The map, and nothing else, decides what exists.** `navigationFor(audience,
+role)` returns the sections and the bottom-bar entries for one reader;
+`activeHrefFor` resolves the current destination; `publishedHrefs()` lists
+everything live. A palette is a third surface over the same list, so it should
+render the map's live entries and offer nothing planned - the check already
+fails a planned entry that carries a destination, and the probe already fails a
+planned label that reaches a navigation landmark, so a palette that invents a
+route fails both.
 
-**Two things the map must settle that the components left open.** First, the
-active-entry match is exact, and the nested-route case (`/invoices` current on
-`/invoices/1042`) was deliberately left to whoever knows the route set, which is
-the map: it should resolve the parent a path belongs to rather than asking the
-surfaces to guess. Second, the reserved flag exists for entries whose target is
-not built yet and is dropped by default; the map is where reserved growth blocks
-become a list a later sub-step fills in, and `check:dead-links` reads its
-literals, which is what makes the segment gate's dead-link audit meaningful -
-today it verifies five hrefs and there are only two routes.
+**The chrome already has the slot for the trigger.** `TopBar`'s `trailing` slot
+exists for search, notifications and the account menu, and its docstring says
+the command palette is sub-step 1.23; `ShellTopBar` owns the sticky position and
+the `header` landmark. The palette's own trigger therefore belongs in a
+route-group layout or in the wiring module, not inside `TopBar`.
 
-The specimen page renders the surfaces with three hand-written entries; after
-1.22 it should render whatever the map publishes, and the probe's entry counts
-will follow. `check:layout-shells` enforces the map seam and the surface rules;
-`check:dead-links` is the audit over the map itself, so a new entry with no page
-fails the gate rather than shipping.
+**Focus management is a source contract, not a measured one.** There is no
+browser dependency in this build, so `check:layout-shells` (or a new check) must
+carry the palette's contract the way it carries the drawer's: a controlled open
+state owned by the component, a named dialog, a labelled listbox, entries
+rendered through one renderer, Escape and arrow keys handled, and no focusable
+element left behind in the chrome. The keyboard shortcuts page (`?`) needs the
+same treatment: a public route is required, and `check:dead-links` will verify
+its href once the map publishes it - so the entry moves from planned to live in
+`config/nav-map.ts` in the same commit that adds the page.
+
+**Two rules 1.22 established that 1.23 must not break.** Entries render through
+`NavLink` - the one place that decides what "current page" announces - and
+`aria-current` is derived, never written as a literal. A palette entry is
+marked as the current page the same way, or it is not marked at all.
 
 ## Blockers
 
