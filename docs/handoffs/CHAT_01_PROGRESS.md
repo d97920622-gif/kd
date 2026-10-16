@@ -3,12 +3,12 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19, 1.20, 1.21, 1.22 and 1.23 complete, segment gate next
+Current segment: 1C (brand, layout, navigation) -- COMPLETE, gate PASSED (evidence in docs/EVIDENCE/step-01/gate-1C.md)
 Last completed sub-step: 1.23 (command palette over the map and the registry, one chord spelling, public keyboard shortcuts reference page).
-Next: the segment 1C gate (navigation renders correctly for every role; the dead-link check passes on the current route set) -- no sub-step follows inside 1C.
+Next segment: 1D (states, hardening, public site, governance) -- sub-step 1.24 first, on the owner's word.
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
-Segment 1C: in progress (1.18, 1.19, 1.20, 1.21, 1.22 and 1.23 complete; segment gate pending)
+Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -74,6 +74,14 @@ docs/EVIDENCE/step-01/gate-1B.md, commit 2cd305d).
 | 1.21     | Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar | done   | 5411c93 |
 | 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring   | done   | 37c481b |
 | 1.23     | Command palette and keyboard shortcuts page with focus management and ARIA labels                                            | done   | d048e01 |
+
+Segment 1C gate: navigation renders correctly for every role; the dead-link check
+passes on the current route set. Status: PASSED (2026-10-16). Evidence in
+docs/EVIDENCE/step-01/gate-1C.md: 6 roles framed by the shell the role model
+calls for, 12 reader rows rendering what the map offers each one, 9 navigation
+surfaces measured in the response with 0 findings, 37 planned labels absent from
+every navigation landmark, an empty navigation rendering no landmark at all, and
+3 routes / 3 verified links / 0 dynamic links in the dead-link audit.
 
 Segment 1C gate: navigation renders correctly for every role; dead-link check
 passes on the current route set. Status: pending.
@@ -212,7 +220,7 @@ reader-facing setting exists. Record search (E3.172) waits for the records: the
 palette's third source is a reserved block in the registry, not a stub.
 
 **Gates.** `npm run verify`: `RESULT: PASS (23 of 23 checks passed)`.
-`check:i18n-strings`: 10 namespaces, 414 keys. `check:dead-links`: 3 routes, 3
+`check:i18n-strings`: 10 namespaces, 422 keys (the count at the commit; the run quoted above it was taken while the specimen's command section was still being written). `check:dead-links`: 3 routes, 3
 verified links, 0 dynamic. `check:nav-map`: 6 roles, 3 commands, 2 chords.
 
 ## Sub-step 1.22 evidence -- the navigation map, the role filter and the generated trails
@@ -1065,6 +1073,18 @@ rhythm from there.
 
 ## Session notes
 
+**Sandbox git rollback (2026-10-16, before the 1C gate).** The sandbox `.git`
+returned to the branch point `cca1d8d` between turns while the working tree kept
+every file, and `node_modules` was dropped with it. Recovery, in order, and worth
+repeating exactly: `git fetch origin`; confirm the remote tip
+(`git ls-remote origin arena/b7780282-kd`); prove the working tree is identical
+to the pushed commit before restoring anything (`git add -A` then
+`git diff --cached refs/remotes/origin/arena/b7780282-kd` must print nothing);
+then `git reset --hard refs/remotes/origin/arena/b7780282-kd`, `npm install`,
+`npx husky install`, `npm run verify`. Nothing was lost, because the tree and the
+pushed commit were byte-identical; the check before the reset is what made that a
+fact rather than a hope.
+
 - 2026-10-16: the build environment's working copy was restored from a fresh
   clone of the repository and the local branch was moved back to its base
   commit. No work was lost: all nine segment 1A commits were present on
@@ -1144,35 +1164,57 @@ with its gate passed, and segment 1B continues under the permission-gated
 rhythm (one sub-step per commit, verify between sub-steps, stop for
 confirmation).
 
-## Segment 1C gate -- what stands between here and segment 1D
+## Segment 1C gate -- PASSED (2026-10-16)
 
-Segment 1C's gate is two clauses, and both are now measured rather than
-asserted:
+Gate: "navigation renders correctly for every role; dead-link check passes on the
+current route set." Evidence is committed in docs/EVIDENCE/step-01/gate-1C.md,
+produced at the frozen tree `319e75d` by three commands:
 
-**Navigation renders correctly for every role.** The specimen renders every
-audience and role pair through the real surfaces, and the probe reports what each
-one is offered: the workspace owner 15 planned modules and the staff 13, a client
-none, the platform roles the platform console, the client portal its own four,
-and a role outside an audience nothing at all. The two live destinations are
-offered to the development audience and the public shortcuts page to every
-reader, including one with no session. Nothing planned is rendered anywhere: no
-planned label reaches a navigation landmark, and the palette cannot offer a page
-the map does not serve that reader.
+- `python3 docs/EVIDENCE/step-01/shell-probe.py` -- `findings: 0`,
+  `RESULT: PASS`: every role framed by the shell its role model calls for; the
+  map's answer for twelve audience-and-role pairs rendered by the page itself
+  (owner 15 planned modules, staff 13, a client none, platform roles 8, client
+  portal 4, cross-audience 0, public one live destination for a reader with or
+  without a session); nine navigation surfaces correct as rendered; 37 planned
+  labels inside no navigation landmark; an empty navigation rendering no landmark
+  and no anchor; three breadcrumb cases; and the 1.23 command surface measured
+  through the same row builder the palette uses.
+- `node scripts/checks/dead-links.mjs` -- `PASS (3 routes, 3 verified links, 0
+dynamic links skipped)`, exit code 0, against the route set `/gallery`,
+  `/shells`, `/shortcuts`.
+- `npm run verify` -- `RESULT: PASS (23 of 23 checks passed)`, exit code 0.
 
-**The dead-link check passes on the current route set.** `check:dead-links`
-reads the map's literals and the app tree: 3 routes (`/shells`, `/gallery`,
-`/shortcuts`), 3 verified links, 0 dynamic links skipped. Both new routes of the
-segment (`/shells` in 1.21, `/shortcuts` in 1.23) went live in the same commit as
-the page, which is the discipline the gate exists to enforce.
+Production, measured on the same tree: `next build` OK with 9 static pages;
+`next start` answers 200 for `/shortcuts` (18,490 bytes, public shell, no specimen
+marker) and 404 with no trace for `/`, `/shells`, `/gallery`, `/dashboard`,
+`/admin` and `/client-portal`.
 
-**Then segment 1D**, which owns sub-steps 1.24 to 1.32: the page-state system,
-motion and media, web hardening, usability primitives, the public site pages,
-admin and workspace dashboards, and the step 1 close-out. Two step-1 gates that
-segment 1C could not close stay open and must not be claimed: the Lighthouse score
-on a homepage (there is no homepage until 1.28) and the typed `/api/health`
-response.
+Ten defects were found while proving this segment and fixed at the source; the
+four that mattered are recorded in the gate file: a live 500 from a footer string
+parameter, touch targets that sat on a wrapper instead of the control, two nested
+navigation landmarks, and an empty rail that announced itself. Two of the ten were
+audit rules that silently stopped matching - the fix was not only the rule but a
+count in the check's summary line, so a rule that matches nothing is visible in
+`npm run verify`.
 
-## Blockers## Blockers
+## Segment 1D starting point (sub-step 1.24)
+
+Segment 1D owns sub-steps 1.24 to 1.32: the page-state system (skeletons, an
+error boundary with retry, empty and success states, the 320 pixel utilities,
+accessibility primitives), motion and media, web hardening, the usability
+primitives, the public site pages, the platform plumbing (middleware,
+instrumentation, CSP nonce, sitemap, robots, metadata) and the governance pack
+that closes step 1. Its gate is stricter than this one: production build passes,
+Lighthouse at least 90 on the homepage, dead-link audit clean, `npm run verify`
+fully green.
+
+Two step 1 gates stay open and must not be claimed until that work lands: the
+Lighthouse score (no homepage exists yet) and the typed `/api/health` response.
+The public site is where the palette finally gets a product host - the workspace
+and platform frames already mount it in the top bar, and the client portal is
+deliberately without one.
+
+## Blockers## Blockers## Blockers
 
 None recorded.
 
