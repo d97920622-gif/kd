@@ -3,12 +3,12 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- sub-step 1.18 complete, 1.19 next
-Last completed sub-step: 1.18 (brand assets) at b8511e6.
-Next sub-step: 1.19 (public and auth layout shells: skip links, focus order, print base).
+Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18 and 1.19 complete, 1.20 next
+Last completed sub-step: 1.19 (public and auth layout shells) at the shell commit.
+Next sub-step: 1.20 (dashboard, admin and client portal layout shells with role-aware framing).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
-Segment 1C: in progress (1.18 of 1.23 complete; segment gate pending)
+Segment 1C: in progress (1.18 and 1.19 complete; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -94,6 +94,106 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.19 evidence -- layout shells, focus order and the print base
+
+Delivered two route-group shells, the four components they are built from, the
+print base, and a development-only specimen page that renders both shells with
+a document inside them.
+
+**Structure.** `components/layout/skip-link.tsx` is the first focusable element
+of every shell: visually hidden until focused, then drawn over the page corner
+at the 44px touch height with the focus ring from the token set. Its label comes
+from the catalogue (`common.label_skip_to_content`, added in 1.12 and unused
+until now) and its target comes from `MAIN_CONTENT_ID`, the constant exported by
+`components/layout/main-content.tsx`, which is the only place a `<main>`
+landmark is declared. That element carries `tabIndex={-1}`, without which the
+browser moves the fragment target but not the focus, and the skip link leaves
+the reader exactly where they started. `public-shell.tsx` wraps a full-height
+column that prints as a flow; `auth-shell.tsx` centres one panel of at most
+`max-w-dialog` (32rem, from the layout width scale) with the brand mark above
+it and no navigation at all, because an auth page has exactly one task.
+`app/(public)/layout.tsx` and `app/(auth)/layout.tsx` are thin: they render the
+shell and import the print base.
+
+**The print base** is `styles/print.css`, and it is five decisions rather than a
+list of tweaks:
+
+1. _Paper is not a theme._ The sheet is white and the toner is black, so the
+   semantic roles are remapped onto a fixed paper palette for `:root`, `.dark`
+   and every pinned theme scope. A reader in dark mode who prints an invoice
+   gets black on white, which is what makes the document usable rather than a
+   cartridge accident.
+2. _Chrome does not print._ `nav`, `button`, dialogs, menus, tooltips, Radix
+   popper wrappers and anything marked `data-print="hide"` are hidden. Blocks
+   marked `data-print="only"` exist for paper alone, so a document header or a
+   signature line has somewhere honest to live.
+3. _A row is not split across sheets._ `thead` repeats, rows, figures, tables
+   and headings are kept whole, and headings stay with what they introduce.
+4. _Meaning survives without colour._ Anything marked `data-print="outline"`
+   keeps an ink border, because a status carried only by a fill prints as blank
+   paper.
+5. _Links keep their underline, motion stops, shadows disappear._
+
+**The paper palette** is part of the token module, not the stylesheet:
+`PRINT_TOKENS` (paper, ink, muted ink, rule), `PRINT_ROLE_MAP` (the 23 semantic
+roles and the print token each one takes), `PRINT_CONTRAST_PAIRS` and
+`PRINT_PAGE_MARGIN_MM`. The variables are declared in `styles/globals.css`
+`:`root`` so the token check verifies them in both directions exactly like a
+theme role, and `scripts/checks/color-contrast.mjs` now verifies the paper
+palette too: 4 tokens and 3 ratios, with ink on paper held to the 7:1 AAA
+threshold because paper has no backlight. The `tokens:export` JSON gained a
+`print` group (11 groups, 24,310 bytes).
+
+**Verification.** `npm run verify`: RESULT PASS (22 of 22). The new
+`check:layout-shells` is the seventeenth rule check and it holds the shell
+contract statically: the skip link and the landmark share one id and neither
+may write it as a literal, the link comes before the landmark in every shell,
+the landmark must be focusable, no route under a layout group may declare its
+own `<main>`, both route layouts import the print base, the `@page` margin must
+equal `PRINT_PAGE_MARGIN_MM`, and every role in `PRINT_ROLE_MAP` must be
+remapped in the paper block. It reads code with comments stripped for the
+structural rules and the raw source for the string rules, because a check that
+reads comments can be satisfied by prose.
+
+Six negative controls, each run and reverted: a literal target id fails; removing
+`tabIndex={-1}` fails (and only after comments are stripped, which is how that
+rule was found to be vacuous); dropping one role from the paper block fails; a
+raw hex colour in the print base fails; a page margin that drifts from the token
+fails; moving the skip link after the landmark fails. Two more controls were
+run against the probe below.
+
+**The rendered evidence** is `docs/EVIDENCE/step-01/shell-probe.py` (run by
+hand against `http://127.0.0.1:3000/shells`, never wired into verify). It reads
+the response the server sends and reports: 2 skip links pointing at
+`#main-content`, 2 main landmarks each carrying the id and `tabindex="-1"`,
+exactly 1 focusable element before the first landmark (the skip link itself),
+1 `@media print` block in the loaded stylesheet with the chrome rule, the
+button rule, the print-only rule, the ink outline rule, the row-break rule and
+the 16mm page margin, the four paper palette values equal to the token module,
+and the print markers intact in the markup. Result: PASS. Two negative controls
+against it: removing the button rule from the print base and dropping
+`data-print="outline"` from the specimen both turn it into a FAIL.
+
+**Print behaviour is not print-preview-verified.** No browser is available in
+this repository by design, so the probe proves that the rules and the markup
+they select on both arrive in the response, not how the sheets come out of a
+printer. That limitation is recorded here rather than glossed over; the
+document-level print rules (invoice templates, page numbering) belong to the
+steps that build those documents.
+
+**Production guard.** `next build` OK, 8 static pages (`/shells` 1.14 kB, 112 kB
+first load). With `next start`: `/shells` answers 404 at 7,196 bytes - the same
+size as the generic not-found page - with zero occurrences of the page title,
+the specimen copy, `main-content` or `data-print`. `/gallery` is unchanged at
+404 / 6,172 bytes. The development group stays invisible in production.
+
+**Also in this commit:** the comment in `app/layout.tsx` that promised brand
+typefaces in sub-step 1.18 was wrong - no font is delivered in step 1 - and now
+records the truth: the families are system stacks pointed at by
+`--font-sans` and `--font-mono`, and a self-hosted face has to arrive with
+subsetting and a preload (MASTER_PROMPT performance requirements, sub-step
+16.9) rather than as a build-time download. No behaviour changed with it.
 
 ## Sub-step 1.18 evidence -- brand pack, social image and brand voice
 
@@ -621,17 +721,24 @@ with its gate passed, and segment 1B continues under the permission-gated
 rhythm (one sub-step per commit, verify between sub-steps, stop for
 confirmation).
 
-## Sub-step 1.19 starting point
+## Sub-step 1.20 starting point
 
-1.19 is "Layout shells: public and auth layouts with skip links, focus order,
-print base". Nothing exists yet: there is no app/(public) group, no
-components/layout/ directory and no skip link anywhere in the tree. The
-starting point is the subtree in MASTER_PROMPT section 4 for
-components/layout/ and the STEP 01 checklist row, read together with
-docs/PLAN/05 sections A11 to A15 (accessibility contract) and the print rules.
-The brand mark is ready to use in a header: components/branding/logo-mark.tsx
-takes a size and a variant, follows the current text colour, and stays
-decorative unless a title is passed.
+1.20 is "Layout shells: dashboard, admin and client portal layouts with
+role-aware framing". Three groups are named by docs/PLAN/03 (file ownership):
+`app/(dashboard)/layout.tsx`, `app/(admin)/layout.tsx` and
+`app/(client-portal)/layout.tsx`. There is no session or role source yet in
+step 1 (auth arrives in step 2), so "role-aware framing" here means the shell is
+parameterised by a role and renders the framing that role gets, with the role
+supplied by a prop or a stub resolver inside the shell rather than by a session
+read that does not exist. The pieces to build on are already in place:
+`components/layout/main-content.tsx` owns the single `<main>`, `SkipLink`
+carries the catalogue label, `components/branding/logo-mark.tsx` draws the mark,
+and `styles/print.css` is already imported by the two existing groups.
+`check:layout-shells` enumerates its shells and route layouts in two arrays at
+the top of the file, so 1.20 extends those arrays rather than adding a second
+check. The command palette, sidebar, topbar, drawer, bottom navigation,
+breadcrumbs, footer and sticky action bar are 1.21, not 1.20: the shells should
+leave documented slots for them exactly as the public shell does.
 
 ## Blockers
 
