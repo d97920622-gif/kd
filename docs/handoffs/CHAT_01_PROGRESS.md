@@ -3,17 +3,16 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.28 complete, 1.29 next
-Last completed sub-step: 1.28 (public site pages A: the homepage, features, pricing and about pages
-with real English copy and metadata, the public site footer through the shell, and the claim floor
-that refuses a sentence this build cannot evidence).
-Previous sub-step: 1.27 (usability primitives: saved views, the five second undo window with a deferred commit, autosave with a local draft and a recovery decision, the optimistic queue that rebuilds on failure, the explainability message component and its two catalogues).
-Next sub-step: 1.29 (public site pages B: contact, industries, calculators, the free invoice generator
-shell, terms, privacy, the blog shell, 404, 500 and offline).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.29 complete, 1.30 next
+Last completed sub-step: 1.29 (public site pages B: industries, contact, calculators, the free invoice
+generator shell, terms, privacy, the blog shell, the 404 and 500 pages and the offline page, plus the
+public header the 1.28 pages deferred).
+Previous sub-step: 1.28 (public site pages A: the homepage, features, pricing and about pages with real English copy and metadata, the public site footer through the shell, and the claim floor that refuses a sentence this build cannot evidence).
+Next sub-step: 1.30 (platform plumbing: middleware.ts, instrumentation.ts, the CSP nonce baseline, sitemap and robots, the metadata baseline and the print stylesheet).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24, 1.25, 1.26, 1.27 and 1.28 done; segment gate pending)
+Segment 1D: in progress (1.24, 1.25, 1.26, 1.27, 1.28 and 1.29 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -100,13 +99,205 @@ passes on the current route set. Status: pending.
 | 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | done    | fb97830 |
 | 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | done    | 535c54e |
 | 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | done    | 8c75f2b |
-| 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | pending | -       |
+| 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | done    | 260a23b |
 | 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | pending | -       |
 | 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | pending | -       |
 | 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | pending | -       |
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.29 evidence -- the public site, pages B, the states and the tools
+
+1.29 is "Public site pages B: contact, industries, calculators, the free invoice
+generator shell, terms, privacy, blog shell, 404, 500, offline". Two commits:
+code (the seven namespaces, the seven new pages, the 404 and 500 pages, the
+public header, the free calculator, the check extension and the money module
+fix) and this progress file. The acceptance anchors are docs/PLAN/08 line 87
+(the sub-step line; line 86 is 1.28 and no other file in docs/PLAN names either
+one - doc 05 has no public site requirement at all), FEATURE_LIST items 129-140
+for the error group (129 the error state, 132 the correlation id, 133 the
+one-click report, 134 the branded 404 with a search bar, 135 the 500 page with a
+report option), item 109 with 3581 for the offline page and 3378 for the service
+worker caching that arrives later, item 3500 for the Bengali scan, group G2
+217-221 (218 names the industries the page must cover), G3 222-228 (225 the
+contact page and its ticket fallback), G4 229-240 (229 terms and 230 privacy;
+231-240 stay planned), G6 248-253 (248 the blog list), and G7 254-258 (254 the
+free invoice generator as a lead magnet that asks for no login, 255 the markup,
+discount and tax calculators). Item 256 (the ROI calculator), 258 (the demo and
+sales page), 2619 and 2620 (the pricing surface's own calculator) and 2625
+(guest checkout) are named by the plan for later surfaces and are recorded as
+planned rather than half-built here: the calculators page carries the three
+tools item 255 names and nothing else.
+
+### What the product gained, module by module
+
+| Module                                        | What it decides                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/i18n/strings/en/industries.ts`           | Six industries as situation, work and rule, plus the note that says the page describes the build rather than a customer list. 218 names the six; the six slugs are the ones the check counts.                                                                                                                                                      |
+| `lib/i18n/strings/en/contact.ts`              | The ways to reach a deployment and the note that says the address, the phone number and the response window are configuration this build does not have (225).                                                                                                                                                                                      |
+| `lib/i18n/strings/en/generator.ts`            | The generator shell: what it will ask for, what it will produce, and the four rules it will follow, with the note that says the tool is not here yet (254).                                                                                                                                                                                        |
+| `lib/i18n/strings/en/blog.ts`                 | The blog shell's heading, its description and the sentence that says no post is published yet (248).                                                                                                                                                                                                                                               |
+| `lib/i18n/strings/en/offline.ts`              | What still works without a connection, what happens to work in progress, and the note that says this page is text rather than a cached copy of the product (109, 3581).                                                                                                                                                                            |
+| `lib/i18n/strings/en/legal.ts`                | Terms and privacy as outlines, each ending at the other and at the contact page, each naming the binding text the business that runs the deployment supplies (229, 230).                                                                                                                                                                           |
+| `lib/i18n/strings/en/calculators.ts`          | The three tools' labels, hints, four rules and the problem sentences a refused input resolves to.                                                                                                                                                                                                                                                  |
+| `lib/calculators/free-tools.ts`               | The arithmetic, and only the arithmetic: markup, discount and tax, each returning formatted US dollars through `lib/utils/currency.ts` or a field and a problem code. It holds no arithmetic of its own - every operation is a money function.                                                                                                     |
+| `components/public/free-calculator.tsx`       | The one client boundary on the public site: two fields, a submit, and a polite status region. It calculates nothing while the reader types, it withdraws the previous answer when an input is refused, and it renders the figures the pure module returns.                                                                                         |
+| `components/public/point-list.tsx`            | The heading-free list the four page shapes share, so a page owns its own headings and `page-sections.tsx` could be deleted rather than grown.                                                                                                                                                                                                      |
+| `components/layout/site-header.tsx`           | The banner landmark and the named navigation inside it: the brand links home through the map's own entry, every link carries its own 44 pixel target, the list wraps rather than scrolls, and print hides the navigation.                                                                                                                          |
+| `components/navigation/public-header.tsx`     | The bridge: the map's primary destinations for the public audience, minus the home entry, which becomes the brand.                                                                                                                                                                                                                                 |
+| `components/navigation/site-search.tsx`       | The 404's search: it searches the pages the map publishes and says so when nothing matches (134).                                                                                                                                                                                                                                                  |
+| `app/not-found.tsx`, `app/error.tsx`          | The two state surfaces: the 404 renders the state family's copy plus the search inside the public shell, the 500 renders `ErrorState` with the digest as the reference, a retry and the one-click report (132, 133, 135).                                                                                                                          |
+| `scripts/checks/public-site.mjs`              | The static half grows to 12 pages and 11 namespaces: per-page needles, the company fact shapes confined to the one namespace allowed to describe them, the offline claim vocabulary, the 404 and route error rules, the frame order in the public shell, and the rule that every key of a namespace registered in the catalogue is read by a page. |
+| `docs/EVIDENCE/step-01/free-tools-probe.mjs`  | The arithmetic, executed rather than read: ten input pairs per tool against the expected figures, eight refusals with the field and the problem code, and the identity each tool states between its two lines.                                                                                                                                     |
+| `docs/EVIDENCE/step-01/public-pages-probe.py` | The rendered half: thirteen pages, the frame on each of them, the five header destinations, `aria-current` on the page a reader is on, the six industry cards, the three calculator forms, the generator's zero form controls, the blog's empty marker, the four scoping notes and the 404's status, marker, heading, search and branding.         |
+
+### Decisions this sub-step turns on
+
+1. **A lead magnet that asks for nothing is a shell, and it says so.** The
+   invoice generator page renders no input, no form, no textarea and no select,
+   and it carries the sentence that says the tool is not here yet (254 asks for
+   the lead magnet and 2625 for guest checkout, and both belong to the steps that
+   can store a document). The check refuses the form controls and the rendered
+   probe counts them.
+2. **The arithmetic lives in one module, under the money rule.** The component
+   holds two strings and no numbers; `lib/calculators/free-tools.ts` holds the
+   tools and no arithmetic of its own; every operation goes through
+   `lib/utils/currency.ts`, which is still the only file allowed to do money
+   arithmetic. The three tools are 255's markup, discount and tax, and the two
+   lines of each card agree with the figure the reader typed.
+3. **Writing the arithmetic table first found a real money defect.**
+   `applyRate` multiplied through `multiplyMoney`, which rounds its factors to
+   the four decimal storage scale: `percentToRate('8.875')` was `0.0888`, and a
+   tax of 8.875 percent on 1234.56 rendered `$109.63` where the answer is
+   `$109.57` - six cents, invisible in review and visible to a customer. A rate
+   is a factor rather than an amount, so it is now read at the division scale
+   and rounded once, where the result is produced. This is the class of defect
+   the frozen table of inputs exists to catch, and it is the reason the probe
+   was written before the page was trusted.
+4. **The state pages reuse the state family rather than writing a second
+   sentence.** The 404's title and description are `states.label_error_not_found_*`
+   from 1.24, and it renders inside the public shell, so the answer to a typo, an
+   old link and a stale bookmark is the brand, the navigation and a search over
+   the pages the map publishes. The 500 renders `ErrorState`, which already
+   holds the retry, the attempt count and the report control.
+5. **The offline page promises nothing this build cannot do.** It states what
+   still works (a page already open, a form's contents kept in this browser, a
+   failed operation that is the reader's to retry) and then says in one sentence
+   that it is text rather than a cached copy. The claim vocabulary refuses
+   `works offline` and `available offline` in every rendered page, and inside the
+   offline namespace the words cached and stored may appear only in a note that
+   also says `not` - caching arrives with the service worker (3378).
+6. **Company facts live in one namespace, inside the notes that scope them.**
+   An address, a phone number or a response window is configuration supplied by
+   the business that runs the deployment, and this build has none: the check
+   refuses the seven company fact shapes everywhere except the
+   `contact.label_note_*`, `legal.*_label_note_*` and `offline.label_note_*`
+   keys, which are the keys whose whole job is to say what the deployment
+   supplies. A fact anywhere else is a fact a reader would take for this build's.
+7. **The header is chrome with a name and a target, not a second list.** The
+   header renders the banner landmark and a `nav` with its own accessible name
+   from the catalogue; the five destinations are the map's primary entries for
+   the public audience, so the bar cannot drift from the map, and the footer
+   below it still renders every live public page. A header with its own list of
+   four links is the second opinion that goes stale.
+8. **Two rules could not fail on their own defect, and the controls found
+   them.** The route error rule looked for `error.digest` in the file, which the
+   comment explaining `error.digest` satisfied, so it now reads the stripped
+   code and asks whether the digest is the first choice; the landmark rule looked
+   for any `aria-label` in the surface file, which the brand link's label
+   satisfied, so it now reads the name off the landmark element itself. Both were
+   tightened in this sub-step because a check that cannot fail on its own defect
+   is worse than no check: it is quoted as evidence.
+
+### Evidence
+
+- `npm run verify`: **PASS (28 of 28 checks passed)**, exit code 0, on the
+  frozen tree (`/tmp/verify-129-final.txt`, and again inside the pre-commit hook
+  of `260a23b`).
+- The counts that moved with this sub-step, quoted from that run:
+  `check:i18n-strings` 104 JSX files and 26 catalogue namespaces with 1021 keys;
+  `check:dead-links` 15 routes with 45 verified links and no skipped dynamic
+  link; `check:public-site` 12 pages, 11 namespaces, 354 keys checked for a
+  reader, 12 distinct titles between 20 and 70 characters, 26 claim words and 7
+  company fact shapes refused in copy; `check:no-tests` 310 tracked files
+  inspected with no test file found; `check:web-hardening` 197 application files
+  with no hand-written script or link.
+- `node scripts/checks/public-site.mjs` on its own: PASS.
+- Rendered evidence, dev server: `python3
+docs/EVIDENCE/step-01/public-pages-probe.py 3000` -> **0 findings**
+  (`/tmp/probe-129-dev.txt`). Thirteen pages answer 200 with their catalogue
+  title and description, one h1 each, no skipped heading level, the header and
+  the footer once each and no claim vocabulary anywhere. The frame reads
+  `aria-label="Site navigation"` with the destinations `['/', '/features',
+'/pricing', '/industries', '/calculators', '/contact']` and the footer
+  thirteen anchors with its catalogue heading; `aria-current="page"` lands on
+  exactly the page being read, checked on all five header destinations.
+  Industries renders 6 of 6 cards with its build note; calculators renders 3
+  tools, 6 fields with decimal keyboards, 3 submits and 4 rules, and ships **no
+  figure before the reader submits anything**; the generator renders zero input,
+  form, textarea and select elements; the blog shell renders its empty marker and
+  its sentence and no post; the four scoping notes are present; the offline
+  banner is absent from the server response, which is the expected state for a
+  surface that reads the browser's connection; and
+  `/no-page-is-served-here` answers 404 with the marker, one h1, the search and
+  the branded header.
+- Rendered evidence, production server: `npx next build` passed and
+  prerendered 21 pages, with every public route static - the new pages at
+  2.49 kB each and 115 kB first load, `/calculators` at 3.45 kB and 170 kB
+  first load because it is the one route with a client boundary, `/offline` at
+  4.62 kB and 141 kB. `npx next start -p 3020` then answered the same probe with
+  **0 findings** (`/tmp/probe-129-prod.txt`): 24 script requests and 855857
+  bytes as served, no image without a declared size, a 55998 byte homepage
+  document, and the same 404.
+- The arithmetic, executed: `node --experimental-strip-types
+docs/EVIDENCE/step-01/free-tools-probe.mjs` -> **PASS, 0 findings**. Markup
+  100 at 12.5 percent gives `$112.50` and `$12.50`; 0.045 at 0 percent gives
+  `$0.05` and `$0.01` (a sub-cent input, marked in the table because the cent
+  identity does not apply to it); 0.03 at 33.333 percent gives `$0.04` and
+  `$0.01`; 10 at 1000 percent gives `$110.00` and `$100.00`; discount 125.50 at
+  10 percent gives `$12.55` and `$112.95`; tax 99.99 at 7.5 percent gives
+  `$7.50` and `$107.49`; tax 1234.56 at 8.875 percent gives `$109.57` and
+  `$1,344.13`. Eight refusals report the field and the reason: an empty amount is
+  `required`, `1e5` and a fifteen digit amount are `format`, `-5` is `range`, 101
+  and 1000.0001 percent are `range`, and an empty or malformed percentage is
+  `required` or `format`. The last section states each tool's own identity
+  between its two lines, which is what caught the rate rounding.
+- Static controls for this sub-step: 30 of 30 mutations fired and all 3
+  immunities stayed green (`/tmp/controls129.py`, output in
+  `/tmp/controls-129-final.txt`), and the 1.28 control set still fires 29 of 29
+  with both immunities green (`/tmp/controls128.py`,
+  `/tmp/controls-128-final.txt`) - the regression floor for the rules this
+  sub-step touched. Two of the 30 found rules that could not fail on their own
+  defect and were tightened here (decision 8); one found that a control I had
+  written was wrong rather than the rule (the immunity added an unrendered key,
+  which the "every key is read" rule correctly refused).
+- The earlier probes were re-run against the changed site, because 1.29 changed
+  what the public shell renders: `shell-probe.py` **PASS** after four expectation
+  updates it forced on itself (`/tmp/shell-probe-129-run4.txt`) - the specimen
+  renders the public shell above the component specimens, so the footer it
+  measures is the last one on the page rather than the first; the skip link is
+  the first focusable element in the document rather than the only one, because
+  the public header now sits between it and the content; the public audience
+  plans nothing now that every public destination is live; and the public palette
+  offers all thirteen published pages with `/shortcuts` drawn as the page being
+  read. `usability-probe.mjs` PASS, `gallery-dom-probe.py` PASS and
+  `http-hardening-probe.py` PASS, all unchanged by this sub-step.
+- Verify history for this sub-step: run 1 FAIL (2 of 28: lint and
+  `check:no-console`, both on the new evidence probe, which printed through
+  `console`) -> the probe now writes to stdout -> every later run PASS. One
+  check-side defect was found by the static controls rather than by the suite and
+  is recorded above.
+- Known warning, deferred on purpose: `next dev` and `next start` both report
+  that `experimental.dynamicIO` has been renamed to `cacheComponents`. The flag
+  is owned by sub-step 1.30 (platform plumbing) and is left alone.
+- Not built, and named rather than implied: the ROI calculator (256), the demo
+  and sales page (258), the pricing surface's own calculator (2619, 2620), guest
+  checkout (2625), the service worker and its caching (3378), the legal pages
+  beyond terms and privacy (231-240), the reporting endpoint behind the 500
+  page's report control (133 sends the reference and the address to the clipboard
+  and says so), and the Lighthouse run on the homepage, which is a segment gate
+  item rather than a sub-step one.
 
 ## Sub-step 1.28 evidence -- the public site, pages A
 
