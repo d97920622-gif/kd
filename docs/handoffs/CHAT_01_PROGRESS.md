@@ -3,13 +3,13 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.25 complete, 1.26 next
-Last completed sub-step: 1.25 (motion and media: the token bridge for Framer Motion, the motion provider, page transitions, press feedback, stagger, confetti, the happy-path arrival, the illustration baseline and the reduced-motion contract).
-Next sub-step: 1.26 (web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006).
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.26 complete, 1.27 next
+Last completed sub-step: 1.26 (web hardening: the header matrix applied to every response, the allowlist sanitizer, the Trusted Types policy, Clear-Site-Data on sign-out, the SRI stance and ADR-0006).
+Next sub-step: 1.27 (usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, the explainability message component and its strings).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: in progress (1.24 and 1.25 done; segment gate pending)
+Segment 1D: in progress (1.24, 1.25 and 1.26 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -93,7 +93,7 @@ passes on the current route set. Status: pending.
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | done    | 4c9f2a2 |
 | 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | done    | dcd6b0f |
-| 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | pending | -       |
+| 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | done    | fb97830 |
 | 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | pending | -       |
 | 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | pending | -       |
 | 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | pending | -       |
@@ -103,6 +103,395 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.26 evidence -- the web hardening baseline
+
+1.26 is "Web hardening primitives: Trusted Types policy, COOP, COEP, CORP,
+Permissions-Policy, Clear-Site-Data on logout, SRI baseline, header matrix tests,
+`docs/ADR/ADR-0006-web-hardening-baseline.md`". Two commits: code `fb97830`
+(20 files, +2421/-5) and this progress file. The acceptance anchors are
+docs/PLAN/05 A13.8 (Trusted Types, cooperating headers, Permissions-Policy,
+Clear-Site-Data on logout, Subresource Integrity) and MASTER_PROMPT layer 2
+(clickjacking protection, the nonce content security policy, and the sanitizer
+that XSS prevention is built on, named there as `lib/security/sanitizer.ts`).
+
+### What the product gained, module by module
+
+| Module                                        | What it decides                                                                                                                                                                                                 |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config/security-headers.ts`                  | The matrix: one entry per header with its value, the environment it applies in, why it exists and what goes wrong without it.                                                                                   |
+| `next.config.js` (edited)                     | Applies the matrix to `/:path*` for every response, choosing the environment from `NODE_ENV`. It holds no header value.                                                                                         |
+| `lib/security/sanitizer.ts`                   | An allowlist sanitizer: 24 kept elements, attributes filtered by name and by the `on` prefix, URL schemes checked after stripping scheme noise, and a refusal rather than a passthrough where no parser exists. |
+| `lib/security/trusted-types.ts`               | The named policy `kd-solution-it`: `createHTML` sanitizes, `createScriptURL` accepts only this origin, and `createScript` is deliberately absent so a script sink throws.                                       |
+| `lib/security/logout.ts`                      | `Clear-Site-Data` for a sign-out response, withheld on a non-TLS origin, plus the `kd:logout` signal and its unsubscribe.                                                                                       |
+| `lib/security/index.ts`                       | The barrel: the primitives the rest of the product may reach for. The matrix is deliberately not in it.                                                                                                         |
+| `components/security/security-runtime.tsx`    | Declares the policy once per document, in an effect, from the root layout. Renders nothing.                                                                                                                     |
+| `docs/ADR/ADR-0006-web-hardening-baseline.md` | The record: nine decisions, their consequences, six alternatives, and the honest statement that SRI is a rule without a subject in step 1.                                                                      |
+
+### The header matrix, and why it is data
+
+Eleven headers ship, eight in every environment and three on the deployed HTTPS
+origin only. Each one is an entry in `config/security-headers.ts` with a
+rationale and a failure mode, and `next.config.js` maps that data into Next.js's
+`headers()` shape for `/:path*`. A header list spread across a config file, a
+middleware and a pull request comment is a list where the next person edits one
+copy and nothing fails; here the values have one owner and the check reads both
+halves.
+
+```
+always                           deployed HTTPS origin only
+--------------------------------  -----------------------------------------
+X-Content-Type-Options: nosniff    Content-Security-Policy: frame-ancestors 'none'
+Referrer-Policy: strict-origin-    X-Frame-Options: DENY
+  when-cross-origin                Strict-Transport-Security: max-age=63072000;
+X-DNS-Prefetch-Control: off          includeSubDomains; preload
+X-Permitted-Cross-Domain-Policies: none
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Resource-Policy: same-origin
+Permissions-Policy: 22 features refused, 4 granted to (self)
+```
+
+`Permissions-Policy` is the one entry worth reading in full: every directive
+refuses, and exactly four features are granted to this origin, each with a
+consumer named in the rationale - `fullscreen` for a document view,
+`publickey-credentials-create` and `publickey-credentials-get` for the passkey
+sign-in of step 3, and `clipboard-write` for the copy control on a failure
+report. `clipboard-read` is refused because nothing in the product pastes.
+
+Three decisions that needed a written reason, all recorded in the ADR:
+
+1. **The policy is split across two sub-steps, deliberately.** This sub-step
+   sends `frame-ancestors 'none'` from the build configuration; 1.30 appends the
+   directive set with the per-request nonce in `middleware.ts`. A browser
+   enforces the _intersection_ of every policy it receives, so nothing 1.30 does
+   can loosen this refusal, and this half applies even to responses that never
+   reach middleware. It also means the baseline is not something a header can
+   turn off: a static asset response is the case where request-time code is least
+   certain to run.
+2. **`require-corp` from the first production request.** The product loads
+   nothing cross-origin today, so the header costs nothing, and adopting it now
+   means the first feature that wants an embedded third-party resource has to
+   make an explicit decision instead of inheriting permission nobody granted.
+3. **The development exception is enumerated.** `X-Frame-Options`, the
+   `frame-ancestors` policy and HSTS are production-only, because the review
+   surface is a development server over plain HTTP inside a preview window.
+   The exception is exactly three named headers; the check fails if a fourth
+   appears, and `http-hardening-probe.py` measures both matrices rather than
+   trusting the file.
+
+### Subresource Integrity: a rule with no subject, stated plainly
+
+SRI protects a document from a _changed_ resource, which only has meaning for a
+resource this application does not serve. A first-party asset arrives from the
+same origin, in the same deploy, from the same handler as the markup that
+references it; if the origin is compromised, the `integrity` attribute arrives
+with the markup it is meant to protect, so the protection is decoration. Next.js
+also owns its own chunk graph, emitting script tags with build hashes that
+hand-written attributes do not survive.
+
+So the decision is: **no third-party resource may be loaded without SRI**, and
+step 1 loads none. `check:web-hardening` enforces the rule structurally - a
+hand-written `<script>` or `<link>` element, or a `next/script` import, fails the
+check with the message that such a resource needs a SHA-384 integrity attribute
+and an ADR. The rule has no exceptions because it has no subjects; the first
+processor SDK in step 8 arrives with a real hash, a documented fallback and its
+own ADR entry. Claiming SRI coverage for a first-party chunk graph would have
+been the more comfortable sentence and the less honest one.
+
+### The sanitizer is an allowlist, and the gallery proves the page is not a sink
+
+MASTER_PROMPT layer 2 enumerates what rich text must lose: `<script>`,
+`<iframe>`, `<object>`, `<embed>`, `<applet>`, `on*` handlers, `javascript:`,
+`data:` and `vbscript:`, CSS `expression()`, `url()` and `@import` injection,
+and the script that hides inside SVG and MathML. That enumeration describes what
+must not survive; there is no way to know an enumeration is complete, so the code
+is the other shape - a list of what survives, and a default of removal:
+
+- `SAFE_ELEMENTS` keeps 24 elements; `a` may keep only `href` and `title`.
+- Any element outside the list is removed **with its subtree** and replaced by a
+  visible `[removed]` marker, because a refusal that renders as nothing is
+  indistinguishable from a bug.
+- Attributes are kept only when the element's entry names them, the name does not
+  begin with `on`, and the name has no namespace separator (`xlink:href` is how
+  an SVG script is reached).
+- A URL is kept only when it is relative or its scheme is `http`, `https`,
+  `mailto` or `tel`, tested after stripping the control characters a browser
+  ignores inside a scheme - which is the difference between refusing
+  `java\tscript:` and missing it.
+- `style` attributes and `<style>` elements are refused outright, so nothing has
+  to scrub `expression()`, `@import` or `url()` out of a declaration.
+- Parsing uses an inert `DOMParser` document, never a live element's
+  `innerHTML`; with no parser available the function returns an empty string
+  rather than the input.
+
+The gallery renders one hostile string twice - once through the sanitizer, once
+as text - and shows the sanitized output **as text**. That is not a rendering
+detail: inserting the result as markup would make the gallery a second injection
+sink, so `dangerouslySetInnerHTML` is refused by the check in all of `app/`,
+`components/`, `lib/` and `config/`, and the probe reads the rendered pane to
+confirm the hostile string arrived escaped.
+
+### `npm run verify` on the frozen tree
+
+Verbatim from the run against the committed tree (26 checks):
+
+```
+== KD SOLUTION IT verify ==
+branch arena/b7780282-kd at fb97830
+PASS typecheck                completed with no output (  3.6s)
+PASS lint                     completed with no output (  6.1s)
+PASS format:check             All matched files use Prettier code style! (  6.1s)
+PASS env:validate             env:validate PASS (NODE_ENV=development) (  0.4s)
+PASS tokens:export            tokens:export PASS (config/design-tokens.json is current: 12 groups, 25486 bytes) (  0.4s)
+PASS check:english-only       check:english-only PASS (252 text files scanned, 1 documented exemption) (  0.1s)
+PASS check:no-todo            check:no-todo PASS (214 text files scanned) (  0.1s)
+PASS check:no-coming-soon     check:no-coming-soon PASS (214 text files scanned) (  0.1s)
+PASS check:no-tests           check:no-tests PASS (259 tracked files inspected) (  0.0s)
+PASS check:path-comment       check:path-comment PASS (240 source files carry a valid path comment) (  0.1s)
+PASS check:i18n-strings       check:i18n-strings PASS (82 JSX files checked for literal copy, 13 catalogue namespaces with 526 keys validated) (  0.7s)
+PASS check:design-tokens      check:design-tokens PASS (183 source files scanned, 621 class lists checked, spacing/radius/shadow/z-index/typography/motion scales wired from config/design-tokens.ts with reduced motion and forced colors verified) (  1.2s)
+PASS check:color-contrast     check:color-contrast PASS (4 themes, 23 color roles, 76 contrast ratios verified against WCAG 2.1 AA, paper palette 4 tokens and 3 ratios verified) (  0.5s)
+PASS check:no-console         check:no-console PASS (185 source files scanned) (  0.1s)
+PASS check:forbidden-brands   check:forbidden-brands PASS (214 text files scanned) (  0.1s)
+PASS check:migration-pairs    check:migration-pairs PASS (no migrations yet: nothing to pair) (  0.0s)
+PASS check:dead-links         check:dead-links PASS (3 routes, 4 verified links, 0 dynamic links skipped) (  0.1s)
+PASS check:secrets            check:secrets PASS (252 text files scanned) (  0.1s)
+PASS check:any-types          check:any-types PASS (159 TypeScript files scanned) (  0.1s)
+PASS check:money-math         check:money-math PASS (185 script files scanned) (  0.1s)
+PASS check:brand-assets       check:brand-assets PASS (9 assets current (mark in light and dark, plate icon, favicon pack 16/32/48, apple touch icon 180, PWA icons 192 and 512, maskable 512), palette-only colours, centring and 16 pixel legibility verified, default social image rendered and measured at the network crop size) (  2.1s)
+PASS check:layout-shells      check:layout-shells PASS (5 shells and 5 route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), 6 roles framed through one seam with no privileged default, 9 navigation surfaces verified (named landmarks, one owner of the current page, 44 pixel targets, device inset on pinned bars, drawer state owned in the component), print base verified against config/design-tokens.ts) (  0.5s)
+PASS check:nav-map            check:nav-map PASS (config/nav-map.ts verified: 6 roles filtered, one audience per surface, no destination outside the map, wiring gated on a non-empty menu, 3 commands on 2 chords) (  0.6s)
+PASS check:page-states        check:page-states PASS (8 state and accessibility modules verified (announced, actionable, named), breakpoint ladder 320 to 1920 exact, no desktop-first media query, styles/globals.css carries the wrap guard) (  0.1s)
+PASS check:motion             check:motion PASS (9 motion and media modules verified (preference read, durations from the token bridge, celebration bounded and removable), 5 durations zeroed at the preference, gallery pins the reduced pane) (  0.1s)
+PASS check:web-hardening      check:web-hardening PASS (11 security headers verified (7 in every environment, 3 on the deployed origin), Permissions-Policy refuses by default with 4 named grants, sanitizer allowlist and Trusted Types policy shaped, Clear-Site-Data gated on TLS, no hand-written script or link in 152 application files) (  0.1s)
+RESULT: PASS (26 of 26 checks passed)
+```
+
+Counts that moved since 1.25: english-only 241 to 252 files, no-todo 203 to 214,
+no-tests 248 to 259, path-comment 230 to 240, i18n 12 to 13 namespaces and 504 to
+526 keys, design-tokens 174 to 183 files and 593 to 621 class lists, any-types
+151 to 159, money-math 176 to 185, dead-links 3 to 4 verified links. The counts
+in this block are from a run against the committed tree: an earlier run still had
+a scratch file from the header-loading experiment on disk, which is why it
+reported one more file in seven of the checks.
+
+### The new check, and two rules it made more precise elsewhere
+
+`scripts/checks/web-hardening.mjs` is the twenty-sixth check, in eight groups:
+the matrix's required names and values; the permissions list (refuse by default,
+four named grants, each with a consumer, and `clipboard-read` refused); the
+consumer (applies to `/:path*`, holds no values, reads `NODE_ENV`); the
+sanitizer (allowlist size and membership, the link's two attributes, the
+forbidden names as documentation, the `on` prefix, the four URL schemes, scheme
+noise, the refusal without a parser, the removal marker, the snapshot walk,
+attribute removal, the namespace refusal, the link check); the Trusted Types
+policy (name, the two declared functions, the absent `createScript`, resolved-origin
+comparison, the narrow local declaration); the runtime and its mounting point;
+Clear-Site-Data and the signal; the banned shapes; copy, the gallery and the ADR.
+
+Two rules it tightened in `check:motion` while it was there, both found by the
+controls rather than by the author: the raw `<img>` rule now blanks comments and
+string literals before it scans, because the sanitizer's own gallery specimen
+contains an image element **in a string**, on purpose; and this check does the
+same for `<script>`, `<link>` and `dangerouslySetInnerHTML`. A check that cannot
+tell a specimen string from a sink teaches a reader to write exclusions instead
+of reading the finding.
+
+Static negative controls, one file at a time with a restore in `finally`
+(`/tmp/controls126.py`): **59 of 59 behaved as intended** - 57 mutations fired a
+finding and 2 immunities passed (a fully documented extra header added to the
+matrix, and a reworded rationale). Six rules were too loose on the first run and
+were fixed rather than excused, and the fixes are the evidence that the controls
+were worth writing:
+
+| Miss | What the rule matched                                                                                                        | The fix                                                                                              |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| C6   | `rationale:` in the interface _and_ in every entry, so deleting one still left the interface's                               | count inside the array body, between `SECURITY_HEADERS` and `SECURITY_HEADER_SOURCE`                 |
+| C12  | a permission moved to `=()` was read as "not granted" rather than "refused by mistake", so the specific grant rule never ran | the grant rule now fires on any non-`(self)` allowlist                                               |
+| C18  | the literal `new DOMParser().parseFromString(` reintroduced inside a helper function satisfied the rule                      | the control now removes the call entirely, and the rule names the inert-parse call in `sanitizeHtml` |
+| C19  | adding `svg` to the allowlist while the forbidden list still names it passed                                                 | a new rule fails any element present in both lists, because the allowlist is what the code keeps     |
+| C39  | the _import_ of `installSecurityPolicy` satisfied a rule that meant "the call"                                               | the rule matches `installSecurityPolicy();`                                                          |
+| C46  | the payload rule matched a prefix, so adding a second key to the event detail passed                                         | the rule reads the detail object and requires it to be exactly the one key                           |
+
+Rendered negative controls (`/tmp/harness_live.py`), one file at a time, each
+with a freshly started dev server: **7 of 7 fired**. Removing an always-on header
+from the matrix, weakening a value, turning a refusal into a grant, moving the
+matrix off `/:path*`, removing a gallery hardening marker, rendering the hostile
+specimen as markup, and dropping the sanitizer-output marker all failed the
+probe that watches for them. Two lessons were learned the hard way and are
+recorded here because they cost two runs:
+
+- **A matrix edit needs a server restart.** The running server that proved
+  P1-P3 impossible is not a check weakness: `next.config.js` is re-evaluated when
+  that file changes, so a mutation to the matrix it requires is invisible until
+  the server restarts. The harness now starts its own server per control.
+- **`npx next dev` is a wrapper.** Terminating it leaves the Server bound to the
+  port, so a later "fresh" server fails to bind and the probe reads the previous
+  one - three controls reported MISSED for that reason and one reported FIRED
+  while proving nothing. The harness now kills the process _group_ and refuses to
+  run when port 3000 is occupied.
+
+After both runs every controlled file was byte-identical to its backup
+(`diff -q` clean across the 14 source files), and the checks passed again on the
+restored tree.
+
+### Rendered evidence
+
+`docs/EVIDENCE/step-01/http-hardening-probe.py` is new. It reads the headers off
+the wire for both environments. Development (0.0.0.0:3000), verbatim:
+
+```
+server: http://127.0.0.1:3000
+GET /shortcuts -> 200, 38116 bytes
+
+header matrix as received:
+  x-content-type-options             ok        nosniff
+  referrer-policy                    ok        strict-origin-when-cross-origin
+  x-dns-prefetch-control             ok        off
+  x-permitted-cross-domain-policies  ok        none
+  cross-origin-opener-policy         ok        same-origin
+  cross-origin-embedder-policy       ok        require-corp
+  cross-origin-resource-policy       ok        same-origin
+  content-security-policy            absent (expected in development)
+  x-frame-options                    absent (expected in development)
+  strict-transport-security          absent (expected in development)
+
+Permissions-Policy:
+  refuses camera=()                  yes
+  refuses microphone=()              yes
+  refuses geolocation=()             yes
+  refuses payment=()                 yes
+  refuses usb=()                     yes
+  refuses clipboard-read=()          yes
+  grants  fullscreen=(self)          yes
+  grants  clipboard-write=(self)     yes
+
+same matrix on a static asset:
+  GET /_next/static/css/app/layout.css?v=1792164410015 -> 200
+  always-on headers present: 7 of 7
+  CORP on the asset: same-origin
+
+findings: 0
+RESULT: PASS
+```
+
+Production (`next build` then `next start`, 0.0.0.0:3020), verbatim:
+
+```
+server: http://127.0.0.1:3020
+GET /shortcuts -> 200, 19915 bytes
+
+header matrix as received:
+  x-content-type-options             ok        nosniff
+  referrer-policy                    ok        strict-origin-when-cross-origin
+  x-dns-prefetch-control             ok        off
+  x-permitted-cross-domain-policies  ok        none
+  cross-origin-opener-policy         ok        same-origin
+  cross-origin-embedder-policy       ok        require-corp
+  cross-origin-resource-policy       ok        same-origin
+  content-security-policy            ok        frame-ancestors 'none'
+  x-frame-options                    ok        DENY
+  strict-transport-security          ok        max-age=63072000; includeSubDomains; preload
+
+Permissions-Policy:
+  refuses camera=()                  yes
+  refuses microphone=()              yes
+  refuses geolocation=()             yes
+  refuses payment=()                 yes
+  refuses usb=()                     yes
+  refuses clipboard-read=()          yes
+  grants  fullscreen=(self)          yes
+  grants  clipboard-write=(self)     yes
+
+same matrix on a static asset:
+  GET /_next/static/css/e3ebe6d4278dd681.css -> 200
+  always-on headers present: 7 of 7
+  CORP on the asset: same-origin
+
+findings: 0
+RESULT: PASS
+```
+
+`docs/EVIDENCE/step-01/gallery-dom-probe.py` grew from 44 to 49 markers per
+scope (five for the hardening specimens) and now reads the sanitizer panes
+element by element rather than counting markers. Verbatim on the final tree:
+
+```
+page size: 668696 bytes (development, /gallery)
+stylesheet size: 58981 bytes
+scopes found: 5
+...
+data-security="sanitizer-input"                  1               1               1               1               1
+data-security="sanitizer-output"                 1               1               1               1               1
+data-security="header-matrix"                    1               1               1               1               1
+data-security="trusted-types"                    1               1               1               1               1
+data-security="clear-site-data"                  1               1               1               1               1
+```
+
+```
+hardening specimens, read element by element:
+  theme-light            escaped: yes   hostile markup rendered raw: no   output pane state: pending in the browser
+  theme-dark             escaped: yes   hostile markup rendered raw: no   output pane state: pending in the browser
+  theme-hc-light         escaped: yes   hostile markup rendered raw: no   output pane state: pending in the browser
+  theme-hc-dark          escaped: yes   hostile markup rendered raw: no   output pane state: pending in the browser
+  theme-reduced-motion   escaped: yes   hostile markup rendered raw: no   output pane state: pending in the browser
+markers checked per scope: 49
+page level markers checked: 1
+findings: 0
+RESULT: PASS
+```
+
+The output pane reads "pending in the browser" because the sanitizer needs a
+parser and therefore runs in a client effect, not during server rendering: the
+response carries the state before the effect, and the removal marker appears once
+it has run. That limit is stated rather than papered over, and it is why the
+gallery also carries `data-security="header-count"` - the number of headers the
+browser read back from its own response - so a reviewer opening the page sees the
+count move from 0 to the matrix size.
+
+### Production build and the guard
+
+`npx next build` after `rm -rf .next`: compiled successfully in 16.1 seconds,
+**9 static pages**. `/gallery` 91.4 kB (285 kB first load, up from 87 kB and
+281 kB: the security specimen section), `/shells` 6.21 kB, `/shortcuts` 674 B,
+`/_not-found` 993 B, shared first load 103 kB.
+
+`npx next start -H 0.0.0.0 -p 3020` then answered, with the full eleven-header
+matrix on every response including the static stylesheet:
+
+```
+/              404  8687
+/shells        404  7155
+/gallery       404  7158
+/shortcuts     200 19915
+/dashboard     404  8687
+/admin         404  8687
+/client-portal 404  8687
+```
+
+Zero specimen markers on the refusals, as in 1.25, except the page transition
+that `app/template.tsx` mounts above every route - a navigation to a missing page
+is still a navigation. The guard was stopped, `.next` removed and the development
+server restarted on 0.0.0.0:3000; `/shells` 200 351725 B, `/gallery` 200 668696 B,
+`/shortcuts` 200 38115 B, and both probes passed against that server.
+
+### Open at the end of this sub-step
+
+- The nonce content security policy, `require-trusted-types-for` and the
+  cross-origin resource decision for any future embed belong to 1.30, where the
+  request is handled. The baseline here is deliberately the half that does not
+  need a request.
+- The sign-out route that sends `Clear-Site-Data` belongs to step 3 with
+  authentication; the header builder and the client signal exist now.
+- SRI has no subject until a third-party resource arrives, and the check enforces
+  the rule for that arrival.
+- The sanitizer runs in the browser only. Server-side sanitization for
+  user-authored rich text belongs to the editor work in step 5, where the ingest
+  point exists; until then rich text is validated by Zod and rendered as text.
+- No browser dependency, so the client effect that runs the sanitizer is verified
+  through the rendered pane's documented pending state plus the static check that
+  the call exists, not by executing it here.
 
 ## Sub-step 1.25 evidence -- the motion layer, the reduced-motion contract and the illustration baseline
 
@@ -1646,37 +2035,41 @@ audit rules that silently stopped matching - the fix was not only the rule but a
 count in the check's summary line, so a rule that matches nothing is visible in
 `npm run verify`.
 
-## Sub-step 1.26 starting point
+## Sub-step 1.27 starting point
 
-1.26 is "Web hardening primitives: Trusted Types policy, COOP, COEP, CORP,
-Permissions-Policy, Clear-Site-Data on logout, SRI baseline, header matrix tests,
-docs/ADR/ADR-0006-web-hardening-baseline.md". What 1.25 hands it:
+1.27 is "Usability primitives: `use-saved-views`, `use-undo`, `use-autosave`,
+optimistic update helpers, explainability message component and string
+catalogue". What 1.26 hands it:
 
-**The header surface is still untouched.** `next.config.js` carries strict build
-settings, `poweredByHeader: false` and the image format list, and nothing else:
-no `headers()` block, no CSP, no cross-origin isolation. The file's own doc
-comment says security headers arrive in 1.26 and 1.30 and that appends go through
-the append protocol, so the hardening belongs there rather than in a middleware
-that does not exist yet.
+**Nothing in the primitives depends on storage yet, and that is deliberate.**
+`lib/security/logout.ts` publishes a `kd:logout` event and
+`installLogoutClearSignal(listener)` returns its unsubscribe, so the first hook
+that holds a user's data in `localStorage`, `sessionStorage` or memory clears it
+on sign-out with one line. A saved view that writes to storage without
+subscribing is exactly the copy of a workspace that a sign-out is supposed to
+remove, and `check:web-hardening` already fails a module that touches storage
+inside the logout path rather than announcing what happened.
 
-**One client boundary now exists per route, by design.** `app/template.tsx` is a
-server component that renders `PageTransition`, and `MotionProvider` wraps the
-tree in the root layout. A Permissions-Policy or a Trusted Types policy that
-breaks inline script or a transform will show up on every route, so the header
-matrix has to be checked against the two animated routes and not only against a
-blank page. Trusted Types in particular is a _policy_ and not a header: it needs
-a named policy created in one module, and a `require-trusted-types-for 'script'`
-directive that the typed data layer of later steps will satisfy through
-`lib/security/`.
+**Copy has a home and a protocol.** Every string is a leaf of a namespace in
+`lib/i18n/strings/en.ts`; `states.ts` and `security.ts` are the two most recent
+examples of the pattern, including the rule that a refusal message says what was
+refused and what to do next. The explainability messages of 1.27 are copy of that
+same kind: a saved view that failed, an undo that expired, an autosave that could
+not reach the server.
 
-**What must not regress.** `check:motion` now fails a raw `<img>` and reads
-`next.config.js` for the image formats; `check:page-states` reads the stylesheet
-for the 320 pixel layer; `check:layout-shells` owns the skip link and one
-landmark per page. A header block that adds `Cross-Origin-Embedder-Policy:
-require-corp` breaks every cross-origin image, so the audit has to say which
-resources are same-origin first, and `docs/ADR/ADR-0006-web-hardening-baseline.md`
-is where that decision gets recorded - including SRI, which cannot be computed
-for the Next.js chunk graph without a build-time manifest.
+**The states it must reuse.** `LoadingState`, `StatusState`, `ErrorState`,
+`SuccessState`, `ErrorBoundary` and `LiveRegion` already exist, with `useRetry`
+for a bounded backoff, so an optimistic update that fails has a component to fall
+back to and an announcement to make rather than a new pattern to invent.
+
+**What must not regress.** `check:page-states` reads the state modules, the
+boundary's one bounded retry and the 320 pixel layer; `check:motion` owns the
+arrival feedback an optimistic update uses; `check:web-hardening` refuses
+`dangerouslySetInnerHTML` and any hand-written script or link, so an optimistic
+helper may not invent a rendering shortcut. Universal columns, optimistic
+locking and the audit entry on every mutation are step 2 concerns, but the
+optimistic helper built here is what those mutations will be written against, so
+its contract has to be stated in a way a later step can rely on.
 
 ## Blockers## Blockers## Blockers## Blockers
 
