@@ -679,6 +679,14 @@ const NAV_SURFACES = [
     link: true,
   },
   {
+    file: 'components/layout/site-header.tsx',
+    marker: 'site-header',
+    landmark: true,
+    entries: false,
+    pinned: false,
+    link: true,
+  },
+  {
     file: 'components/layout/site-footer.tsx',
     marker: 'site-footer',
     landmark: true,
@@ -777,9 +785,15 @@ for (const surface of navFiles) {
     );
   }
   if (surface.landmark) {
-    if (!surface.code.includes('<nav')) {
+    // The name is read off the landmark element itself rather than off the
+    // file: a surface that labels a link and leaves the navigation unnamed
+    // would pass a check that searched the file for any aria-label at all,
+    // and it is the two unnamed menus beside each other that a reader cannot
+    // tell apart.
+    const landmarkOpening = /<nav\b[^>]*>/.exec(surface.code);
+    if (landmarkOpening === null) {
       finding(surface.file, 'the surface declares a navigation landmark');
-    } else if (!surface.code.includes('aria-label={')) {
+    } else if (!landmarkOpening[0].includes('aria-label={')) {
       finding(
         surface.file,
         'every navigation landmark owes an accessible name: two unnamed navigations on one page are two menus the reader has to explore to tell apart',

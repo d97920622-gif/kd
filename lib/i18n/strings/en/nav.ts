@@ -28,6 +28,7 @@ export const nav = {
   label_section_company: 'Company',
   label_section_legal: 'Legal',
   label_section_resources: 'Resources',
+  label_section_states: 'Site states',
   label_section_workspace: 'Workspace',
   label_section_account: 'Account',
   label_section_platform: 'Platform',
@@ -76,4 +77,14 @@ export const nav = {
   label_public_shortcuts: 'Keyboard shortcuts',
   label_public_terms: 'Terms',
   label_public_privacy: 'Privacy',
+  label_public_offline: 'Offline',
+
+  // Appended in 1.29: the site search the 404 page carries (FEATURE_LIST
+  // item 134). It searches the pages the map publishes, so its copy names
+  // pages rather than records.
+  label_site_search_label: 'Search this site',
+  label_site_search_placeholder: 'Type a page name, for example pricing',
+  label_site_search_empty_title: 'No page matches that',
+  label_site_search_empty_description:
+    'Try a shorter word, or use the navigation above to find your way back.',
 } as const;

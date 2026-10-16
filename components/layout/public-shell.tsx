@@ -1,5 +1,6 @@
 // path: components/layout/public-shell.tsx
 import { PublicFooter } from '@/components/navigation/public-footer';
+import { PublicHeader } from '@/components/navigation/public-header';
 import { cn } from '@/lib/utils/cn';
 
 import { MainContent } from './main-content';
@@ -33,12 +34,20 @@ import { SkipLink } from './skip-link';
  * of the screen rather than halfway up it, and so the contentinfo landmark is
  * outside the main landmark.
  *
- * What is still not here is the header. A public header is navigation chrome
- * with a nav landmark and its own touch-target rules, and it belongs with the
- * rest of the public routes in sub-step 1.29 rather than being invented for
- * four pages and then rewritten for twelve. Until then the footer and the
- * in-page calls to action are how a reader moves around the site, which is why
- * no page depends on a header existing.
+ * The header arrived in sub-step 1.29, with the eight pages that finished the
+ * public site, and it sits between the skip link and the main landmark: the
+ * skip link is still the first focusable element in the document, and the
+ * header is the chrome it skips past. It is `PublicHeader`, which reads the
+ * navigation map for the same audience the footer reads it for, so the two
+ * surfaces cannot disagree about what the site contains or about which page is
+ * current.
+ *
+ * The order of the four elements is the reading order, and each one is there
+ * for a reason: the skip link first because a keyboard user should not have to
+ * walk the chrome; the header next because a reader who lands on a deep page
+ * needs a way up before a way down; the main landmark with its id, which the
+ * skip link points at and which owns that string; the footer last, because the
+ * legal line and the site's other pages belong after the content.
  */
 export interface PublicShellProps {
   readonly children: React.ReactNode;
@@ -53,6 +62,7 @@ export function PublicShell({ children, className }: PublicShellProps): React.Re
       data-shell="public"
     >
       <SkipLink />
+      <PublicHeader />
       <MainContent className={cn('w-full', className)}>{children}</MainContent>
       <PublicFooter />
     </div>

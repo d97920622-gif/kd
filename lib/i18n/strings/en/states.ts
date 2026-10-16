@@ -104,4 +104,13 @@ export const states = {
   // ever hears it.
   // -------------------------------------------------------------------------
   label_icon_button_unnamed: 'Unnamed control',
+
+  // -------------------------------------------------------------------------
+  // Appended in 1.29: the action the 404 page carries. The blocks above dress
+  // a state that renders inside a page; this one is for a state that is the
+  // page, where the reader has to be handed a way back to the site rather than
+  // to whatever they were reading - there is nothing behind them to return to,
+  // because the address they asked for does not exist.
+  // -------------------------------------------------------------------------
+  action_not_found_home: 'Go to the homepage',
 } as const;

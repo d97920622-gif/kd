@@ -52,6 +52,15 @@ export const shells = {
   label_nav_sections: 'Modules',
   label_breadcrumb_home: 'Home',
   label_footer_links_heading: 'Product',
+  /**
+   * Appended in 1.29: what the header and the footer call the list of
+   * every live public page. The 1.23 value above says "Product" and is
+   * kept as the default the component ships with, because a surface that
+   * renders the product links alone still wants it; the public surfaces
+   * now carry the whole site, so they pass this one instead.
+   */
+  label_site_pages_heading: 'Site pages',
+  label_nav_site: 'Site navigation',
   label_footer_note: 'Invoicing, payments and client management, in USD.',
   label_footer_legal: 'Copyright {year} KD SOLUTION IT. All rights reserved.',
   label_action_bar_heading: 'Form actions',

@@ -26,7 +26,12 @@ import { useNavigation } from '@/components/navigation/use-navigation';
  *      beside "Features" and "Pricing" is a list item that means something
  *      different from its neighbours; the brand mark is where a reader looks
  *      for it. The entry is still in the map, so the destination has one owner.
- *   3. **A reader with no role still gets the footer.** The public audience is
+ *   3. **The group is named for what it holds.** Sub-step 1.29 flipped the last
+ *      seven public pages live, so the list below the heading stopped being the
+ *      product links and became the site: the group asks for
+ *      `shells.label_site_pages_heading` rather than keeping the 1.23 name,
+ *      which now describes only part of what a reader sees.
+ *   4. **A reader with no role still gets the footer.** The public audience is
  *      the one audience that needs no session, and the hook is asked for it
  *      with a null role. If the map ever publishes nothing for that audience,
  *      the footer renders the brand and the legal line and no link group, which
@@ -38,5 +43,12 @@ export function PublicFooter(): React.ReactElement {
   const home = entries.find((entry) => entry.id === 'home');
   const links = entries.filter((entry) => entry.id !== 'home');
 
-  return <SiteFooter links={links} activeHref={activeHref} homeHref={home?.href} />;
+  return (
+    <SiteFooter
+      links={links}
+      linksHeadingKey="shells.label_site_pages_heading"
+      activeHref={activeHref}
+      homeHref={home?.href}
+    />
+  );
 }

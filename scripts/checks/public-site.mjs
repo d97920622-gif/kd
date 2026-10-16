@@ -1,7 +1,7 @@
 // path: scripts/checks/public-site.mjs
 /**
- * check:public-site -- the four public pages of sub-step 1.28, and the claims
- * they are allowed to make.
+ * check:public-site -- the public pages of sub-steps 1.28 and 1.29, and the
+ * claims they are allowed to make.
  *
  * A marketing page is the one place in a product where a sentence can describe
  * something that does not exist and nothing fails. That is the defect this
@@ -28,9 +28,23 @@
  *   5. **A price is data with one owner.** Prices live in the pricing namespace
  *      as digit strings, both the monthly and the annual figure, and no page
  *      writes a currency amount of its own.
- *   6. **No dead copy.** Every key in the four namespaces is rendered somewhere
+ *   6. **No dead copy.** Every key in the namespaces is rendered somewhere
  *      in the application, so a paragraph cannot be deleted from a page and
  *      left in the catalogue for a reader to find later by accident.
+ *   7. **A page that describes a tool says what the tool does not do.**
+ *      Sub-step 1.29 added the pages that are not about the product's shape but
+ *      about a job: the calculators, the free invoice generator, the industry
+ *      pages, contact, the blog and the two legal outlines. Two of them - the
+ *      generator and the blog - are shells, and the rule that keeps a shell
+ *      honest is that the sentence saying so is part of the page. The list
+ *      below names that sentence per page, and the near-miss it prevents is a
+ *      page a reader finishes believing the tool exists.
+ *   8. **The state surfaces render the state family's copy.** The 404, the
+ *      route error page and the offline page are the three pages a reader
+ *      reaches without choosing to, and each one is checked for the thing that
+ *      makes it useful: the search bar and a way home on the 404, a reference
+ *      and both actions on the error page, and a banner that knows the answer
+ *      on the offline page.
  *
  * The rendered half of this sub-step is measured by
  * docs/EVIDENCE/step-01/public-pages-probe.py against a running server, and the
@@ -46,14 +60,149 @@ import {
 
 const CHECK = 'public-site';
 
-const NAMESPACES = ['home', 'features', 'pricing', 'about'];
+const NAMESPACES = [
+  'home',
+  'features',
+  'pricing',
+  'about',
+  'industries',
+  'calculators',
+  'generator',
+  'contact',
+  'blog',
+  'offline',
+  'legal',
+];
 
-/** The four pages, in the order the site reads them. */
+/**
+ * The pages, in the order the site reads them.
+ *
+ * `requires` needles are read from the raw source and only the reason is
+ * written here: a page that lost the sentence has lost the reason it may exist
+ * in this step, and a needle that pointed at a key would pass just as happily
+ * on a page whose section had been deleted from around it. `absent` needles are
+ * the shape a shell must not grow: the generator collects nothing today, so a
+ * form control on it would collect a reader's data and drop it. The rendered
+ * half of every one of these pages is measured by
+ * docs/EVIDENCE/step-01/public-pages-probe.py against a running server.
+ */
 const PAGES = [
   { file: 'app/(public)/page.tsx', namespace: 'home', label: 'the homepage' },
   { file: 'app/(public)/features/page.tsx', namespace: 'features', label: 'the features page' },
   { file: 'app/(public)/pricing/page.tsx', namespace: 'pricing', label: 'the pricing page' },
   { file: 'app/(public)/about/page.tsx', namespace: 'about', label: 'the about page' },
+  {
+    file: 'app/(public)/industries/page.tsx',
+    namespace: 'industries',
+    label: 'the industries page',
+    counts: [
+      {
+        needle: "situationKey: 'industries.",
+        count: 6,
+        message:
+          'FEATURE_LIST item 218 names the industries the page covers and each card is written as situation, work and rule: a card missing its situation is a card the page cannot finish',
+      },
+    ],
+  },
+  {
+    file: 'app/(public)/calculators/page.tsx',
+    namespace: 'calculators',
+    label: 'the calculators page',
+    requires: [
+      [
+        'CALCULATOR_TOOLS.map(',
+        'the three tools of FEATURE_LIST item 255 are declared once, in lib/calculators/free-tools.ts, and the page renders that list rather than a hand-written card per tool',
+      ],
+      [
+        '<FreeCalculator',
+        'a calculator page without the calculator component is a page that describes a tool it does not carry',
+      ],
+    ],
+  },
+  {
+    file: 'app/(public)/invoice-generator/page.tsx',
+    namespace: 'generator',
+    label: 'the free invoice generator page',
+    requires: [
+      [
+        'generator.label_note_status',
+        'the generator is a shell in this step (FEATURE_LIST item 254): the page must carry the sentence that says the tool is not here yet, or it reads as a working tool that produces nothing',
+      ],
+    ],
+    absent: [
+      [
+        '<input',
+        'the generator collects nothing yet, so it must render no input: a field a reader fills in and loses is worse than no field',
+      ],
+      [
+        '<form',
+        'a form on this page would have no destination: the tool arrives with the invoicing module, which owns how a document is numbered',
+      ],
+      ['<textarea', 'the generator collects nothing yet, so it must render no textarea'],
+      ['<select', 'the generator collects nothing yet, so it must render no select'],
+    ],
+  },
+  {
+    file: 'app/(public)/contact/page.tsx',
+    namespace: 'contact',
+    label: 'the contact page',
+    requires: [
+      [
+        'contact.label_note_address',
+        'the address, the phone number and the response window are configuration (FEATURE_LIST item 225): the page must carry the sentence that says so, because the rest of the page is written for a deployment that has them',
+      ],
+    ],
+  },
+  {
+    file: 'app/(public)/blog/page.tsx',
+    namespace: 'blog',
+    label: 'the blog shell',
+    requires: [
+      [
+        'data-blog-empty',
+        'the blog has no posts in this step, and an empty page reads as a broken one: the shell must render its own sentence and carry the marker the probe reads it by',
+      ],
+    ],
+  },
+  {
+    file: 'app/(public)/terms/page.tsx',
+    namespace: 'legal',
+    marker: 'terms',
+    label: 'the terms page',
+    requires: [
+      [
+        'legal.terms_label_note_publish',
+        'the binding terms are supplied by the business that runs the deployment (FEATURE_LIST item 229): the page must say which part is the outline and which part is the agreement',
+      ],
+    ],
+  },
+  {
+    file: 'app/(public)/privacy/page.tsx',
+    namespace: 'legal',
+    marker: 'privacy',
+    label: 'the privacy page',
+    requires: [
+      [
+        'legal.privacy_label_note_scope',
+        'the binding privacy policy is supplied by the business that runs the deployment (FEATURE_LIST item 230), and the outline must not be mistaken for it',
+      ],
+    ],
+  },
+  {
+    file: 'app/(public)/offline/page.tsx',
+    namespace: 'offline',
+    label: 'the offline page',
+    requires: [
+      [
+        '<OfflineBanner',
+        'the offline page is the one page a reader reaches while the connection is already gone: the banner is the only element that knows the state, and a page about the connection renders it',
+      ],
+      [
+        'offline.label_note_scope',
+        'the page must state that it is a page rather than a cached copy of the product: caching arrives with the service worker in a later step (FEATURE_LIST item 3378)',
+      ],
+    ],
+  },
 ];
 
 /** The plan slugs the pricing page must publish (FEATURE_LIST item 698). */
@@ -86,6 +235,8 @@ const CLAIM_PATTERNS = [
   [/\bgdpr[- ]compliant\b/i, 'a compliance claim'],
   [/\b(?:millions|thousands) of (?:businesses|users|customers)\b/i, 'a scale claim'],
   [/available now/i, 'an availability claim'],
+  [/\bworks offline\b/i, 'an offline claim'],
+  [/\bavailable offline\b/i, 'an offline claim'],
   [/\bin beta\b/i, 'an availability claim'],
   [/launch date/i, 'an availability claim'],
   [/ships in/i, 'an availability claim'],
@@ -193,6 +344,31 @@ for (const page of PAGES) {
     );
   }
 
+  // What the page must carry and what it must not, read from the raw source:
+  // the needles are catalogue keys and markers, both of which live inside
+  // string literals and would be blanked by the stripper above.
+  for (const [needle, why] of page.requires ?? []) {
+    if (!text.includes(needle)) {
+      finding(page.file, `${page.label}: ${why}`);
+    }
+  }
+  for (const [needle, why] of page.absent ?? []) {
+    if (text.includes(needle)) {
+      finding(page.file, `${page.label}: ${why}`, text, Math.max(0, text.indexOf(needle)));
+    }
+  }
+  for (const marker of page.counts ?? []) {
+    const seen = text.split(marker.needle).length - 1;
+    if (seen !== marker.count) {
+      finding(
+        page.file,
+        `${page.label} declares ${String(seen)} ${marker.needle} markers, not ${String(marker.count)}: ${marker.message}`,
+        text,
+        Math.max(0, text.indexOf(marker.needle)),
+      );
+    }
+  }
+
   const metadataBlock = /export const metadata: Metadata = \{[\s\S]*?\n\};/.exec(text);
   if (metadataBlock === null) {
     finding(page.file, `${page.label} must export a typed metadata object`);
@@ -235,10 +411,10 @@ for (const page of PAGES) {
       page.file,
       'the page must carry data-public-page: the rendered probe identifies a page by that marker',
     );
-  } else if (marker[1] !== page.namespace) {
+  } else if (marker[1] !== (page.marker ?? page.namespace)) {
     finding(
       page.file,
-      `the page marker is ${marker[1]}, not ${page.namespace}, the namespace it renders`,
+      `the page marker is ${marker[1]}, not ${page.marker ?? page.namespace}, the name the probe and this check read the page by`,
     );
   }
 
@@ -331,16 +507,34 @@ for (const namespace of NAMESPACES) {
         );
       }
     }
-    if (namespace === 'about') {
-      for (const [pattern, why] of FACT_PATTERNS) {
-        if (pattern.test(value)) {
-          finding(
-            parsed.file,
-            `${key} states a company fact: ${why} (${pattern.source})`,
-            parsed.text,
-            Math.max(0, parsed.text.indexOf(key)),
-          );
-        }
+    // Sub-step 1.29 opened the contact page, and the contact page is the one
+    // place these may be stated (FEATURE_LIST item 225: the address, the phone
+    // number and the response window are configuration the owner supplies). The
+    // rule is therefore per namespace rather than per key: everywhere else the
+    // fact is still refused outright, and in the contact namespace it is
+    // allowed only in a sentence whose key says it is a note - the paragraph
+    // that explains the fact is configuration, so a reader cannot mistake a
+    // sentence about a deployment for one about this repository.
+    for (const [pattern, why] of FACT_PATTERNS) {
+      if (!pattern.test(value)) {
+        continue;
+      }
+      if (namespace !== 'contact') {
+        finding(
+          parsed.file,
+          `${key} states a company fact: ${why} (${pattern.source})`,
+          parsed.text,
+          Math.max(0, parsed.text.indexOf(key)),
+        );
+        continue;
+      }
+      if (!key.startsWith('label_note_')) {
+        finding(
+          parsed.file,
+          `${key} states a company fact outside a note: ${why}; the contact namespace may describe a fact only in the paragraph that says the deployment configures it (${pattern.source})`,
+          parsed.text,
+          Math.max(0, parsed.text.indexOf(key)),
+        );
       }
     }
     if (/ {2,}/.test(value) || value !== value.trim()) {
@@ -493,7 +687,37 @@ if (shell !== null) {
   if (!/<PublicFooter\b/.test(shell)) {
     finding(
       'components/layout/public-shell.tsx',
-      'the public shell must render the public footer, or the four pages of this sub-step are reachable only by typing a URL',
+      'the public shell must render the public footer, or the public pages are reachable only by typing a URL',
+    );
+  }
+  // The header arrived in sub-step 1.29 with the last eight routes
+  // (FEATURE_LIST item 66: a public header whose navigation is managed). It
+  // belongs to the shell rather than to a page, for the same reason the footer
+  // does: twelve pages rendering their own header is twelve headers to keep in
+  // step, and the one that drifts is the one nobody looks at.
+  if (!/<PublicHeader\b/.test(shell)) {
+    finding(
+      'components/layout/public-shell.tsx',
+      'the public shell must render the public header (FEATURE_LIST item 66): the only route back up from a deep page would otherwise be the footer',
+    );
+  }
+  // The skip link and the landmark are a pair and the shell is where they meet:
+  // the link points at the id the landmark declares, and the layout check reads
+  // the pairing from the markup. What this rule adds is the order, which is a
+  // reading-order decision rather than a markup one - the header is chrome, so
+  // a skip link after it is a skip link that arrives too late.
+  const skipIndex = shell.indexOf('<SkipLink');
+  const headerIndex = shell.indexOf('<PublicHeader');
+  const mainIndex = shell.indexOf('<MainContent');
+  if (skipIndex === -1 || headerIndex === -1 || mainIndex === -1) {
+    finding(
+      'components/layout/public-shell.tsx',
+      'the shell renders the skip link, the header and the main landmark; the order between them is what makes the skip link a shortcut',
+    );
+  } else if (!(skipIndex < headerIndex && headerIndex < mainIndex)) {
+    finding(
+      'components/layout/public-shell.tsx',
+      'the skip link comes first, then the header, then the main landmark: a skip link after the chrome it skips is a tab stop that costs the reader a walk',
     );
   }
   // Read from the raw source: the shell writes destinations through the map,
@@ -503,6 +727,25 @@ if (shell !== null) {
     finding(
       'components/layout/public-shell.tsx',
       'the shell writes a destination of its own; chrome renders what config/nav-map.ts publishes',
+    );
+  }
+}
+
+const header = requireFile(
+  'components/navigation/public-header.tsx',
+  'the public header bridge is missing: chrome may not import the navigation map',
+);
+if (header !== null) {
+  if (!/useNavigation\('public'/.test(header)) {
+    finding(
+      'components/navigation/public-header.tsx',
+      'the header must ask the map for the public audience, not for a list of its own',
+    );
+  }
+  if (!/homeHref=\{home\?\.href\}/.test(header)) {
+    finding(
+      'components/navigation/public-header.tsx',
+      'the brand link must take its destination from the map entry, not from a literal path',
     );
   }
 }
@@ -526,9 +769,121 @@ if (footer !== null) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 6. The state surfaces: the 404, the route error page, and the offline page
+// ---------------------------------------------------------------------------
+
+// The 404 (FEATURE_LIST item 134: a branded not-found page with a search bar).
+// It renders in the public shell, so it is branded by construction; what is
+// checked here is the rest of the item - the copy the state family already
+// owns, and a search that exists rather than a field drawn on the page.
+const notFound = requireFile('app/not-found.tsx', 'the branded 404 page is missing');
+if (notFound !== null) {
+  if (!notFound.includes('data-public-page="not-found"')) {
+    finding('app/not-found.tsx', 'the 404 must carry data-public-page="not-found"');
+  }
+  if (!/<PublicShell\b/.test(notFound)) {
+    finding(
+      'app/not-found.tsx',
+      'the 404 must render inside the public shell: it is the one page a reader arrives at from an old link, and the shell is what gives them a brand and a way back',
+    );
+  }
+  for (const key of [
+    'states.label_error_not_found_title',
+    'states.label_error_not_found_description',
+  ]) {
+    if (!notFound.includes(key)) {
+      finding(
+        'app/not-found.tsx',
+        `the 404 must render ${key}: the state family wrote that sentence in sub-step 1.24, and a second not-found sentence here would be a second answer to the same question`,
+      );
+    }
+  }
+  if (!/<SiteSearch\b/.test(notFound)) {
+    finding(
+      'app/not-found.tsx',
+      'the 404 must render the site search (FEATURE_LIST item 134): the page that says a page is missing is the page where looking for one belongs',
+    );
+  }
+}
+
+// The route error page (FEATURE_LIST items 132, 133 and 135: the correlation
+// id, the one-click report, and the report option on the server error page).
+const routeError = requireFile('app/error.tsx', 'the route error page is missing');
+if (routeError !== null) {
+  if (!/^'use client';/m.test(routeError)) {
+    finding(
+      'app/error.tsx',
+      'a route error boundary is a client module: Next.js hands it a reset callback, and a server component cannot hold one',
+    );
+  }
+  if (!/<ErrorState\b/.test(routeError)) {
+    finding(
+      'app/error.tsx',
+      'the error page must render the error member of the state family, or a failure looks like a different product',
+    );
+  }
+  for (const [needle, why] of [
+    [
+      'onRetry=',
+      'the error page must offer a retry: FEATURE_LIST item 129 asks for one on every page',
+    ],
+    ['onReport=', 'the error page must offer the one-click report of FEATURE_LIST item 133'],
+  ]) {
+    if (!routeError.includes(needle)) {
+      finding('app/error.tsx', `the error page: ${why}`);
+    }
+  }
+  // Read from the stripped copy: the comment above this rule explains why the
+  // message is not printed and what error.digest carries, and a rule that read
+  // the raw file would be satisfied by its own explanation.
+  const routeErrorCode = stripCommentsAndStrings(routeError);
+  if (!/error\.digest\s*\?\?/.test(routeErrorCode)) {
+    finding(
+      'app/error.tsx',
+      'the error page: the reference shown to the reader must be the one the platform logged, which is what error.digest carries; the digest is the first choice and a generated reference is only the fallback for a failure that has none',
+    );
+  }
+  if (!/newShortReference\(/.test(routeErrorCode)) {
+    finding(
+      'app/error.tsx',
+      'the error page: a failure with no digest still owes the reader a reference, so the generated fallback is part of the page',
+    );
+  }
+  if (routeErrorCode.includes('error.message')) {
+    finding(
+      'app/error.tsx',
+      'the error page prints the exception message; a stack message names internals and is written for whoever wrote the code, which is why the state family renders the reference instead',
+    );
+  }
+}
+
+// The offline page is in the page list above, where its two needles live. What
+// is checked here is the pair of claims the whole sub-step turns on: the page
+// may describe a connection that dropped, and it may not promise a product that
+// works without one, because caching arrives with the service worker in a later
+// step (FEATURE_LIST item 3378) and item 3581 asks for the page alone.
+const offline = namespaceEntries('offline');
+if (offline !== null) {
+  for (const [key, value] of offline.entries) {
+    if (value !== null && /\b(?:cached|stored)\b/i.test(value)) {
+      const framed = key.startsWith('label_note_');
+      const honest = /\bnot\b/i.test(value);
+      if (!framed || !honest) {
+        finding(
+          offline.file,
+          `${key} says something is cached or stored without saying that it is not: nothing is cached in this build`,
+          offline.text,
+          Math.max(0, offline.text.indexOf(key)),
+        );
+      }
+    }
+  }
+}
+
 reportResult(
   CHECK,
   findings,
-  `${String(PAGES.length)} public pages and ${String(NAMESPACES.length)} namespaces verified (server components with catalogue metadata, one h1 and no skipped heading level, no claim this build cannot evidence and no invented company fact, prices with one owner and two figures per published plan, every catalogue key rendered somewhere), ${String(titles.size)} distinct titles between 20 and 70 characters, ${String(checkedKeys)} keys checked for a reader, ${String(CLAIM_PATTERNS.length)} claim words and ${String(FACT_PATTERNS.length)} company fact shapes refused in copy`,
+  `${String(PAGES.length)} public pages and ${String(NAMESPACES.length)} namespaces verified (server components with catalogue metadata, one h1 and no skipped heading level, no claim this build cannot evidence, company facts confined to the one namespace allowed to describe them, prices with one owner and two figures per published plan, every catalogue key rendered somewhere), plus the 404, the route error page and the offline page, ${String(titles.size)} distinct titles between 20 and 70 characters, ${String(checkedKeys)} keys checked for a reader, ${String(CLAIM_PATTERNS.length)} claim words and ${String(FACT_PATTERNS.length)} company fact shapes refused in copy`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;

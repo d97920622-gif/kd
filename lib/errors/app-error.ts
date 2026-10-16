@@ -23,10 +23,10 @@ import {
   isResourceSlug,
   isRetryableCode,
   statusForCode,
-} from './error-codes';
-import { type ErrorDetail } from './error-detail';
+} from './error-codes.ts';
+import { type ErrorDetail } from './error-detail.ts';
 
-export { type ErrorDetail } from './error-detail';
+export { type ErrorDetail } from './error-detail.ts';
 
 export interface AppErrorOptions {
   /** Client-facing message. Ignored when exposeMessage is false. */

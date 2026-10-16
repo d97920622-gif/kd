@@ -54,12 +54,19 @@
  */
 import {
   Building2,
+  Calculator,
+  Factory,
   FileText,
   Home,
   Keyboard,
-  PanelLeft,
-  Tag,
   LayoutGrid,
+  Mail,
+  Newspaper,
+  PanelLeft,
+  Scale,
+  ShieldCheck,
+  Tag,
+  WifiOff,
   type LucideIcon,
 } from 'lucide-react';
 import { createElement } from 'react';
@@ -88,7 +95,16 @@ export interface NavLiveEntry {
   /** Which of the six roles this module is for. Empty means no session needed. */
   readonly roles: readonly PlatformRole[];
   readonly descriptionKey?: EnglishStringKey;
-  /** Offered in the mobile bottom bar, which carries at most five (step 1.21). */
+  /**
+   * One of the audience's main destinations.
+   *
+   * The workspace bottom bar offers these and carries at most five of them
+   * (step 1.21); the public header offers the same five as its bar (step 1.29);
+   * every other surface - the footer, the drawer, the palette - offers the
+   * whole live set rather than this subset. The flag is about emphasis, not
+   * about reach: an entry without it is still a page a reader can find, and an
+   * entry with it is one a reader is meant to see without scrolling.
+   */
   readonly primary?: boolean;
   /** The entry above this one in the hierarchy, for the trail generator. */
   readonly parentId?: string;
@@ -145,7 +161,10 @@ const PUBLIC_ROLES: readonly PlatformRole[] = [];
 
 export const NAV_MAP: readonly NavBlock[] = [
   // -------------------------------------------------------------------------
-  // Public site. Delivered by sub-steps 1.28 and 1.29.
+  // Public site. Sub-step 1.28 delivered the homepage, features, pricing and
+  // about; sub-step 1.29 delivered industries, the calculators, the free
+  // invoice generator, contact, the blog, the terms and privacy pages and the
+  // offline page.
   // -------------------------------------------------------------------------
   // Sub-step 1.28: the homepage. It is the one public destination that is not
   // about the product, the company or the terms - it is the site itself - so it
@@ -178,6 +197,7 @@ export const NAV_MAP: readonly NavBlock[] = [
         labelKey: 'nav.label_public_features',
         href: '/features',
         roles: PUBLIC_ROLES,
+        primary: true,
         icon: navIcon(LayoutGrid),
       },
       {
@@ -185,25 +205,31 @@ export const NAV_MAP: readonly NavBlock[] = [
         labelKey: 'nav.label_public_pricing',
         href: '/pricing',
         roles: PUBLIC_ROLES,
+        primary: true,
         icon: navIcon(Tag),
       },
       {
         id: 'industries',
         labelKey: 'nav.label_public_industries',
+        href: '/industries',
         roles: PUBLIC_ROLES,
-        planned: true,
+        primary: true,
+        icon: navIcon(Factory),
       },
       {
         id: 'calculators',
         labelKey: 'nav.label_public_calculators',
+        href: '/calculators',
         roles: PUBLIC_ROLES,
-        planned: true,
+        primary: true,
+        icon: navIcon(Calculator),
       },
       {
         id: 'invoice-generator',
         labelKey: 'nav.label_public_invoice_generator',
+        href: '/invoice-generator',
         roles: PUBLIC_ROLES,
-        planned: true,
+        icon: navIcon(FileText),
       },
     ],
   },
@@ -219,8 +245,21 @@ export const NAV_MAP: readonly NavBlock[] = [
         roles: PUBLIC_ROLES,
         icon: navIcon(Building2),
       },
-      { id: 'contact', labelKey: 'nav.label_public_contact', roles: PUBLIC_ROLES, planned: true },
-      { id: 'blog', labelKey: 'nav.label_public_blog', roles: PUBLIC_ROLES, planned: true },
+      {
+        id: 'contact',
+        labelKey: 'nav.label_public_contact',
+        href: '/contact',
+        roles: PUBLIC_ROLES,
+        primary: true,
+        icon: navIcon(Mail),
+      },
+      {
+        id: 'blog',
+        labelKey: 'nav.label_public_blog',
+        href: '/blog',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(Newspaper),
+      },
     ],
   },
   // -------------------------------------------------------------------------
@@ -244,13 +283,49 @@ export const NAV_MAP: readonly NavBlock[] = [
       },
     ],
   },
+  // -------------------------------------------------------------------------
+  // Sub-step 1.29: the state pages. The offline page is the one public route a
+  // reader does not choose - the browser is meant to serve it when the
+  // connection is gone (FEATURE_LIST item 3581) - and it is in the map for the
+  // two reasons every route is: the route audit registers routes against this
+  // map, and the footer's link list is generated from it, so a page with no
+  // entry is a page with no link to it. Its own block rather than a seat in
+  // another: it is not a page about the product, the company or the terms, and
+  // a reader looking at a heading should not find it under the wrong one.
+  // -------------------------------------------------------------------------
+  {
+    id: 'public-states',
+    audience: 'public',
+    labelKey: 'nav.label_section_states',
+    entries: [
+      {
+        id: 'offline',
+        labelKey: 'nav.label_public_offline',
+        href: '/offline',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(WifiOff),
+      },
+    ],
+  },
   {
     id: 'public-legal',
     audience: 'public',
     labelKey: 'nav.label_section_legal',
     entries: [
-      { id: 'terms', labelKey: 'nav.label_public_terms', roles: PUBLIC_ROLES, planned: true },
-      { id: 'privacy', labelKey: 'nav.label_public_privacy', roles: PUBLIC_ROLES, planned: true },
+      {
+        id: 'terms',
+        labelKey: 'nav.label_public_terms',
+        href: '/terms',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(Scale),
+      },
+      {
+        id: 'privacy',
+        labelKey: 'nav.label_public_privacy',
+        href: '/privacy',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(ShieldCheck),
+      },
     ],
   },
 

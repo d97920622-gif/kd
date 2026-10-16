@@ -16,6 +16,11 @@ import type { Metadata } from 'next';
  * simplest one that could be: a table, generated from the command registry,
  * with no state and no fetching. Two reasons for that.
  *
+ * The page carries `data-public-page="shortcuts"` like every other public page:
+ * the rendered probe identifies a page by that marker rather than by its URL, and
+ * a page without one can only be checked by the address it happens to be served
+ * at.
+ *
  * 1. **The list is generated, not written.** Every row comes from
  *    `shortcutRows('public', null)`, which reads the same registry the palette
  *    searches and the same map the navigation renders. A hand-written table of
@@ -49,7 +54,10 @@ export default function ShortcutsPage(): React.ReactElement {
   const rows = shortcutRows('public', null);
 
   return (
-    <div className="mx-auto grid max-w-page gap-8 px-gutter py-section">
+    <div
+      data-public-page="shortcuts"
+      className="mx-auto grid max-w-page gap-8 px-gutter py-section"
+    >
       <header className="grid gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">
           {t('commands.label_shortcuts_title')}

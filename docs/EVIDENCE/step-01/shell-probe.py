@@ -118,10 +118,40 @@ SHORTCUTS_URL = f'{BASE_URL}/shortcuts'
 
 # The two readers of the command surface the specimen can render without a
 # browser: the audience this page belongs to, and the public audience. The third
-# item is the row the map must mark as the current page for that reader.
+# item is the row the specimen marks as active, the fourth the row the map must
+# mark as the current page. The public list grew in sub-step 1.29: every page the
+# map publishes is live, so the palette offers all thirteen destinations plus the
+# two commands every audience keeps, and the specimen still draws it with
+# /shortcuts as the page being read.
 EXPECTED_COMMAND_SETS = [
-    ('development', ['specimen-shells', 'specimen-gallery', 'palette.open', 'main.focus'], 'specimen-shells'),
-    ('public', ['shortcuts', 'palette.open', 'main.focus'], 'shortcuts'),
+    (
+        'development',
+        ['specimen-shells', 'specimen-gallery', 'palette.open', 'main.focus'],
+        'specimen-shells',
+        'specimen-shells',
+    ),
+    (
+        'public',
+        [
+            'home',
+            'features',
+            'pricing',
+            'industries',
+            'calculators',
+            'invoice-generator',
+            'about',
+            'contact',
+            'blog',
+            'shortcuts',
+            'offline',
+            'terms',
+            'privacy',
+            'palette.open',
+            'main.focus',
+        ],
+        'shortcuts',
+        'shortcuts',
+    ),
 ]
 # The chords the registry declares, and the two rows the public page lists.
 EXPECTED_TRIGGER_CHORD = 'mod+k'
@@ -246,6 +276,24 @@ def focusable_before_main(markup: str, main_index: int) -> list[str]:
             continue
         order.append(f'{tag} {attributes[:70]}')
     return order
+
+
+def last_element_with_marker(markup: str, marker: str) -> str:
+    """The last element carrying the marker, on a page that renders two.
+
+    Sub-step 1.29 gave the public shell a header and a footer of its own, and
+    this specimen renders that shell whole above the component specimens it
+    draws from the same components. The public surfaces are read over HTTP by
+    `public-pages-probe.py`, so what this probe measures is the component in its
+    own specimen: the last one on the page rather than the first.
+    """
+    index = markup.rfind(f'data-layout="{marker}"')
+    if index < 0:
+        return ''
+    # From the opening angle bracket, not from the marker: the marker is an
+    # attribute, and a slice that starts at it has no tag to close.
+    start = markup.rfind('<', 0, index)
+    return element_with_marker(markup[start:], marker)
 
 
 SHELL_ROOT = re.compile(
@@ -397,7 +445,10 @@ EXPECTED_READER_ROWS = 12
 EXPECTED_WORKSPACE_OWNER_PLANNED = 15
 EXPECTED_WORKSPACE_STAFF_PLANNED = 13
 EXPECTED_WORKSPACE_CLIENT_PLANNED = 0
-EXPECTED_PUBLIC_PLANNED = 10
+# Sub-step 1.29 flipped the last seven public destinations live, so the public
+# audience is the one audience with nothing left to plan: every entry it
+# declares has a route, which is what the row below now records.
+EXPECTED_PUBLIC_PLANNED = 0
 EXPECTED_PLATFORM_PLANNED = 8
 EXPECTED_CLIENT_PLANNED = 4
 EXPECTED_DEV_LIVE = 2
@@ -585,8 +636,11 @@ def verify_navigation_surfaces(markup: str, css: str, findings: list[str]) -> No
         for problem in problems:
             findings.append(f'{marker}: {problem}')
 
-    footer = element_with_marker(markup, 'site-footer')
-    footer_link_nav = re.search(r'<nav aria-label="Product"[\s\S]*?</nav>', footer)
+    footer = last_element_with_marker(markup, 'site-footer')
+    # The landmark carries the print and layout attributes the surface adds, so
+    # the name is matched as one attribute of the opening tag rather than as the
+    # whole of it.
+    footer_link_nav = re.search(r'<nav\b[^>]*aria-label="Product"[^>]*>[\s\S]*?</nav>', footer)
     footer_links = [] if footer_link_nav is None else re.findall(r'<a\b', footer_link_nav.group(0))
     footer_current = 0 if footer_link_nav is None else len(re.findall(r'aria-current="page"', footer_link_nav.group(0)))
     legal = re.search(r'Copyright \d{4} KD SOLUTION IT\. All rights reserved\.', footer)
@@ -770,7 +824,7 @@ def verify_command_surface(markup: str, findings: list[str]) -> None:
     print('command surface (palette rows per audience, one current page, no focusable option)')
 
     blocks = command_set_blocks(markup)
-    for set_id, expected_ids, expected_current in EXPECTED_COMMAND_SETS:
+    for set_id, expected_ids, expected_active, expected_current in EXPECTED_COMMAND_SETS:
         block = blocks.get(set_id, '')
         problems = []
         if block == '':
@@ -794,8 +848,8 @@ def verify_command_surface(markup: str, findings: list[str]) -> None:
                 )
                 if 'aria-selected="true"' in tag
             ]
-            if selected != [expected_ids[0]]:
-                problems.append(f'active row {selected}, expected the first row of the list')
+            if selected != [expected_active]:
+                problems.append(f'active row {selected}, expected {expected_active}')
             current = [
                 option_id
                 for option_id, tag in (
@@ -948,8 +1002,12 @@ def main() -> int:
     print(f'  focusable elements before the first landmark: {len(before)}')
     for entry in before:
         print(f'    {entry}')
-    if len(before) != 1 or not before[0].startswith('a '):
-        findings.append('the skip link is not the only focusable element before the first content region')
+    # The order is the rule rather than the count: sub-step 1.29 put the public
+    # header between the skip link and the content, so a reader who tabs once
+    # still reaches the content first and walks the chrome only after it, in the
+    # order the shell renders.
+    if not before or not before[0].startswith('a ') or '#main-content' not in before[0]:
+        findings.append('the skip link is not the first focusable element in the document')
 
     print()
 

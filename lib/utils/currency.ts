@@ -25,7 +25,7 @@
 import Decimal from 'decimal.js';
 import { z, type ZodEffects, type ZodString } from 'zod';
 
-import { ValidationError } from '../errors/error-classes';
+import { ValidationError } from '../errors/error-classes.ts';
 
 /** ISO 4217 code of the only supported base currency. */
 export const USD_CODE = 'USD';
@@ -281,7 +281,42 @@ export function sumMoney(values: readonly MoneyInput[]): Money {
 }
 
 /**
+ * A rate: the factor a percentage becomes, kept at its own scale.
+ *
+ * A rate is not an amount. Four decimals is the right storage scale for money
+ * because numeric(18,4) is what the database holds, and it is the wrong scale
+ * for a factor: a rate of 8.875 percent is 0.08875, and rounding it to the
+ * storage scale before the multiplication puts a tax line six cents away from
+ * the right answer on a 1234.56 subtotal. A rate arrives from a field a person
+ * typed into, so it keeps up to `USD_DIVISION_SCALE` decimals and is rounded
+ * once, where the result is produced.
+ *
+ * @moneyMathGuard sanctioned: this module is the single money implementation.
+ */
+function asRate(value: MoneyInput): Decimal {
+  if (typeof value === 'number' || (typeof value !== 'string' && !(value instanceof Decimal))) {
+    throw invalidMoney(
+      'A rate must be passed as a decimal string or a Decimal value.',
+      typeof value,
+    );
+  }
+  const parsed =
+    typeof value === 'string' ? new MoneyDecimal(value.trim()) : new MoneyDecimal(value);
+  if (!parsed.isFinite()) {
+    throw invalidMoney('The rate is not a finite number.', String(value));
+  }
+  return parsed.toDP(USD_DIVISION_SCALE, Decimal.ROUND_HALF_UP);
+}
+
+/**
  * Apply a decimal rate to an amount, for example tax at 0.075.
+ *
+ * This is `multiplyMoney` with one difference, and the difference is why the
+ * function exists separately: the factor is read at the rate scale rather than
+ * at the storage scale, because a rate that has already been rounded is a
+ * rounded answer. The product is rounded once, at the end, exactly as
+ * `multiplyMoney` rounds its own.
+ *
  * @moneyMathGuard sanctioned: this module is the single money implementation.
  */
 export function applyRate(
@@ -289,7 +324,41 @@ export function applyRate(
   rate: MoneyInput,
   options: { readonly scale?: number; readonly rounding?: RoundingMode } = {},
 ): Money {
-  return multiplyMoney(amount, rate, options);
+  const scale = options.scale ?? USD_SCALE;
+  const product = toMoney(amount).times(asRate(rate));
+  return product.toDP(scale, options.rounding ?? Decimal.ROUND_HALF_UP);
+}
+
+/**
+ * Convert a percentage a person typed into the rate `applyRate` expects:
+ * 12.5 becomes 0.125.
+ *
+ * The distinction is worth a function because it is a factor of a hundred
+ * waiting to happen: a percentage is what a reader types, a rate is what the
+ * arithmetic uses, and a module that treats one as the other produces a tax
+ * line a hundred times too large while looking correct in review. The division
+ * belongs here, with the rest of the money arithmetic, rather than in the form
+ * that asked the question.
+ *
+ * @moneyMathGuard sanctioned: this module is the single money implementation.
+ */
+export function percentToRate(percent: MoneyInput, options: ParseMoneyOptions = {}): Money {
+  const approved = parseMoney(percent, { allowNegative: false, ...options });
+  return divideMoney(approved, '100', { scale: USD_DIVISION_SCALE });
+}
+
+/**
+ * The rate as the percentage a reader recognises: 0.075 becomes 7.5.
+ *
+ * A rate that does not divide into a whole percentage keeps four decimals,
+ * because this direction is for display and documentation rather than storage.
+ *
+ * @moneyMathGuard sanctioned: this module is the single money implementation.
+ */
+export function rateToPercent(rate: MoneyInput, options: { readonly scale?: number } = {}): Money {
+  return asRate(rate)
+    .times('100')
+    .toDP(options.scale ?? USD_SCALE, Decimal.ROUND_HALF_UP);
 }
 
 /**

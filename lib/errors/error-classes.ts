@@ -11,10 +11,10 @@
  *   new NotFoundError('invoice')  -> code invoice_not_found, status 404
  *   new DuplicateError('client')  -> code client_duplicate, status 409
  */
-import { AppError, type AppErrorOptions } from './app-error';
-import { DEFAULT_CODE_BY_ERROR_TYPE, isResourceSlug } from './error-codes';
+import { AppError, type AppErrorOptions } from './app-error.ts';
+import { DEFAULT_CODE_BY_ERROR_TYPE, isResourceSlug } from './error-codes.ts';
 
-import type { ErrorDetail } from './error-detail';
+import type { ErrorDetail } from './error-detail.ts';
 
 export interface EntityErrorOptions extends Omit<AppErrorOptions, 'codeSuffix'> {
   /** Entity the error is about, for example invoice or payment_method. */

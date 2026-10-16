@@ -18,17 +18,24 @@
  * Copy rules for every string: docs/COPY_RULES.md.
  */
 import { about } from './en/about';
+import { blog } from './en/blog';
 import { brand } from './en/brand';
+import { calculators } from './en/calculators';
 import { commands } from './en/commands';
 import { common } from './en/common';
+import { contact } from './en/contact';
 import { errors } from './en/errors';
 import { explainability } from './en/explainability';
 import { features } from './en/features';
 import { forms } from './en/forms';
 import { gallery } from './en/gallery';
+import { generator } from './en/generator';
 import { home } from './en/home';
+import { industries } from './en/industries';
+import { legal } from './en/legal';
 import { motion } from './en/motion';
 import { nav } from './en/nav';
+import { offline } from './en/offline';
 import { pricing } from './en/pricing';
 import { security } from './en/security';
 import { shells } from './en/shells';
@@ -40,16 +47,23 @@ import { validation } from './en/validation';
 export const en = {
   about,
   brand,
+  blog,
+  calculators,
   commands,
+  contact,
   common,
   errors,
   explainability,
   features,
   forms,
   gallery,
+  generator,
   home,
+  industries,
+  legal,
   motion,
   nav,
+  offline,
   pricing,
   security,
   shells,
@@ -64,17 +78,24 @@ export type EnglishCatalogue = typeof en;
 
 export {
   about,
+  blog,
   brand,
+  calculators,
   commands,
   common,
+  contact,
   errors,
   explainability,
   features,
   forms,
   gallery,
+  generator,
   home,
+  industries,
+  legal,
   motion,
   nav,
+  offline,
   pricing,
   shells,
   states,
