@@ -23,6 +23,7 @@
  * Append protocol: add, never rename or remove. A copy change is a new key.
  */
 export const nav = {
+  label_section_site: 'Site',
   label_section_product: 'Product',
   label_section_company: 'Company',
   label_section_legal: 'Legal',
@@ -63,6 +64,7 @@ export const nav = {
   label_module_client_documents: 'Documents',
   label_module_client_support: 'Support',
 
+  label_public_home: 'Home',
   label_public_features: 'Features',
   label_public_pricing: 'Pricing',
   label_public_industries: 'Industries',

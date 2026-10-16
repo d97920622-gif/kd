@@ -40,6 +40,15 @@ export interface SiteFooterProps {
   readonly linksHeadingKey?: EnglishStringKey;
   /** Current path, for `aria-current`. Null when no link is current. */
   readonly activeHref?: string | null;
+  /**
+   * Where the brand goes (sub-step 1.28). The destination is passed in rather
+   * than written here, because the footer is navigation chrome and chrome
+   * renders what the map publishes. Omitted when there is nowhere to go, and
+   * the brand stays a mark rather than a link to nowhere.
+   */
+  readonly homeHref?: string;
+  /** Accessible name of the home link, when the brand is one. */
+  readonly homeLabelKey?: EnglishStringKey;
   /** Resolved at render time; injectable so a render is deterministic in tests. */
   readonly year?: number;
   readonly className?: string;
@@ -49,6 +58,8 @@ export function SiteFooter({
   links = [],
   linksHeadingKey = 'shells.label_footer_links_heading',
   activeHref = null,
+  homeHref,
+  homeLabelKey = 'shells.label_brand_home',
   year = new Date().getFullYear(),
   className,
 }: SiteFooterProps): React.ReactElement {
@@ -61,10 +72,21 @@ export function SiteFooter({
     >
       <div className="mx-auto flex w-full max-w-page flex-col gap-8 px-gutter py-section md:flex-row md:justify-between">
         <div className="flex flex-col gap-3 md:max-w-sheet">
-          <div className="flex items-center gap-2">
-            <LogoMark variant="glyph" size={28} />
-            <span className="text-sm font-semibold">{t('brand.name')}</span>
-          </div>
+          {homeHref === undefined ? (
+            <div className="flex items-center gap-2">
+              <LogoMark variant="glyph" size={28} />
+              <span className="text-sm font-semibold">{t('brand.name')}</span>
+            </div>
+          ) : (
+            <Link
+              href={homeHref}
+              aria-label={t(homeLabelKey)}
+              className="flex min-h-touch items-center gap-2"
+            >
+              <LogoMark variant="glyph" size={28} />
+              <span className="text-sm font-semibold">{t('brand.name')}</span>
+            </Link>
+          )}
           <p className="text-sm text-muted-foreground">{t('shells.label_footer_note')}</p>
         </div>
 

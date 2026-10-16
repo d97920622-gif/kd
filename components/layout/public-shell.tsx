@@ -1,4 +1,5 @@
 // path: components/layout/public-shell.tsx
+import { PublicFooter } from '@/components/navigation/public-footer';
 import { cn } from '@/lib/utils/cn';
 
 import { MainContent } from './main-content';
@@ -25,12 +26,19 @@ import { SkipLink } from './skip-link';
  *   - `print-flow` on the wrapper: a screen column becomes a paper flow, with
  *     no viewport height and no padding of its own.
  *
- * What is deliberately not here. The header, the navigation and the footer
- * arrive with the layout components in the next sub-step, and the shell is
- * built to receive them without changing: the skip link is already first, the
- * landmarks are already in the right order, and the printable region is
- * already marked. Nothing about those components will need to move the focus
- * order around, which is the mistake this file exists to prevent.
+ * The footer arrived in sub-step 1.28, when the public site first had pages a
+ * reader could move between: it is `PublicFooter`, which reads the navigation
+ * map and renders every live public destination. The shell renders it after the
+ * content, so the column's `min-h-dvh` puts a short page's footer at the bottom
+ * of the screen rather than halfway up it, and so the contentinfo landmark is
+ * outside the main landmark.
+ *
+ * What is still not here is the header. A public header is navigation chrome
+ * with a nav landmark and its own touch-target rules, and it belongs with the
+ * rest of the public routes in sub-step 1.29 rather than being invented for
+ * four pages and then rewritten for twelve. Until then the footer and the
+ * in-page calls to action are how a reader moves around the site, which is why
+ * no page depends on a header existing.
  */
 export interface PublicShellProps {
   readonly children: React.ReactNode;
@@ -46,6 +54,7 @@ export function PublicShell({ children, className }: PublicShellProps): React.Re
     >
       <SkipLink />
       <MainContent className={cn('w-full', className)}>{children}</MainContent>
+      <PublicFooter />
     </div>
   );
 }

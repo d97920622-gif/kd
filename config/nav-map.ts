@@ -52,7 +52,16 @@
  *    stable because a saved view, a breadcrumb and a command palette all
  *    ultimately key off it.
  */
-import { FileText, Keyboard, PanelLeft, type LucideIcon } from 'lucide-react';
+import {
+  Building2,
+  FileText,
+  Home,
+  Keyboard,
+  PanelLeft,
+  Tag,
+  LayoutGrid,
+  type LucideIcon,
+} from 'lucide-react';
 import { createElement } from 'react';
 
 import type { BreadcrumbItem } from '@/components/layout/breadcrumbs';
@@ -138,13 +147,46 @@ export const NAV_MAP: readonly NavBlock[] = [
   // -------------------------------------------------------------------------
   // Public site. Delivered by sub-steps 1.28 and 1.29.
   // -------------------------------------------------------------------------
+  // Sub-step 1.28: the homepage. It is the one public destination that is not
+  // about the product, the company or the terms - it is the site itself - so it
+  // gets its own block rather than being appended to a section whose heading
+  // would then promise something it does not hold. The block exists mainly for
+  // its href: the public frame links home from its footer, and the chrome may
+  // not write a destination of its own.
+  // -------------------------------------------------------------------------
+  {
+    id: 'public-site',
+    audience: 'public',
+    labelKey: 'nav.label_section_site',
+    entries: [
+      {
+        id: 'home',
+        labelKey: 'nav.label_public_home',
+        href: '/',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(Home),
+      },
+    ],
+  },
   {
     id: 'public-product',
     audience: 'public',
     labelKey: 'nav.label_section_product',
     entries: [
-      { id: 'features', labelKey: 'nav.label_public_features', roles: PUBLIC_ROLES, planned: true },
-      { id: 'pricing', labelKey: 'nav.label_public_pricing', roles: PUBLIC_ROLES, planned: true },
+      {
+        id: 'features',
+        labelKey: 'nav.label_public_features',
+        href: '/features',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(LayoutGrid),
+      },
+      {
+        id: 'pricing',
+        labelKey: 'nav.label_public_pricing',
+        href: '/pricing',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(Tag),
+      },
       {
         id: 'industries',
         labelKey: 'nav.label_public_industries',
@@ -170,7 +212,13 @@ export const NAV_MAP: readonly NavBlock[] = [
     audience: 'public',
     labelKey: 'nav.label_section_company',
     entries: [
-      { id: 'about', labelKey: 'nav.label_public_about', roles: PUBLIC_ROLES, planned: true },
+      {
+        id: 'about',
+        labelKey: 'nav.label_public_about',
+        href: '/about',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(Building2),
+      },
       { id: 'contact', labelKey: 'nav.label_public_contact', roles: PUBLIC_ROLES, planned: true },
       { id: 'blog', labelKey: 'nav.label_public_blog', roles: PUBLIC_ROLES, planned: true },
     ],

@@ -17,15 +17,19 @@
  *
  * Copy rules for every string: docs/COPY_RULES.md.
  */
+import { about } from './en/about';
 import { brand } from './en/brand';
 import { commands } from './en/commands';
 import { common } from './en/common';
 import { errors } from './en/errors';
 import { explainability } from './en/explainability';
+import { features } from './en/features';
 import { forms } from './en/forms';
 import { gallery } from './en/gallery';
+import { home } from './en/home';
 import { motion } from './en/motion';
 import { nav } from './en/nav';
+import { pricing } from './en/pricing';
 import { security } from './en/security';
 import { shells } from './en/shells';
 import { states } from './en/states';
@@ -34,15 +38,19 @@ import { usability } from './en/usability';
 import { validation } from './en/validation';
 
 export const en = {
+  about,
   brand,
   commands,
   common,
   errors,
   explainability,
+  features,
   forms,
   gallery,
+  home,
   motion,
   nav,
+  pricing,
   security,
   shells,
   states,
@@ -55,15 +63,19 @@ export const en = {
 export type EnglishCatalogue = typeof en;
 
 export {
+  about,
   brand,
   commands,
   common,
   errors,
   explainability,
+  features,
   forms,
   gallery,
+  home,
   motion,
   nav,
+  pricing,
   shells,
   states,
   ui,
