@@ -56,6 +56,14 @@ const NAV_QUERY_FUNCTIONS = [
   'plannedEntriesFor',
 ];
 
+const COMMANDS = 'config/commands.ts';
+const COMMAND_PALETTE = 'components/navigation/command-palette.tsx';
+const COMMAND_LIST = 'components/navigation/command-list.tsx';
+const KEY_CHORD = 'lib/utils/key-chord.ts';
+const SHORTCUTS_PAGE = 'app/(public)/shortcuts/page.tsx';
+const CHECK_FILE = 'scripts/checks/nav-map.mjs';
+const MODIFIER_TOKEN = 'mod';
+
 const findings = [];
 
 function finding(file, message) {
@@ -514,10 +522,308 @@ for (const layout of WIRED_LAYOUTS) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 7. The command surface: one registry, one chord spelling, one focus contract
+// ---------------------------------------------------------------------------
+
+const mapBlocks = map === null ? [] : readExportedArray(map, 'NAV_MAP');
+const registry = requireFile(COMMANDS, 'the command registry is missing');
+const commandIds = [];
+const commandChords = [];
+const actionCommands = [];
+const entryCommands = [];
+
+if (registry !== null) {
+  for (const name of [
+    'COMMANDS',
+    'COMMAND_ACTIONS',
+    'COMMAND_IDS',
+    'commandById',
+    'commandForAction',
+    'chordForEntry',
+    'shortcutRows',
+  ]) {
+    if (!new RegExp(`export (?:const|function|interface|type) ${name}\\b`).test(registry)) {
+      finding(COMMANDS, `the registry must export ${name}`);
+    }
+  }
+
+  const actionBlock = /export const COMMAND_ACTIONS = \[([\s\S]*?)\] as const;/.exec(registry);
+  const actions =
+    actionBlock === null ? [] : [...actionBlock[1].matchAll(/'([a-z-]+)'/g)].map((m) => m[1]);
+  if (actions.length === 0) {
+    finding(COMMANDS, 'COMMAND_ACTIONS declares no action, so no command can run one');
+  }
+
+  const declarations = [
+    ...registry.matchAll(
+      /\{\s*\n\s*id: '([^']+)',\s*\n\s*kind: '(entry|action)'(?<body>[\s\S]*?)\n {2}\},?\n/g,
+    ),
+  ];
+  if (declarations.length === 0) {
+    finding(
+      COMMANDS,
+      'no command row was found; the registry must declare its rows as object literals',
+    );
+  }
+  for (const declaration of declarations) {
+    const id = declaration[1];
+    const kind = declaration[2];
+    const body = declaration.groups.body;
+    const chordMatch = /chord: '([^']+)'/.exec(body);
+    const chord = chordMatch === null ? null : chordMatch[1];
+    if (commandIds.includes(id)) {
+      finding(
+        COMMANDS,
+        `command id ${id} is declared twice; an id is what a chord, a saved view and a documented shortcut are keyed by`,
+      );
+    }
+    commandIds.push(id);
+    if (chord === null) {
+      continue;
+    }
+    if (!/^[!-~]+$/.test(chord) || chord !== chord.trim().toLowerCase()) {
+      finding(
+        COMMANDS,
+        `the chord ${chord} of ${id} is not in canonical form; a chord is written lowercase, in one piece, and in exactly one place`,
+      );
+    }
+    if (/(^|\+)(ctrl|cmd|meta|control|command)(\+|$)/.test(chord)) {
+      finding(
+        COMMANDS,
+        `the chord ${chord} of ${id} names a platform modifier; write ${MODIFIER_TOKEN} so one chord is Control on Windows and Linux and Command on macOS`,
+      );
+    }
+    const clash = commandChords.find((existing) => existing.chord === chord);
+    if (clash !== undefined) {
+      finding(
+        COMMANDS,
+        `the chord ${chord} is declared by ${clash.id} and again by ${id}; the second handler is the one that never runs`,
+      );
+    }
+    commandChords.push({ id, chord });
+    if (kind === 'action') {
+      const action = /action: '([a-z-]+)'/.exec(body);
+      if (action === null || !actions.includes(action[1])) {
+        finding(COMMANDS, `command ${id} names an action outside COMMAND_ACTIONS`);
+      } else {
+        actionCommands.push({ id, action: action[1] });
+      }
+    } else {
+      const entry = /entryId: '([^']+)'/.exec(body);
+      if (entry === null) {
+        finding(COMMANDS, `entry command ${id} names no map entry, so nothing says where it leads`);
+      } else {
+        entryCommands.push({ id, entryId: entry[1], chord });
+      }
+    }
+  }
+
+  for (const command of entryCommands) {
+    const block = mapBlocks.find((candidate) =>
+      candidate.entries.some((entry) => entry.id === command.entryId),
+    );
+    if (block === undefined) {
+      finding(
+        COMMANDS,
+        `entry command ${command.id} names ${command.entryId}, which the map does not declare`,
+      );
+      continue;
+    }
+    const entry = block.entries.find((candidate) => candidate.id === command.entryId);
+    if (entry.planned) {
+      finding(
+        COMMANDS,
+        `entry command ${command.id} reaches the planned entry ${command.entryId}; a shortcut to a page that does not exist yet is a dead key, not a shortcut`,
+      );
+    }
+  }
+}
+
+const palette = requireFile(COMMAND_PALETTE, 'the command palette is missing');
+const commandList = requireFile(COMMAND_LIST, 'the palette result list is missing');
+const keyChord = requireFile(KEY_CHORD, 'the key chord module is missing');
+const shortcutsPage = requireFile(SHORTCUTS_PAGE, 'the shortcuts reference page is missing');
+
+if (palette !== null) {
+  const code = stripComments(palette);
+  if (!/useNavigation\(/.test(code)) {
+    finding(
+      COMMAND_PALETTE,
+      'the palette must take its pages from the role-filtered navigation, not from a list of its own',
+    );
+  }
+  if (/\bNAV_MAP\b/.test(code)) {
+    finding(
+      COMMAND_PALETTE,
+      'the palette must not read the raw map; a reader is offered what the map offers that reader',
+    );
+  }
+  if (!/DialogContent/.test(code)) {
+    finding(
+      COMMAND_PALETTE,
+      'the palette must be one of the product dialogs, so focus is trapped while it is open and returned to the trigger when it closes',
+    );
+  }
+  if (/role="dialog"|aria-modal=/.test(code)) {
+    finding(
+      COMMAND_PALETTE,
+      'the dialog role and the modal state belong to the dialog primitive; declaring them again is a second answer to whether this surface is modal',
+    );
+  }
+  for (const attribute of [
+    'aria-haspopup="dialog"',
+    'role="combobox"',
+    'aria-activedescendant',
+    'aria-controls',
+    'aria-expanded',
+    'aria-autocomplete="list"',
+  ]) {
+    if (!code.includes(attribute)) {
+      finding(
+        COMMAND_PALETTE,
+        `the palette must declare ${attribute}: the field keeps the focus while the list is navigated through it`,
+      );
+    }
+  }
+  if (!/matchesChord\(/.test(code) || !/isTypingTarget\(/.test(code)) {
+    finding(
+      COMMAND_PALETTE,
+      `a global chord must be matched by ${KEY_CHORD} and must stand down inside a field; a shortcut that ignores a text input takes a character away from the reader`,
+    );
+  }
+  for (const command of actionCommands) {
+    if (!code.includes(`'${command.action}'`)) {
+      finding(
+        COMMAND_PALETTE,
+        `the action ${command.action} is registered by ${command.id} but nothing runs it`,
+      );
+    }
+  }
+}
+
+if (commandList !== null) {
+  const code = stripComments(commandList);
+  if (!/role="listbox"/.test(code) || !/role="option"/.test(code)) {
+    finding(
+      COMMAND_LIST,
+      'the results are a listbox of options, and the field points at the active one through aria-activedescendant',
+    );
+  }
+  if (/tabIndex/.test(code)) {
+    finding(
+      COMMAND_LIST,
+      'an option must not take focus: moving down the list moves the active descendant, and a focusable row is how a palette loses the reader mid-word',
+    );
+  }
+  if (!/aria-selected/.test(code)) {
+    finding(COMMAND_LIST, 'every option must report whether it is the active one');
+  }
+}
+
+if (keyChord !== null) {
+  const code = stripComments(keyChord);
+  if (!/const MODIFIER_TOKEN = 'mod'/.test(code)) {
+    finding(KEY_CHORD, 'the platform modifier must be spelled once, as mod');
+  }
+  if (!/\/\^\[a-z\]\$\//.test(code) || !/shift !== event\.shiftKey/.test(code)) {
+    finding(
+      KEY_CHORD,
+      'the shift comparison must be gated on a letter key: a symbol chord is the character the reader typed, and demanding shift as well makes it depend on the keyboard layout',
+    );
+  }
+  if (!/ctrlKey \|\| event\.metaKey/.test(code)) {
+    finding(KEY_CHORD, 'one chord must match Control on Windows and Linux and Command on macOS');
+  }
+}
+
+if (shortcutsPage !== null) {
+  const code = stripComments(shortcutsPage);
+  if (!/shortcutRows\(/.test(code)) {
+    finding(
+      SHORTCUTS_PAGE,
+      'the reference page must list the registry rows; a second list of shortcuts is a second answer to what the keys are',
+    );
+  }
+  if (!/KeyChord/.test(code)) {
+    finding(
+      SHORTCUTS_PAGE,
+      'a chord on the page must be rendered as keycaps, from the one chord spelling',
+    );
+  }
+}
+
+// The palette has to be mounted by something. A component that nothing renders
+// is a feature that does not exist, and the check that reads the map cannot see
+// a surface nobody wired.
+const paletteHosts = listTrackedFiles().filter((file) => {
+  if (!/^app\//.test(file) || !/\.tsx$/.test(file)) {
+    return false;
+  }
+  const text = read(file);
+  return text !== null && /<CommandPalette\b/.test(text);
+});
+if (paletteHosts.length === 0) {
+  finding(
+    'app',
+    `no route renders <CommandPalette>; the palette is only reachable from the frame or the page that mounts it, and sub-step 1.23 owes the keyboard at least one host`,
+  );
+}
+
+// A chord belongs to the registry, and it is written down nowhere else. The two
+// exceptions are the registry itself and the matcher that gives the tokens their
+// meaning; every other file that spells one is on its way to being the second
+// answer to what the shortcut is.
+for (const file of listTrackedFiles()) {
+  if (!/^(app|components|config|lib)\//.test(file) || !/\.(ts|tsx)$/.test(file)) {
+    continue;
+  }
+  if (file === COMMANDS || file === KEY_CHORD) {
+    continue;
+  }
+  const text = read(file);
+  if (text === null) {
+    continue;
+  }
+  const code = stripComments(text);
+  for (const match of code.matchAll(/['"`](?:mod|ctrl|cmd|shift|alt)\+[a-z0-9]/g)) {
+    const { line, column } = positionOf(code, match.index ?? 0);
+    findings.push({
+      file,
+      line,
+      column,
+      message: `a chord is written outside ${COMMANDS}; the second spelling is the one that stops working when one of the two changes`,
+    });
+  }
+}
+
+// Focus moves in a small, documented number of places. A fourth one is a
+// decision, not an accident, so it has to be written down here as well.
+const FOCUS_MOVERS = [
+  COMMAND_PALETTE,
+  'components/shared/form-error-summary.tsx',
+  'lib/forms/use-mapped-form-errors.ts',
+];
+for (const file of listTrackedFiles()) {
+  if (!/^(app|components|lib)\//.test(file) || !/\.(ts|tsx)$/.test(file)) {
+    continue;
+  }
+  const text = read(file);
+  if (text === null) {
+    continue;
+  }
+  if (/\.focus\(\)/.test(stripComments(text)) && !FOCUS_MOVERS.includes(file)) {
+    finding(
+      file,
+      `a fourth place moves focus; if it belongs in the product, say why in the comment here and list it in ${CHECK_FILE}`,
+    );
+  }
+}
+
 reportResult(
   CHECK,
   findings,
-  `${NAV_MAP} verified: ${String(mandatedRoles().length)} roles filtered, one audience per surface, no destination outside the map, wiring gated on a non-empty menu`,
+  `${NAV_MAP} verified: ${String(mandatedRoles().length)} roles filtered, one audience per surface, no destination outside the map, wiring gated on a non-empty menu, ${String(commandIds.length)} commands on ${String(commandChords.length)} chords`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;
 

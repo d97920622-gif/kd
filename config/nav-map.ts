@@ -52,7 +52,7 @@
  *    stable because a saved view, a breadcrumb and a command palette all
  *    ultimately key off it.
  */
-import { FileText, PanelLeft, type LucideIcon } from 'lucide-react';
+import { FileText, Keyboard, PanelLeft, type LucideIcon } from 'lucide-react';
 import { createElement } from 'react';
 
 import type { BreadcrumbItem } from '@/components/layout/breadcrumbs';
@@ -173,6 +173,27 @@ export const NAV_MAP: readonly NavBlock[] = [
       { id: 'about', labelKey: 'nav.label_public_about', roles: PUBLIC_ROLES, planned: true },
       { id: 'contact', labelKey: 'nav.label_public_contact', roles: PUBLIC_ROLES, planned: true },
       { id: 'blog', labelKey: 'nav.label_public_blog', roles: PUBLIC_ROLES, planned: true },
+    ],
+  },
+  // -------------------------------------------------------------------------
+  // Sub-step 1.23: navigation integrity. The shortcuts reference page is the
+  // first page the public site serves, and it is public because reading which
+  // key does what needs no session. It is grouped on its own rather than under
+  // Company or Legal, because it is neither a page about the business nor a
+  // page about the terms: it documents the product.
+  // -------------------------------------------------------------------------
+  {
+    id: 'public-resources',
+    audience: 'public',
+    labelKey: 'nav.label_section_resources',
+    entries: [
+      {
+        id: 'shortcuts',
+        labelKey: 'nav.label_public_shortcuts',
+        href: '/shortcuts',
+        roles: PUBLIC_ROLES,
+        icon: navIcon(Keyboard),
+      },
     ],
   },
   {

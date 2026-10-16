@@ -18,6 +18,7 @@
  * Copy rules for every string: docs/COPY_RULES.md.
  */
 import { brand } from './en/brand';
+import { commands } from './en/commands';
 import { common } from './en/common';
 import { errors } from './en/errors';
 import { forms } from './en/forms';
@@ -29,6 +30,7 @@ import { validation } from './en/validation';
 
 export const en = {
   brand,
+  commands,
   common,
   errors,
   forms,
@@ -42,4 +44,4 @@ export const en = {
 /** Shape of the English catalogue, used to derive the key union. */
 export type EnglishCatalogue = typeof en;
 
-export { brand, common, errors, forms, gallery, nav, shells, ui, validation };
+export { brand, commands, common, errors, forms, gallery, nav, shells, ui, validation };

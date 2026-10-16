@@ -17,6 +17,9 @@ import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { StickyActionBar } from '@/components/layout/sticky-action-bar';
 import { TopBar } from '@/components/layout/top-bar';
+import { CommandList } from '@/components/navigation/command-list';
+import { CommandPalette } from '@/components/navigation/command-palette';
+import { commandRows, type CommandRow } from '@/components/navigation/command-rows';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -254,6 +257,40 @@ export default function ShellsPage(): React.ReactElement {
             </div>
           ))}
         </div>
+      </section>
+
+      <section aria-labelledby="specimen-command-heading" className="grid gap-4">
+        <h2 id="specimen-command-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_command')}
+        </h2>
+        <p className="max-w-sheet text-base text-muted-foreground">
+          {t('shells.label_command_note')}
+        </p>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_command_trigger_heading')}
+          </h3>
+          <div className="flex border border-border bg-background p-4">
+            <CommandPalette audience={SPECIMEN_AUDIENCE} role={null} />
+          </div>
+        </div>
+
+        {SPECIMEN_COMMAND_SETS.map((set) => (
+          <div key={set.id} className="grid gap-2" data-command-set={set.id}>
+            <h3 className="text-base font-medium text-muted-foreground">{t(set.labelKey)}</h3>
+            <p className="max-w-sheet text-sm text-muted-foreground">{t(set.noteKey)}</p>
+            <div className="border border-border bg-background p-4">
+              <CommandList
+                rows={set.rows}
+                activeId={set.rows.find((row) => row.current)?.id ?? null}
+                listboxId={`specimen-command-${set.id}`}
+                optionIdPrefix={`specimen-command-${set.id}`}
+                emptyLabel={t('commands.label_palette_empty')}
+              />
+            </div>
+          </div>
+        ))}
       </section>
 
       <section aria-labelledby="specimen-nav-map-heading" className="grid gap-4">
@@ -533,6 +570,38 @@ const SPECIMEN_REGISTERED_TRAIL = breadcrumbsFor(SPECIMEN_PATH, SPECIMEN_AUDIENC
 const SPECIMEN_LINKS: readonly NavEntryInput[] = SPECIMEN_NAVIGATION.sections.flatMap(
   (section) => section.entries,
 );
+
+/**
+ * The two readers of the command surface this page can render without a
+ * browser: the development audience it belongs to, and the public audience,
+ * which needs no session at all.
+ *
+ * Both lists are built by `commandRows`, the function the palette itself calls,
+ * so what the probe measures in the server markup is the same code path a
+ * reader's keystrokes go through. The public set is resolved against the
+ * shortcuts page, which is the page a public reader is on when they open the
+ * palette there, so the current marker in that list is the one the map derives
+ * and not one this page decided.
+ */
+const SPECIMEN_COMMAND_SETS: readonly {
+  readonly id: string;
+  readonly labelKey: EnglishStringKey;
+  readonly noteKey: EnglishStringKey;
+  readonly rows: readonly CommandRow[];
+}[] = [
+  {
+    id: 'development',
+    labelKey: 'shells.label_command_set_development',
+    noteKey: 'shells.label_command_set_development_note',
+    rows: commandRows(navigationFor('development', null).sections, SPECIMEN_ACTIVE_HREF, ''),
+  },
+  {
+    id: 'public',
+    labelKey: 'shells.label_command_set_public',
+    noteKey: 'shells.label_command_set_public_note',
+    rows: commandRows(navigationFor('public', null).sections, '/shortcuts', ''),
+  },
+];
 
 /** Workspace identity, as the rail and the drawer carry it. */
 function SpecimenIdentity(): React.ReactElement {

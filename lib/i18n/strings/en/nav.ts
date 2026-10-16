@@ -26,6 +26,7 @@ export const nav = {
   label_section_product: 'Product',
   label_section_company: 'Company',
   label_section_legal: 'Legal',
+  label_section_resources: 'Resources',
   label_section_workspace: 'Workspace',
   label_section_account: 'Account',
   label_section_platform: 'Platform',
@@ -70,6 +71,7 @@ export const nav = {
   label_public_about: 'About',
   label_public_contact: 'Contact',
   label_public_blog: 'Blog',
+  label_public_shortcuts: 'Keyboard shortcuts',
   label_public_terms: 'Terms',
   label_public_privacy: 'Privacy',
 } as const;

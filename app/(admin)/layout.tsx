@@ -1,6 +1,8 @@
 // path: app/(admin)/layout.tsx
 import { AdminShell } from '@/components/layout/admin-shell';
 import { resolveFramingRole } from '@/components/layout/session-role';
+import { TopBar } from '@/components/layout/top-bar';
+import { CommandPalette } from '@/components/navigation/command-palette';
 import { ShellNavigationBar, ShellNavigationRail } from '@/components/navigation/shell-navigation';
 import { navigationFor } from '@/config/nav-map';
 
@@ -44,6 +46,7 @@ export default function AdminLayout({
   return (
     <AdminShell
       role={role}
+      topBar={<TopBar trailing={<CommandPalette audience={AUDIENCE} role={role} />} />}
       sidebar={hasNavigation ? <ShellNavigationRail audience={AUDIENCE} role={role} /> : undefined}
       bottomBar={hasNavigation ? <ShellNavigationBar audience={AUDIENCE} role={role} /> : undefined}
     >

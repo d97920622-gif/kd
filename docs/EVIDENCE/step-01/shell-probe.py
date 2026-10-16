@@ -77,6 +77,25 @@ only a rendered page can show:
        specimen's own negative control: a rail asked for by an audience the map
        has nothing live for renders no landmark and no anchor.
 
+ 11. The command surface is the map's third reader (sub-step 1.23). The
+     specimen renders the palette's own list twice, once for the development
+     audience it belongs to and once for the public audience with no session,
+     through the same row builder the palette calls. The probe checks what the
+     two lists contain and what they must not: the options in order, exactly one
+     active row and one current row per list, no option that can take focus, and
+     no page in a list that the reader of that list is not offered. The trigger
+     is measured for the two attributes that make it usable without a mouse -
+     the popup role it announces and the chord it advertises, built from the
+     same spelling the listener matches.
+
+ 12. The shortcuts reference page is a real public route (sub-step 1.23). It is
+     fetched as a stranger would fetch it, and the page is checked for the
+     things that would make it wrong rather than merely empty: a row per
+     registered shortcut, a keycap per chord, the group column filled, a live
+     link to the page a shortcut opens, and no chord token anywhere in the text
+     a reader reads. The page's own palette trigger carries the same
+     announcement as the specimen's, because it is the same component.
+
 It deliberately does not open a print preview or a headless browser: the build
 has no browser dependency, and a probe that needs one would not run in this
 repository. What it can prove is that the rules and the markup that the rules
@@ -95,6 +114,19 @@ import urllib.request
 
 BASE_URL = 'http://127.0.0.1:3000'
 PAGE_URL = f'{BASE_URL}/shells'
+SHORTCUTS_URL = f'{BASE_URL}/shortcuts'
+
+# The two readers of the command surface the specimen can render without a
+# browser: the audience this page belongs to, and the public audience. The third
+# item is the row the map must mark as the current page for that reader.
+EXPECTED_COMMAND_SETS = [
+    ('development', ['specimen-shells', 'specimen-gallery', 'palette.open', 'main.focus'], 'specimen-shells'),
+    ('public', ['shortcuts', 'palette.open', 'main.focus'], 'shortcuts'),
+]
+# The chords the registry declares, and the two rows the public page lists.
+EXPECTED_TRIGGER_CHORD = 'mod+k'
+EXPECTED_KEYSHORTCUTS = 'Control+k Meta+k'
+EXPECTED_SHORTCUT_ROWS = ['palette.open', 'shortcuts.open']
 
 FOCUSABLE = re.compile(
     r'<(a|button|input|select|textarea|summary)\b[^>]*?(?:href="(?P<href>[^"]*)"|(?<!disabled)\s*>)?[^>]*>',
@@ -685,6 +717,181 @@ def verify_navigation_surfaces(markup: str, css: str, findings: list[str]) -> No
         findings.append('the loaded stylesheet does not hide .md\\:hidden inside the medium breakpoint')
 
 
+def command_set_blocks(markup: str) -> dict[str, str]:
+    """The specimen's palette lists, one block per audience.
+
+    The block starts at the wrapper that carries the audience marker and ends
+    where the next one begins, so a list cannot be credited with a row that
+    belongs to the list beside it - which is exactly what a page-wide search
+    would do, and the two lists exist to be told apart.
+    """
+    blocks: dict[str, str] = {}
+    matches = list(re.finditer(r'data-command-set="([^"]+)"', markup))
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(markup)
+        blocks[match.group(1)] = markup[match.start() : end]
+    return blocks
+
+
+def option_texts(block: str) -> dict[str, str]:
+    """Option id to its visible text, for the options in one list."""
+    texts: dict[str, str] = {}
+    for match in re.finditer(r'<div\b[^>]*data-command="([^"]+)"[^>]*>([\s\S]*?)</div>', block):
+        texts[match.group(1)] = re.sub(r'<[^>]+>', '', match.group(2)).strip()
+    return texts
+
+
+def check_trigger(markup: str, label: str, findings: list[str]) -> None:
+    """The palette trigger: a named button that announces a dialog and a chord."""
+    triggers = re.findall(r'<button\b[^>]*data-layout="command-palette-trigger"[^>]*>([\s\S]*?)</button>', markup)
+    problems = []
+    if len(triggers) != 1:
+        problems.append(f'{len(triggers)} palette triggers, expected 1')
+    else:
+        element = re.search(r'<button\b[^>]*data-layout="command-palette-trigger"[^>]*>', markup)
+        attributes = element.group(0) if element else ''
+        if 'aria-haspopup="dialog"' not in attributes:
+            problems.append('the trigger does not announce the dialog it opens')
+        if f'aria-keyshortcuts="{EXPECTED_KEYSHORTCUTS}"' not in attributes:
+            problems.append('the trigger does not advertise the chord that opens it')
+        if f'data-chord="{EXPECTED_TRIGGER_CHORD}"' not in triggers[0]:
+            problems.append('the trigger does not show the chord as keycaps')
+        if 'Search' not in re.sub(r'<[^>]+>', '', triggers[0]):
+            problems.append('the trigger has no visible name')
+        if 'aria-hidden="true"' not in triggers[0]:
+            problems.append('the keycaps are exposed to assistive technology as well as the attribute')
+    print(f'  palette trigger, {label}{"ok" if not problems else "; ".join(problems)}')
+    for problem in problems:
+        findings.append(f'palette trigger on {label}: {problem}')
+
+
+def verify_command_surface(markup: str, findings: list[str]) -> None:
+    """Sub-step 1.23: the palette's rows, as the rendered specimen reports them."""
+    print('command surface (palette rows per audience, one current page, no focusable option)')
+
+    blocks = command_set_blocks(markup)
+    for set_id, expected_ids, expected_current in EXPECTED_COMMAND_SETS:
+        block = blocks.get(set_id, '')
+        problems = []
+        if block == '':
+            problems.append('the specimen renders no list for this audience')
+        else:
+            ids = re.findall(r'data-command="([^"]+)"', block)
+            if ids != expected_ids:
+                problems.append(f'options {ids} instead of {expected_ids}')
+            if len(re.findall(r'role="listbox"', block)) != 1:
+                problems.append('a list is not one listbox')
+            options = len(re.findall(r'role="option"', block))
+            if options != len(expected_ids):
+                problems.append(f'{options} options for {len(expected_ids)} rows')
+            # Each option's own opening tag, so one row's attributes can never
+            # answer for the row beside it.
+            tags = re.findall(r'<div\b[^>]*data-command="[^"]+"[^>]*>', block)
+            selected = [
+                option_id
+                for option_id, tag in (
+                    (re.search(r'data-command="([^"]+)"', one).group(1), one) for one in tags
+                )
+                if 'aria-selected="true"' in tag
+            ]
+            if selected != [expected_ids[0]]:
+                problems.append(f'active row {selected}, expected the first row of the list')
+            current = [
+                option_id
+                for option_id, tag in (
+                    (re.search(r'data-command="([^"]+)"', one).group(1), one) for one in tags
+                )
+                if 'aria-current="page"' in tag
+            ]
+            if current != [expected_current]:
+                problems.append(f'current row {current}, expected {expected_current}')
+            focusable = [tag for tag in tags if 'tabindex' in tag.lower()]
+            if focusable:
+                problems.append('an option can take focus: navigation moves the active descendant')
+            for option_id, text in option_texts(block).items():
+                if text == '':
+                    problems.append(f'option {option_id} renders no label')
+            for group in re.finditer(r'role="group" aria-labelledby="([^"]+)"', block):
+                if f'id="{group.group(1)}"' not in block:
+                    problems.append('a group names a heading that is not in the list')
+        print(f'  list for {set_id:12}{"ok" if not problems else "; ".join(problems)}')
+        for problem in problems:
+            findings.append(f'palette list for the {set_id} audience: {problem}')
+
+    # The two lists are the negative control for each other: the audience that
+    # does not serve a page must not be able to find it, however the reader
+    # searches, because the row was never built.
+    for set_id, other_id in (('development', 'shortcuts'), ('public', 'specimen-shells')):
+        block = blocks.get(set_id, '')
+        if re.search(rf'data-command="{other_id}"', block):
+            findings.append(
+                f'the {set_id} palette offers {other_id}, which the {set_id} audience does not serve'
+            )
+
+    check_trigger(markup, 'specimen', findings)
+
+
+def verify_shortcuts_page(findings: list[str]) -> None:
+    """Sub-step 1.23: the shortcuts reference, fetched as a public reader would."""
+    print()
+    print('shortcuts reference page (public route, generated from the registry)')
+    try:
+        page = fetch(SHORTCUTS_URL)
+    except Exception as error:  # noqa: BLE001 - the report is the point
+        print(f'  the page did not answer: {error}')
+        findings.append(f'the shortcuts reference page did not answer: {error}')
+        return
+
+    markup = strip_scripts(page)
+    problems = []
+    print(f'  page size: {len(page)} bytes')
+
+    titles = re.findall(r'<title>([^<]*)</title>', markup)
+    if not titles or 'Keyboard shortcuts' not in titles[0]:
+        problems.append(f'the page title is {titles[0] if titles else "MISSING"}')
+
+    headings = [re.sub(r'<[^>]+>', '', text).strip() for text in re.findall(r'<h1\b[^>]*>([\s\S]*?)</h1>', markup)]
+    if headings != ['Keyboard shortcuts']:
+        problems.append(f'h1 is {headings}')
+
+    if len(re.findall(r'<main\b', markup)) != 1:
+        problems.append('the page is not rendered inside exactly one main landmark')
+    if 'href="#main-content"' not in markup:
+        problems.append('the public shell did not render its skip link')
+
+    table = re.search(r'<table\b[^>]*data-shortcuts="table"[\s\S]*?</table>', markup)
+    if table is None:
+        problems.append('the page renders no shortcut table')
+    else:
+        rows = re.findall(r'<tr\b[^>]*data-shortcut="([^"]+)"[\s\S]*?</tr>', table.group(0))
+        if rows != EXPECTED_SHORTCUT_ROWS:
+            problems.append(f'rows {rows} instead of {EXPECTED_SHORTCUT_ROWS}')
+        for row in re.findall(r'<tr\b[^>]*data-shortcut="[^"]+"[\s\S]*?</tr>', table.group(0)):
+            cells = re.findall(r'<td\b[^>]*>([\s\S]*?)</td>', row)
+            if len(cells) != 3:
+                problems.append('a row does not have one cell per column')
+                continue
+            if f'data-chord="' not in cells[0]:
+                problems.append('a row shows no keycap for its chord')
+            if re.sub(r'<[^>]+>', '', cells[1]).strip() == '':
+                problems.append('a row names no action')
+            if re.sub(r'<[^>]+>', '', cells[2]).strip() == '':
+                problems.append('a row names no group')
+        if 'href="/shortcuts"' not in table.group(0):
+            problems.append('the row for this page is not a live link, so the entry is not published')
+        text = re.sub(r'<[^>]+>', ' ', table.group(0))
+        if 'mod+' in text:
+            problems.append('a raw chord token is rendered as text')
+        if 'Ctrl' not in text:
+            problems.append('the keycap label is not the documented one')
+
+    check_trigger(markup, 'shortcuts page', findings)
+
+    print(f'  {"ok" if not problems else "; ".join(problems)}')
+    for problem in problems:
+        findings.append(f'shortcuts reference page: {problem}')
+
+
 def main() -> int:
     page = fetch(PAGE_URL)
     markup = strip_scripts(page)
@@ -852,6 +1059,11 @@ def main() -> int:
 
     print()
     verify_navigation_map(markup, findings)
+
+    print()
+    verify_command_surface(markup, findings)
+
+    verify_shortcuts_page(findings)
 
     print()
     print(f'findings: {len(findings)}')

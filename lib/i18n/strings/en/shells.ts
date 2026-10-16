@@ -65,6 +65,18 @@ export const shells = {
   label_nav_specimen_action_bar: 'Sticky action bar',
   label_nav_specimen_offline: 'Offline banner',
   label_section_nav_map: 'Navigation map',
+  label_section_command: 'Command surface',
+  label_command_note:
+    "The palette is the map's third reader. Its page rows come from the same role-filtered navigation the rail renders, so a reader who is offered no module in the rail is offered none here either, and its action rows come from the command registry.",
+  label_command_list_heading:
+    'Palette results, rendered without a browser: the list the dialog holds, in server markup',
+  label_command_trigger_heading: 'Palette trigger, with the chord it advertises',
+  label_command_set_development: 'Rows for the development audience, this page included',
+  label_command_set_development_note:
+    'Two specimen pages and the two global commands. The shortcuts page is public, and this audience does not serve it, so no search term finds it here.',
+  label_command_set_public: 'Rows for the public audience, with no session',
+  label_command_set_public_note:
+    'One page and the same two commands. The reader is offered exactly what the map offers that reader, and the page they are on is marked as current by the same resolution the rail uses.',
   label_nav_map_note:
     'The map holds every destination the product will offer and the two routes this build serves. A planned entry has no destination at all, which is why the modules of the workspace, the platform console, the client portal and the public site appear in this table and nowhere in a menu.',
   label_nav_map_published: 'Published destinations',
