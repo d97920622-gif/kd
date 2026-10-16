@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { t } from '@/lib/i18n';
 
 import '../styles/globals.css';
+import '../styles/print.css';
 
 /**
  * The root shell: document language, the stylesheet, the font variables and
@@ -29,6 +30,14 @@ import '../styles/globals.css';
  * high contrast and reduced motion themes follow the operating system
  * preferences through media queries, so a user who needs them gets them
  * without finding a setting.
+ *
+ * Two stylesheets, both loaded once, here. The global layer carries the
+ * tokens and the Tailwind layers; the print base carries what a page becomes
+ * on paper, and it is imported at the root rather than per route group because
+ * every group can be printed for a reason - an invoice from the workspace, a
+ * receipt from the client portal, a pricing page from the public site - and a
+ * group that has to remember to import it is a group that will one day forget.
+ * A stylesheet that must be present everywhere belongs where everything is.
  *
  * One tooltip provider wraps the whole application. A tooltip has to have a
  * provider above it, and mounting one per page would give each page its own

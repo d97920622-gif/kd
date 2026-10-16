@@ -1,15 +1,17 @@
 // path: app/(dev)/shells/page.tsx
 import { notFound } from 'next/navigation';
 
+import { AdminShell } from '@/components/layout/admin-shell';
 import { AuthShell } from '@/components/layout/auth-shell';
+import { ClientPortalShell } from '@/components/layout/client-portal-shell';
+import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { PublicShell } from '@/components/layout/public-shell';
+import { AUDIENCE_ROLES } from '@/components/layout/role-framing';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { isDevelopment } from '@/lib/env/validate-env';
 import { t } from '@/lib/i18n';
 import { formatMoney } from '@/lib/utils/currency';
-
-import '../../../styles/print.css';
 
 /**
  * The layout specimen: each route-group shell, rendered with a document
@@ -31,6 +33,15 @@ import '../../../styles/print.css';
  *   - a badge marked `data-print="outline"` keeps a visible outline, because a
  *     status shown only as a coloured fill prints as blank paper.
  *
+ * The role-aware shells are rendered once per role rather than once, because
+ * the whole point of a frame is that two readers of the same product see
+ * different things around it: the owner sees a workspace with no band, the
+ * owner's staff see the same workspace with the approval notice, the three
+ * platform roles see the platform band and the notice their level carries, the
+ * client sees a document with no navigation at all, and an unresolved reader
+ * sees the frame stripped to its landmarks. A specimen that rendered one role
+ * would prove that one frame renders, which is not a fact anybody doubted.
+ *
  * The specimen content is a small invoice, because that is the document this
  * platform prints most and the one where a printing mistake costs the most.
  * It carries no product behaviour: no data fetching, no form, no action that
@@ -39,6 +50,13 @@ import '../../../styles/print.css';
  * amounts go through the money formatter rather than being written into the
  * markup, because a page that shows a currency amount by hand is the first
  * step towards displaying one that no formatter would produce.
+ *
+ * One honest caveat about this page: each shell renders its own `main`
+ * landmark, so the document holds several, and a page is only allowed one. The
+ * specimen is a component showcase rather than a page - the same way the
+ * gallery renders six copies of a component that a page renders once - and the
+ * rule that matters is the one check:layout-shells enforces on real routes: no
+ * page under a layout group may declare a second landmark of its own.
  *
  * The route is development only, guarded in both places for the same reason
  * the gallery is: the layout guard covers the group, and the guard here stops
@@ -79,8 +97,81 @@ export default function ShellsPage(): React.ReactElement {
           </AuthShell>
         </div>
       </section>
+
+      <section aria-labelledby="specimen-dashboard-heading" className="grid gap-4">
+        <h2 id="specimen-dashboard-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_dashboard')}
+        </h2>
+        {AUDIENCE_ROLES.tenant.map((role) => (
+          <div key={role} className="grid gap-2">
+            <h3 className="text-base font-medium text-muted-foreground">{role}</h3>
+            <div className="border border-border">
+              <DashboardShell
+                role={role}
+                sidebar={<SpecimenNavigation />}
+                footer={<SpecimenFooter />}
+              >
+                <SpecimenDocument />
+              </DashboardShell>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section aria-labelledby="specimen-admin-heading" className="grid gap-4">
+        <h2 id="specimen-admin-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_admin')}
+        </h2>
+        {AUDIENCE_ROLES.platform.map((role) => (
+          <div key={role} className="grid gap-2">
+            <h3 className="text-base font-medium text-muted-foreground">{role}</h3>
+            <div className="border border-border">
+              <AdminShell role={role} sidebar={<SpecimenNavigation />}>
+                <SpecimenDocument compact />
+              </AdminShell>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section aria-labelledby="specimen-client-heading" className="grid gap-4">
+        <h2 id="specimen-client-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_client_portal')}
+        </h2>
+        <div className="border border-border">
+          <ClientPortalShell tenantHeader={<SpecimenFooter />}>
+            <SpecimenDocument compact />
+          </ClientPortalShell>
+        </div>
+      </section>
+
+      <section aria-labelledby="specimen-unresolved-heading" className="grid gap-4">
+        <h2 id="specimen-unresolved-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_unresolved')}
+        </h2>
+        <div className="border border-border">
+          <DashboardShell role={null} sidebar={<SpecimenNavigation />}>
+            <SpecimenDocument compact />
+          </DashboardShell>
+        </div>
+      </section>
     </div>
   );
+}
+
+/** The navigation a slot receives in the specimen. It links to nothing. */
+function SpecimenNavigation(): React.ReactElement {
+  return (
+    <ul className="grid gap-2 p-4 text-base">
+      <li>{t('shells.label_document_title')}</li>
+      <li>{t('shells.label_document_link')}</li>
+    </ul>
+  );
+}
+
+/** The footer a slot receives in the specimen, and the tenant header. */
+function SpecimenFooter(): React.ReactElement {
+  return <p className="p-4 text-sm text-muted-foreground">{t('shells.label_print_footer')}</p>;
 }
 
 /**

@@ -1,7 +1,13 @@
 // path: lib/i18n/strings/en/shells.ts
 /**
- * Copy for the layout specimen page, the internal page that renders each
- * route-group shell with a document of specimen content inside it.
+ * Copy for the layout shells and for the specimen page that renders them.
+ *
+ * Two kinds of string live here. The framing strings - the platform band and
+ * the three approval notices - are product copy: they are read by real users
+ * of the workspace and of platform administration, and they are referenced by
+ * catalogue key from components/layout/role-framing.ts rather than written
+ * into a component, so the type check proves the key exists. The specimen
+ * strings are read only on the development-only specimen page.
  *
  * The page is a development surface: it lives under the development-only
  * route group and answers 404 outside development, so a customer never reads
@@ -38,4 +44,21 @@ export const shells = {
   label_specimen_note:
     'The chrome block above the content is marked to disappear in print; the header line below the title is marked to appear only in print.',
   label_chrome_placeholder: 'Navigation and controls live here',
+
+  label_section_dashboard: 'Dashboard shell',
+  label_section_admin: 'Admin shell',
+  label_section_client_portal: 'Client portal shell',
+  label_section_unresolved: 'Unresolved reader',
+
+  label_nav_workspace: 'Workspace navigation',
+  label_nav_platform: 'Platform navigation',
+  label_platform_banner: 'Platform administration',
+  label_platform_banner_message:
+    'Every change on this surface affects a tenant and is recorded in the audit log.',
+  label_notice_ceo_approval:
+    'Actions at this level are submitted to the super admin for approval before they take effect.',
+  label_notice_admin_staff_approval:
+    'Actions at this level are approved by the platform CEO or the super admin before they take effect.',
+  label_notice_staff_approval:
+    'Your drafts are sent to the owner for approval before anything reaches a client.',
 } as const;

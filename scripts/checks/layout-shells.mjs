@@ -15,7 +15,15 @@
  *   2. **One main landmark per page.** A page with two main landmarks gives a
  *      screen reader user two answers to "where is the content". Only the
  *      landmark component may declare `<main>` inside a route group.
- *   3. **The print base.** styles/print.css is the only stylesheet that is not
+ *   3. **Role framing.** The frame a reader gets is data (role-framing.ts), not
+ *      three layout files that drifted. The check holds the table to the six
+ *      roles of the role model, to the catalogue keys it names, and to the
+ *      audience each group serves; it keeps the client portal free of
+ *      navigation; it requires the session seam to fail closed and to preview
+ *      as the lowest-privilege role of its audience rather than a privileged
+ *      one. What it cannot check is authorization, and that is the point of
+ *      the design: a frame is not a gate, and the check verifies the frame.
+ *   4. **The print base.** styles/print.css is the only stylesheet that is not
  *      a token declaration, and its rules are what a printed invoice depends
  *      on. The check verifies the file structurally: the page margin matches
  *      PRINT_PAGE_MARGIN_MM, every role in PRINT_ROLE_MAP is remapped in the
@@ -44,8 +52,20 @@ const TOKEN_FILE = 'config/design-tokens.ts';
 const PRINT_STYLESHEET = 'styles/print.css';
 const MAIN_CONTENT_MODULE = 'components/layout/main-content.tsx';
 const SKIP_LINK_MODULE = 'components/layout/skip-link.tsx';
-const SHELLS = ['components/layout/public-shell.tsx', 'components/layout/auth-shell.tsx'];
-const ROUTE_LAYOUTS = ['app/(public)/layout.tsx', 'app/(auth)/layout.tsx'];
+const SHELLS = [
+  'components/layout/public-shell.tsx',
+  'components/layout/auth-shell.tsx',
+  'components/layout/dashboard-shell.tsx',
+  'components/layout/admin-shell.tsx',
+  'components/layout/client-portal-shell.tsx',
+];
+const ROUTE_LAYOUTS = [
+  'app/(public)/layout.tsx',
+  'app/(auth)/layout.tsx',
+  'app/(dashboard)/layout.tsx',
+  'app/(admin)/layout.tsx',
+  'app/(client-portal)/layout.tsx',
+];
 const GROUPS = [
   'app/(public)/',
   'app/(auth)/',
@@ -53,6 +73,35 @@ const GROUPS = [
   'app/(admin)/',
   'app/(client-portal)/',
 ];
+const ROOT_LAYOUT = 'app/layout.tsx';
+const ROLE_FRAMING_MODULE = 'components/layout/role-framing.ts';
+const SESSION_ROLE_MODULE = 'components/layout/session-role.ts';
+const CLIENT_PORTAL_SHELL = 'components/layout/client-portal-shell.tsx';
+
+/**
+ * The six roles of the role model in MASTER_PROMPT, and the five that sign in.
+ *
+ * The list is written out here rather than imported from the framing table on
+ * purpose: a check that reads its expectation from the code it verifies can
+ * only prove that the code equals itself. Deleting a role from the table has
+ * to fail this check, which means this file has to know what the answer is.
+ */
+const MANDATED_ROLES = ['super_admin', 'ceo', 'admin_staff', 'owner', 'staff', 'client'];
+
+/**
+ * The one role that never signs in, and therefore the one that must never be
+ * previewed by the session seam: a client reaches one document through a
+ * tokenized link, so there is no session for the seam to resolve and no
+ * preview that would be honest.
+ */
+const TOKENIZED_ROLE = 'client';
+
+/** Each audience and the group that serves it, so a role cannot be orphaned. */
+const AUDIENCE_GROUP = {
+  platform: 'app/(admin)/layout.tsx',
+  tenant: 'app/(dashboard)/layout.tsx',
+  client: 'app/(client-portal)/layout.tsx',
+};
 
 const findings = [];
 
@@ -169,13 +218,29 @@ for (const shell of SHELLS) {
   }
 }
 
+/*
+ * The print base has one owner. It is imported by the root layout, and no
+ * route-group layout imports it: a base that every group must remember to
+ * include is a base that some group will one day omit, and a duplicated import
+ * is two places to look when the paper rules change.
+ */
+const rootLayout = requireFile(ROOT_LAYOUT, 'the root layout is missing');
+if (rootLayout !== null && !/print\.css/.test(rootLayout)) {
+  finding(
+    ROOT_LAYOUT,
+    'the root layout must import styles/print.css: every group can be printed, so the paper rules belong where every group loads from',
+  );
+}
 for (const layout of ROUTE_LAYOUTS) {
   const text = requireFile(layout, 'a route-group layout named by the plan is missing');
   if (text === null) {
     continue;
   }
-  if (!/print\.css/.test(text)) {
-    finding(layout, 'the layout must import the print base so the group prints predictably');
+  if (/print\.css/.test(text)) {
+    finding(
+      layout,
+      'a route-group layout must not import styles/print.css; the root layout owns it, and a second import is a second place to keep correct',
+    );
   }
 }
 
@@ -202,7 +267,207 @@ for (const file of listTrackedFiles()) {
 }
 
 // ---------------------------------------------------------------------------
-// 3. The print base
+// 3. Role framing: every role framed, every frame readable, no frame orphaned
+// ---------------------------------------------------------------------------
+
+const AUDIENCE_SHELL = {
+  platform: 'components/layout/admin-shell.tsx',
+  tenant: 'components/layout/dashboard-shell.tsx',
+  client: 'components/layout/client-portal-shell.tsx',
+};
+
+/** The preview roles the seam answers in development, lowest privilege first. */
+const EXPECTED_PREVIEW_ROLES = { dashboard: 'staff', admin: 'admin_staff' };
+
+/** Every catalogue key, as `namespace.key`, read out of the string files. */
+function catalogueKeys() {
+  const keys = new Set();
+  for (const file of listTrackedFiles()) {
+    if (!file.startsWith('lib/i18n/strings/en/') || !file.endsWith('.ts')) {
+      continue;
+    }
+    const text = read(file);
+    if (text === null) {
+      continue;
+    }
+    const namespace = file.slice('lib/i18n/strings/en/'.length, -'.ts'.length);
+    for (const match of text.matchAll(/^ {2}([a-z][a-z0-9_]*):/gm)) {
+      keys.add(`${namespace}.${match[1]}`);
+    }
+  }
+  return keys;
+}
+
+const framingText = requireFile(ROLE_FRAMING_MODULE, 'the role framing module is missing');
+if (framingText !== null) {
+  const table = /export const ROLE_FRAMING[\s\S]*?=\s*\{([\s\S]*?)\n\};/.exec(framingText);
+  if (table === null) {
+    finding(ROLE_FRAMING_MODULE, 'ROLE_FRAMING was not found as a literal table');
+  } else {
+    const entries = new Map();
+    for (const match of table[1].matchAll(/\n {2}([a-z_]+): \{([\s\S]*?)\n {2}\},/g)) {
+      entries.set(match[1], match[2]);
+    }
+
+    // Every mandated role is framed, and no role is invented.
+    for (const role of MANDATED_ROLES) {
+      if (!entries.has(role)) {
+        finding(
+          ROLE_FRAMING_MODULE,
+          `the role model lists ${role} but ROLE_FRAMING has no frame for it`,
+        );
+      }
+    }
+    for (const role of entries.keys()) {
+      if (!MANDATED_ROLES.includes(role)) {
+        finding(ROLE_FRAMING_MODULE, `${role} is not one of the six roles of the role model`);
+      }
+    }
+
+    const keys = catalogueKeys();
+    for (const [role, body] of entries) {
+      const audience = /audience: '([a-z]+)'/.exec(body);
+      if (audience === null) {
+        finding(ROLE_FRAMING_MODULE, `the ${role} frame declares no audience`);
+        continue;
+      }
+      if (!MANDATED_ROLES.includes(role)) {
+        continue;
+      }
+      const expectedShell = AUDIENCE_SHELL[audience[1]];
+      if (expectedShell === undefined) {
+        finding(ROLE_FRAMING_MODULE, `the ${role} frame has an unknown audience ${audience[1]}`);
+        continue;
+      }
+
+      // The client audience has no navigation, and that is the design.
+      if (audience[1] === 'client') {
+        if (!/hasNavigation: false/.test(body)) {
+          finding(
+            ROLE_FRAMING_MODULE,
+            'the client frame must declare hasNavigation: false: a menu on a single-document page is a way for the reader to get lost',
+          );
+        }
+        const clientShell = requireFile(CLIENT_PORTAL_SHELL, 'the client portal shell is missing');
+        const clientShellCode = clientShell === null ? null : stripCommentsAndStrings(clientShell);
+        if (clientShellCode !== null && /\b(sidebar|topBar|bottomBar)\b/.test(clientShellCode)) {
+          finding(
+            CLIENT_PORTAL_SHELL,
+            'the client portal shell must accept no navigation slot; the omission is the design',
+          );
+        }
+      } else if (!/hasNavigation: true/.test(body)) {
+        finding(ROLE_FRAMING_MODULE, `the ${role} frame must offer navigation`);
+      }
+
+      // Every copy key a frame names has to exist in the catalogue.
+      for (const keyMatch of body.matchAll(/[A-Za-z]+Key: '([a-z0-9_.]+)'/g)) {
+        if (!keys.has(keyMatch[1])) {
+          finding(
+            ROLE_FRAMING_MODULE,
+            `the ${role} frame references ${keyMatch[1]}, which no string namespace declares`,
+          );
+        }
+      }
+
+      // The frame's shell is the one its group renders. The group name is not
+      // the audience name - platform administration lives under (admin) - so
+      // the mapping is declared once, above, and read here.
+      const groupLayout = AUDIENCE_GROUP[audience[1]];
+      if (groupLayout === undefined) {
+        finding(
+          ROLE_FRAMING_MODULE,
+          `the ${audience[1]} audience has no route group; every role would be framed as somebody else`,
+        );
+      } else {
+        const layoutText = read(groupLayout) ?? '';
+        const shellName = expectedShell.split('/').pop().replace('.tsx', '');
+        if (!layoutText.includes(shellName)) {
+          finding(
+            groupLayout,
+            `the ${audience[1]} group must render ${shellName}, the shell the framing table gives that audience`,
+          );
+        }
+      }
+    }
+
+    // A frame that is never rendered is a frame nobody maintains: each of the
+    // three audiences must be reachable from a group layout.
+    for (const audience of Object.keys(AUDIENCE_SHELL)) {
+      const framed = [...entries.values()].some((body) => body.includes(`audience: '${audience}'`));
+      if (!framed) {
+        finding(ROLE_FRAMING_MODULE, `no role is framed for the ${audience} audience`);
+      }
+    }
+  }
+
+  // The frame must be measurable in the response, not only in the source.
+  for (const shell of SHELLS) {
+    const text = read(shell) ?? '';
+    if (shell.includes('public') || shell.includes('auth')) {
+      continue;
+    }
+    if (!/roleDataAttributes\(/.test(text) || !/\{\.\.\.data\}/.test(text)) {
+      finding(
+        shell,
+        'a role-aware shell must put the role and audience on its root element, so the rendered frame can be measured instead of assumed',
+      );
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 4. The session seam: no privileged default, no fail-open
+// ---------------------------------------------------------------------------
+
+const seam = requireFile(SESSION_ROLE_MODULE, 'the session role seam is missing');
+if (seam !== null) {
+  if (!/isDevelopment\(\)/.test(seam)) {
+    finding(
+      SESSION_ROLE_MODULE,
+      'the seam must decide between a development preview and no role at all; without that decision it is a stub that ships',
+    );
+  }
+  const seamCode = stripCommentsAndStrings(seam);
+  if (!/return .*: null;/.test(seamCode)) {
+    finding(
+      SESSION_ROLE_MODULE,
+      'the seam must fail closed: outside development it answers no role rather than a default one',
+    );
+  }
+  for (const [group, role] of Object.entries(EXPECTED_PREVIEW_ROLES)) {
+    const declaration = new RegExp(`${group}:\\s*'([a-z_]+)'`);
+    const match = declaration.exec(seam);
+    if (match === null) {
+      finding(SESSION_ROLE_MODULE, `the seam declares no development preview role for ${group}`);
+      continue;
+    }
+    if (match[1] !== role) {
+      finding(
+        SESSION_ROLE_MODULE,
+        `the ${group} preview role is ${match[1]}; it must be ${role}, the lowest privilege role of that audience, or the preview shows the developer a frame almost no reader sees`,
+      );
+    }
+  }
+  if (new RegExp(`'${TOKENIZED_ROLE}'`).test(seamCode)) {
+    finding(
+      SESSION_ROLE_MODULE,
+      'the seam must not preview the client role: that audience never has a session, and a preview of it would suggest the portal is reached by signing in',
+    );
+  }
+  if (/super_admin|owner/.test(seamCode.replace(/DEVELOPMENT_PREVIEW_ROLE|FramingGroup/g, ''))) {
+    const privileged = /'super_admin'|'owner'/.test(seamCode);
+    if (privileged) {
+      finding(
+        SESSION_ROLE_MODULE,
+        'the seam must never preview as a privileged role: a frame that flatters the developer hides what most readers see',
+      );
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 5. The print base
 // ---------------------------------------------------------------------------
 
 const print = requireFile(PRINT_STYLESHEET, 'the print base stylesheet is missing');
@@ -337,6 +602,6 @@ if (print !== null) {
 reportResult(
   CHECK,
   findings,
-  `${String(SHELLS.length)} shells and ${String(ROUTE_LAYOUTS.length)} route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), print base verified against ${TOKEN_FILE}`,
+  `${String(SHELLS.length)} shells and ${String(ROUTE_LAYOUTS.length)} route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), ${String(MANDATED_ROLES.length)} roles framed through one seam with no privileged default, print base verified against ${TOKEN_FILE}`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;

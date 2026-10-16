@@ -40,7 +40,10 @@ export interface PublicShellProps {
 
 export function PublicShell({ children, className }: PublicShellProps): React.ReactElement {
   return (
-    <div className="print-flow flex min-h-dvh flex-col bg-background text-foreground">
+    <div
+      className="print-flow flex min-h-dvh flex-col bg-background text-foreground"
+      data-shell="public"
+    >
       <SkipLink />
       <MainContent className={cn('w-full', className)}>{children}</MainContent>
     </div>

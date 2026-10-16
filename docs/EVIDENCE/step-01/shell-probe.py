@@ -32,6 +32,14 @@ only a rendered page can show:
   6. The print markers survived rendering: the specimen's print-hidden block,
      print-only blocks and ink-outlined badge are in the markup with the
      attributes the stylesheet selects on.
+  7. Role-aware framing is correct for every role (sub-step 1.20). The response
+     is split into shell blocks at their role-bearing roots, and each block is
+     checked for the band and the notice its role calls for, by the copy the
+     reader actually sees: the founder gets the platform band and no notice,
+     the CEO and admin staff get the band plus the notice their approval level
+     carries, the owner gets no band, the owner's staff get the approval notice
+     alone, the client gets a document frame with no band and no navigation,
+     and an unresolved reader gets landmarks and nothing else.
 
 It deliberately does not open a print preview or a headless browser: the build
 has no browser dependency, and a probe that needs one would not run in this
@@ -168,6 +176,54 @@ def focusable_before_main(markup: str, main_index: int) -> list[str]:
     return order
 
 
+SHELL_ROOT = re.compile(
+    r'<div[^>]*data-shell="(?P<shell>[a-z-]+)"[^>]*>',
+    re.IGNORECASE,
+)
+
+# The copy each role must or must not see, read from the catalogue as rendered.
+PLATFORM_BANNER = 'Platform administration'
+CEO_NOTICE = 'submitted to the super admin for approval'
+ADMIN_STAFF_NOTICE = 'approved by the platform CEO or the super admin'
+STAFF_NOTICE = 'sent to the owner for approval'
+
+# The three approval sentences, so a frame cannot be showing the wrong one.
+
+NOTICE_TEXTS = [CEO_NOTICE, ADMIN_STAFF_NOTICE, STAFF_NOTICE]
+
+# role -> (shell, banner expected, notice expected, navigation expected)
+EXPECTED_FRAMES = {
+    'super_admin': ('admin', True, None, True),
+    'ceo': ('admin', True, CEO_NOTICE, True),
+    'admin_staff': ('admin', True, ADMIN_STAFF_NOTICE, True),
+    'owner': ('dashboard', False, None, True),
+    'staff': ('dashboard', False, STAFF_NOTICE, True),
+    'client': ('client-portal', False, None, False),
+    'unresolved': ('dashboard', False, None, False),
+}
+
+
+def shell_blocks(markup: str) -> list[tuple[dict[str, str], str]]:
+    """The markup split at each shell root, with the root's attributes.
+
+    A shell root carries three attributes the CSS and a probe both read: the
+    shell name, the framing role and the audience. Splitting there is what
+    makes it possible to ask a question per reader - what did *this* frame
+    contain - instead of counting strings across a page where six frames sit
+    next to each other.
+    """
+    roots = list(SHELL_ROOT.finditer(markup))
+    blocks: list[tuple[dict[str, str], str]] = []
+    for index, match in enumerate(roots):
+        end = roots[index + 1].start() if index + 1 < len(roots) else len(markup)
+        attributes = {
+            name: value
+            for name, value in re.findall(r'(data-[a-z-]+)="([^"]*)"', match.group(0))
+        }
+        blocks.append((attributes, markup[match.start() : end]))
+    return blocks
+
+
 def main() -> int:
     page = fetch(PAGE_URL)
     markup = strip_scripts(page)
@@ -182,37 +238,50 @@ def main() -> int:
     print(f'loaded CSS: {len(css)} bytes')
     print()
 
-    # 1 and 2: the skip link.
-    print('skip link')
-    skip_links = re.findall(r'<a[^>]*href="#main-content"[^>]*>([\s\S]*?)</a>', markup)
-    print(f'  links pointing at #main-content: {len(skip_links)}')
-    if len(skip_links) != 2:
-        findings.append(f'expected one skip link per shell (2), found {len(skip_links)}')
-    for label in skip_links:
-        if 'Skip to main content' not in re.sub(r'<[^>]+>', '', label):
-            findings.append('a skip link does not carry the catalogue label')
+    # 1 and 2: the skip link and the landmark, measured per shell rather than
+    # across the page. The page renders one shell per reader; a count across
+    # the whole document would hide a shell that has two landmarks and another
+    # that has none.
+    root_blocks = shell_blocks(markup)
+    print(f'shells rendered: {len(root_blocks)}')
+    print()
+    print('skip link and landmark, per shell')
+    for attributes, block in root_blocks:
+        role = attributes.get('data-role', 'MISSING')
+        label = f'{attributes.get("data-shell", "MISSING")}/{role}'
+        skip_links = re.findall(r'<a[^>]*href="#main-content"[^>]*>([\s\S]*?)</a>', block)
+        mains = [match.start() for match in re.finditer(r'<main\b', block)]
+        problems = []
+        if len(skip_links) != 1:
+            problems.append(f'{len(skip_links)} skip links')
+        if len(mains) != 1:
+            problems.append(f'{len(mains)} main landmarks')
+        for content in skip_links:
+            if 'Skip to main content' not in re.sub(r'<[^>]+>', '', content):
+                problems.append('skip link without the catalogue label')
+        for start in mains:
+            tag = re.search(r'<main\b[^>]*>', block[start:])
+            attributes_text = tag.group(0) if tag else ''
+            if 'id="main-content"' not in attributes_text:
+                problems.append('landmark without the skip target id')
+            if 'tabindex="-1"' not in attributes_text:
+                problems.append('landmark that cannot take focus')
+        # The skip link has to come before the landmark in this shell, which is
+        # the order a keyboard user walks.
+        if skip_links and mains:
+            first_skip = block.find('href="#main-content"')
+            if first_skip > mains[0]:
+                problems.append('skip link after the landmark')
+        print(f'  {label:32}{"ok" if not problems else "; ".join(problems)}')
+        for problem in problems:
+            findings.append(f'{label}: {problem}')
 
-    mains = [match.start() for match in re.finditer(r'<main\b', markup)]
-    print(f'  main landmarks: {len(mains)}')
-    if len(mains) != 2:
-        findings.append(f'expected one main landmark per shell (2), found {len(mains)}')
-    for start in mains:
-        tag = re.search(r'<main\b[^>]*>', markup[start:])
-        if tag is None:
-            findings.append('a main landmark could not be read')
-            continue
-        attributes = tag.group(0)
-        if 'id="main-content"' not in attributes:
-            findings.append('a main landmark does not carry the skip target id')
-        if 'tabindex="-1"' not in attributes:
-            findings.append('a main landmark is not programmatically focusable')
-
-    before = focusable_before_main(markup, mains[0] if mains else len(markup))
-    print(f'  focusable elements before the first main landmark: {len(before)}')
+    before = focusable_before_main(markup, re.finditer(r'<main\b', markup).__next__().start())
+    print(f'  focusable elements before the first landmark: {len(before)}')
     for entry in before:
         print(f'    {entry}')
     if len(before) != 1 or not before[0].startswith('a '):
-        findings.append('the skip link is not the only focusable element before the content')
+        findings.append('the skip link is not the only focusable element before the first content region')
 
     print()
 
@@ -252,6 +321,70 @@ def main() -> int:
         print(f'  data-print="{marker}": {count}')
         if count == 0:
             findings.append(f'no element in the rendered page carries data-print="{marker}"')
+
+    print()
+    print('role-aware framing, one row per reader (the public and auth shells serve an unrecognised reader and carry no role)')
+    print(f'  {"role":14}{"shell":16}{"band":6}{"notice":8}{"nav":5}')
+    seen_roles = []
+    for attributes, block in root_blocks:
+        role = attributes.get('data-role')
+        shell = attributes.get('data-shell', 'MISSING')
+        audience = attributes.get('data-audience', 'MISSING')
+        if role is None:
+            # The public and auth shells are not role-aware: they serve a
+            # reader who has not been recognised yet, and they carry no role
+            # because there is none to carry. Their landmarks and their print
+            # markers are measured above like every other shell.
+            continue
+        seen_roles.append(role)
+        expectation = EXPECTED_FRAMES.get(role)
+        if expectation is None:
+            findings.append(f'the frame of role {role} is not in the expected set')
+            continue
+        expected_shell, want_band, want_notice, want_nav = expectation
+        # The band belongs to the frame, the notice to the reader's workflow,
+        # so each is looked for inside this reader's own shell block.
+        frame_start = block.find('data-role="role-frame"')
+        frame = block[frame_start:] if frame_start >= 0 else ''
+        main_start = block.find('<main')
+        frame_region = (
+            block[frame_start:main_start]
+            if frame_start >= 0 and main_start > frame_start
+            else frame
+        )
+        has_band = PLATFORM_BANNER in frame
+        # A notice is one of the three approval sentences, and the band's own
+        # message is not one of them, so the two are told apart by copy.
+        notice_texts = [text for text in NOTICE_TEXTS if text in frame_region]
+        has_notice = want_notice is not None and want_notice in frame_region
+        nav_block = re.search(r'<nav\b[^>]*aria-label="([^"]*)"', block)
+        has_nav = nav_block is not None
+        print(
+            f'  {role:14}{shell:16}'
+            f'{"yes" if has_band else "no":6}{"yes" if has_notice else "no":8}'
+            f'{"yes" if has_nav else "no":5}'
+        )
+        if shell != expected_shell:
+            findings.append(f'{role} is framed by the {shell} shell, expected {expected_shell}')
+        if has_band != want_band:
+            findings.append(f'{role}: platform band {"present" if has_band else "missing"}')
+        if want_notice is not None and want_notice not in frame_region:
+            findings.append(f'{role}: the approval notice is missing')
+        if want_notice is None and notice_texts:
+            findings.append(
+                f'{role}: shows an approval notice but this role is not reviewed'
+            )
+        if has_nav != want_nav:
+            findings.append(
+                f'{role}: navigation {"present" if has_nav else "missing"} but the frame calls for '
+                f'{"one" if want_nav else "none"}'
+            )
+        if audience not in ('platform', 'tenant', 'client', 'unresolved'):
+            findings.append(f'{role}: unexpected audience {audience}')
+
+    for role in EXPECTED_FRAMES:
+        if role not in seen_roles:
+            findings.append(f'no shell in the page is framed for {role}')
 
     print()
     print(f'findings: {len(findings)}')

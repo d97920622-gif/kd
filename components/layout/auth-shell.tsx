@@ -42,7 +42,10 @@ export interface AuthShellProps {
 
 export function AuthShell({ children, panelClassName }: AuthShellProps): React.ReactElement {
   return (
-    <div className="print-flow flex min-h-dvh flex-col bg-background text-foreground">
+    <div
+      className="print-flow flex min-h-dvh flex-col bg-background text-foreground"
+      data-shell="auth"
+    >
       <SkipLink />
       <MainContent className="flex w-full flex-col items-center justify-start gap-section px-gutter py-section sm:justify-center">
         <LogoMark size={48} variant="glyph" className="text-primary" />
