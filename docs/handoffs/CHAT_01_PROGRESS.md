@@ -3,12 +3,12 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19 and 1.20 complete, 1.21 next
-Last completed sub-step: 1.20 (role-aware dashboard, admin and client portal shells).
-Next sub-step: 1.21 (layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar).
+Current segment: 1C (brand, layout, navigation) -- sub-steps 1.18, 1.19, 1.20 and 1.21 complete, 1.22 next
+Last completed sub-step: 1.21 (layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar).
+Next sub-step: 1.22 (navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
-Segment 1C: in progress (1.18, 1.19 and 1.20 complete; segment gate pending)
+Segment 1C: in progress (1.18, 1.19, 1.20 and 1.21 complete; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -69,9 +69,9 @@ docs/EVIDENCE/step-01/gate-1B.md, commit 2cd305d).
 | Sub-step | Description                                                                                                                  | Status  | Commit  |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | 1.18     | Brand assets: logo variants, favicon pack 16/32/180/192/512, apple touch icon, PWA icons, OG image, brand voice guide        | done    | b8511e6 |
-| 1.19     | Layout shells: public and auth layouts with skip links, focus order, print base                                              | pending | -       |
-| 1.20     | Layout shells: dashboard, admin and client portal layouts with role-aware framing                                            | pending | -       |
-| 1.21     | Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar | pending | -       |
+| 1.19     | Layout shells: public and auth layouts with skip links, focus order, print base                                              | done    | e95c963 |
+| 1.20     | Layout shells: dashboard, admin and client portal layouts with role-aware framing                                            | done    | 2e3c0aa |
+| 1.21     | Layout components: sidebar, topbar, mobile drawer, bottom navigation, breadcrumbs, footer, offline banner, sticky action bar | done    | 5411c93 |
 | 1.22     | Navigation source: config/nav-map.ts with reserved growth blocks, role filter hook, breadcrumb generator, dead-link wiring   | pending | -       |
 | 1.23     | Command palette and keyboard shortcuts page with focus management and ARIA labels                                            | pending | -       |
 
@@ -94,6 +94,105 @@ passes on the current route set. Status: pending.
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.21 evidence -- the navigation surfaces and the device insets
+
+Nine components in `components/layout/`, one entry model, and the safe-area
+tokens the pinned bars consume. Rendered on the specimen page as a new
+"Navigation surfaces" section: the top bar with the drawer trigger and the
+breadcrumb trail, the rail, the bottom bar, the footer, the sticky action bar
+and the offline banner's honest absence.
+
+**One entry model.** `nav-items.ts` describes an entry once - id, href,
+catalogue key, optional icon, optional description, reserved flag - and resolves
+it for rendering; `nav-link.tsx` is the only place an anchor is built, so
+`aria-current="page"` has exactly one owner and the icon is `aria-hidden` in one
+place instead of five. Active state is derived per render from an `activeHref`
+the caller passes, and the match is exact rather than by prefix: `/invoices`
+must not make `/invoices-archive` look current. Labels are catalogue keys typed
+as the catalogue's own union, so a surface that names a string nobody wrote
+fails the type check.
+
+**Four surfaces, one contract.** The rail (`sidebar-nav.tsx`) is 16rem from the
+layout width scale, hidden below the medium breakpoint and scrolls internally so
+the entries above stay reachable; the drawer (`mobile-drawer.tsx`) is the same
+entries in the project's Sheet primitive, which is a Radix Dialog and therefore
+brings the focus trap, Escape handling and a required title; the bottom bar
+(`bottom-navigation.tsx`) caps at five named items (`BOTTOM_NAVIGATION_MAX_ITEMS`)
+and lays its columns out from the entry count rather than a fixed five, so a
+workspace with four modules does not leave a dead column; the trail
+(`breadcrumbs.tsx`) is a labelled `nav` around an ordered list whose last item is
+the current page and is not a link.
+
+**The device edges are tokens, not numbers.** `SAFE_AREA_TOKENS` in
+`config/design-tokens.ts` declares `--safe-{top,right,bottom,left}` as the
+browser's own `env(safe-area-inset-*, 0px)`, `styles/globals.css` declares them,
+and `check:design-tokens` requires the set to stay complete. The bottom bar
+consumes the bottom inset, the action bar adds its own padding to it, the sticky
+top bar consumes the top inset, and the drawer - which opens from the leading
+edge - consumes the leading inset. A component may not read `env()` itself; the
+check fails it. The layout width scale also gained `page` (72rem), because the
+footer's content column had nowhere to stop growing.
+
+**The action bar is sticky, not fixed.** It is the last child of the form column
+and sticks inside it, so it cannot cover the page or the last row of the form.
+The offline banner subscribes to the browser's connectivity with
+`useSyncExternalStore`, which is what makes the first client paint already
+correct instead of flashing "online" for one frame before admitting otherwise;
+its server snapshot is deliberately "online", since a server render has no
+connection to report on.
+
+**Verification.** `npm run verify`: RESULT PASS (22 of 22). `check:layout-shells`
+grew to read the surfaces as a set: every surface must carry its `data-layout`
+marker, every navigation landmark must have an accessible name, entries render
+through `NavLink` (a surface that grows its own anchor fails), `aria-current`
+must be derived and never a literal, every anchor carries its own `min-h-touch`
+(a target on a wrapper fails), pinned bars must consume `var(--safe-bottom)` and
+may not use fixed positioning, the drawer must be controlled, must open from the
+leading edge, must consume `var(--safe-left)`, must close on navigation through
+`onNavigate`, and no module in the directory may reach into the DOM
+(`querySelector`, `.click()`), read `next/headers` or import `config/nav-map`.
+Fourteen negative controls were run and reverted, eleven against the new rules
+including one that puts `min-h-touch` in a comment while removing the class -
+the check reads code, not prose.
+
+**Rendered evidence.** `docs/EVIDENCE/step-01/shell-probe.py` gained a ninth
+section that reads the server's response and the loaded stylesheet: each
+navigation has its own name, exactly one entry inside it claims the current page,
+each entry has a readable name and the 44 pixel class, the reserved entry appears
+nowhere, the pinned bar consumes the bottom inset, the action bar is a named
+group that is sticky and print-hidden, the top bar's header owns `sticky top-0`,
+`z-sticky` and the top inset, the drawer trigger is named and announces a dialog,
+the legal line composes the year, and the page holds no offline banner while the
+browser reports a connection. Then the compiled chain: the four inset variables
+declared from `env()`, the rail width, the page width, the 44 pixel step, both
+inset paddings, the 12 pixel bar label, the bar's column layout and the
+medium-breakpoint hiding. Eight negative controls were run against the probe: no
+entry current, two entries current, the reserved entry rendered, the bar's inset
+removed, a rail link losing its target, the legal line losing its parameter, the
+drawer trigger losing its name, and the banner rendering for an online reader.
+All eight turn it into a FAIL.
+
+The probe also caught two defects during the sub-step that no source check could
+see: the breadcrumb anchors were 44 pixels tall only on their list item (the
+class sat on the wrapper), and the footer's legal line passed `count` to a
+template whose placeholder is `year`, which the strict runtime turns into a
+thrown error rather than a row of braces. Both were fixed, and the first of them
+is now a check rule of its own.
+
+**Honest limits.** The drawer panel mounts into a portal when it opens, so it is
+not in the server-rendered markup: the probe measures the trigger and the check
+verifies the panel's contract in source (side, controlled state, named landmark,
+leading inset, close-on-navigate), while the focus trap itself is inherited from
+the Radix Dialog primitive. No browser dependency exists in this build, so
+computed styles at 320px and keyboard traversal are not measured; what is
+measured is the markup the CSS selects on and the compiled CSS behind it.
+
+**Production.** `next build` OK, 8 static pages (`/shells` 5.31 kB). With
+`next start` on port 3020: `/`, `/shells`, `/gallery`, `/dashboard`, `/admin`
+and `/client-portal` all answer 404 with zero occurrences of the specimen title,
+`data-shell`, `main-content`, `super_admin`, the platform band or the navigation
+section heading.
 
 ## Sub-step 1.20 evidence -- role-aware shells for the three signed-in and tokenized audiences
 
@@ -819,27 +918,36 @@ with its gate passed, and segment 1B continues under the permission-gated
 rhythm (one sub-step per commit, verify between sub-steps, stop for
 confirmation).
 
-## Sub-step 1.21 starting point
+## Sub-step 1.22 starting point
 
-1.21 is "Layout components: sidebar, topbar, mobile drawer, bottom navigation,
-breadcrumbs, footer, offline banner, sticky action bar", all of which belong in
-`components/layout/` (step 1 owns that directory). The attachment points exist
-and are already exercised: `ShellSlots` in
-`components/layout/shell-slots.tsx` takes `topBar`, `sidebar`, `footer` and
-`bottomBar` as nodes and wraps each in the right landmark with an accessible
-name from the catalogue, and the frames decide whether navigation is painted at
-all, so a component dropped into a slot needs no layout knowledge.
+1.22 is "Navigation source: config/nav-map.ts with reserved growth blocks, role
+filter hook, breadcrumb generator, dead-link wiring". Two facts from the
+accepted work to build on rather than re-decide.
 
-Two facts from the accepted work to build on rather than re-decide: the
-dashboard and admin shells are rendered by the specimen page
-(`app/(dev)/shells/page.tsx`) once per role with a specimen navigation in the
-sidebar slot, which is where the new components should be rendered for the
-probe; and `config/nav-map.ts` is 1.22, so the sidebar, the drawer and the
-bottom bar consume a navigation list that does not exist yet and should take it
-as data through their props rather than reading a config module that is not
-written. `check:layout-shells` enumerates shells and route layouts in two arrays
-at the top of the file; if 1.21 adds a component with a landmark, that check is
-where its rules belong, not a new script.
+**The surfaces already take their entries as props, deliberately.** 1.21 built
+the rail, the drawer, the bottom bar, the trail and the footer to accept
+`NavEntryInput` / `NavSectionInput` / `BreadcrumbItem` values and to resolve
+labels through the catalogue, and `check:layout-shells` now fails any module in
+`components/layout/` that imports `config/nav-map`. The map is therefore wired
+in the route-group layouts (or in a small server component they render), not in
+the surfaces: that is what keeps a surface renderable in the specimen, and it is
+the seam 1.22 should fill.
+
+**Two things the map must settle that the components left open.** First, the
+active-entry match is exact, and the nested-route case (`/invoices` current on
+`/invoices/1042`) was deliberately left to whoever knows the route set, which is
+the map: it should resolve the parent a path belongs to rather than asking the
+surfaces to guess. Second, the reserved flag exists for entries whose target is
+not built yet and is dropped by default; the map is where reserved growth blocks
+become a list a later sub-step fills in, and `check:dead-links` reads its
+literals, which is what makes the segment gate's dead-link audit meaningful -
+today it verifies five hrefs and there are only two routes.
+
+The specimen page renders the surfaces with three hand-written entries; after
+1.22 it should render whatever the map publishes, and the probe's entry counts
+will follow. `check:layout-shells` enforces the map seam and the surface rules;
+`check:dead-links` is the audit over the map itself, so a new entry with no page
+fails the gate rather than shipping.
 
 ## Blockers
 
