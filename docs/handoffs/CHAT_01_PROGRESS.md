@@ -3,12 +3,13 @@
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
 Status: in progress
-Current segment: 1C (brand, layout, navigation) -- COMPLETE, gate PASSED (evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Last completed sub-step: 1.23 (command palette over the map and the registry, one chord spelling, public keyboard shortcuts reference page).
-Next segment: 1D (states, hardening, public site, governance) -- sub-step 1.24 first, on the owner's word.
+Current segment: 1D (states, hardening, public site, governance) -- sub-step 1.24 complete, 1.25 next
+Last completed sub-step: 1.24 (page-state system: skeleton layouts, boundary with a bounded retry, empty/permission/error/success states, the 320 pixel layer, accessibility primitives).
+Next sub-step: 1.25 (motion and media: providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling).
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
+Segment 1D: in progress (1.24 done; segment gate pending)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -88,20 +89,170 @@ passes on the current route set. Status: pending.
 
 ## SEGMENT 1D -- States, hardening, public site, governance (chat 4 of 4)
 
-| Sub-step | Description                                                                                                                                    | Status  | Commit |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
-| 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | pending | -      |
-| 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | pending | -      |
-| 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | pending | -      |
-| 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | pending | -      |
-| 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | pending | -      |
-| 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | pending | -      |
-| 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | pending | -      |
-| 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | pending | -      |
-| 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | pending | -      |
+| Sub-step | Description                                                                                                                                    | Status  | Commit  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| 1.24     | Page-state system: skeleton library, error boundary with retry, empty state with CTA, success state, 320px utilities, accessibility primitives | done    | 4c9f2a2 |
+| 1.25     | Motion and media: Framer Motion providers, page transitions, stagger, confetti, illustration baseline, reduced-motion handling                 | pending | -       |
+| 1.26     | Web hardening primitives: Trusted Types, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data, SRI baseline, header matrix, ADR-0006          | pending | -       |
+| 1.27     | Usability primitives: use-saved-views, use-undo, use-autosave, optimistic update helpers, explainability message and strings                   | pending | -       |
+| 1.28     | Public site pages A: homepage, features, pricing, about with real English copy and metadata                                                    | pending | -       |
+| 1.29     | Public site pages B: contact, industries, calculators, free invoice generator shell, terms, privacy, blog shell, 404, 500, offline             | pending | -       |
+| 1.30     | Platform plumbing: middleware.ts, instrumentation.ts, CSP nonce baseline, sitemap and robots baseline, metadata baseline, print stylesheet     | pending | -       |
+| 1.31     | Governance A: CI workflow, CODEOWNERS, pull request template, CONTRIBUTING, SECURITY, CHANGELOG, LICENSE                                       | pending | -       |
+| 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | pending | -       |
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
 homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+
+## Sub-step 1.24 evidence -- the page-state system, the 320 pixel layer and the accessibility primitives
+
+FEATURE_LIST section D asks for four states on every page and forbids the blank
+one: a skeleton while data is on its way, an error with a retry, an empty state
+with an action, a success state (D1.121, D2.129, D3.139, D4.145). MASTER_PROMPT
+adds the rules that make them usable: a focus ring on every interactive element,
+`aria-labels` on icon buttons, `aria-live` for anything that changes after load,
+and a page that works at 320 pixels. All of that is a system, and this sub-step
+builds the system rather than the pages that will use it.
+
+**The four states, one family.** `components/shared/status-state.tsx` holds
+`StatusState` (empty, permission, offline) and `ErrorState`; the two other
+members are `loading-state.tsx` and `success-state.tsx`. They share one shape -
+illustration, heading, sentence, optional reference, actions - because a product
+that teaches the reader a new layout every time something is missing is a product
+whose states are never recognised. Every sentence comes from the `states`
+namespace (the eleventh catalogue namespace, 476 keys total), which is what makes
+the copy reviewable in one place instead of inside five components.
+
+**Three empty variants, three sentences.** First use ("nothing here yet",
+action: create the first one), filtered ("your records are still there; the
+filter is hiding them", action: clear the filter), and permission ("your role
+does not include this list", action: request access). The distinction is the
+point: a reader who created records yesterday and reads "No invoices yet"
+concludes their data is gone, and an offer to create a record they may not create
+is an offer the server refuses.
+
+**Loading is a promise about shape.** `LoadingState` renders the four layouts the
+product loads in - table, list, form, card - with skeletons sized by the same
+token classes as the content they stand in for, so nothing moves when the data
+lands. Each layout announces itself once, politely, through one visually hidden
+sentence ("Loading the table. Rows appear in a moment."), and the skeletons are
+`aria-hidden`, so a screen reader hears one sentence instead of a hundred boxes.
+The row count is clamped, because a caller with a page size of 500 must not
+render 500 skeletons.
+
+**A retry the reader can see, and a backoff that does not stampede.**
+`lib/hooks/use-retry.ts` implements the plan's exponential backoff with a
+ceiling and equal jitter, counts the wait down in seconds, exposes a manual retry
+that ignores the remaining wait (a reader who fixed their connection should not
+be held to the product's schedule), and stops at a budget. `ErrorState` consumes
+it: the retry control carries a real `disabled` attribute while the wait is
+running and shows the countdown in its own label, the attempt count is a
+pluralised sentence, and the reference code a support request can quote renders
+inside the 320 pixel wrap guard.
+
+**A boundary that stops one broken panel from taking the page.**
+`components/shared/error-boundary.tsx` is a class component because React
+reports a render error to nothing else. It generates a misread-safe `ERR-...`
+reference per caught error, hands the error to `onError` for the structured
+logger (never to the browser console), renders the state family's error member
+with a scoped or full-page voice, retries **once** on its own and then hands the
+decision to the reader, and clears a caught error when `resetKey` changes - which
+is how a caller says "the input changed". Its report control copies the reference
+and the page address to the clipboard and says where they went: there is no
+reporting endpoint in this build, so it performs the one complete action
+available rather than pretending to send something.
+
+**Success, and a redirect the reader controls.** `SuccessState` confirms with a
+tick, a heading, one sentence and an optional record reference; when a caller
+gives it a countdown it announces the seconds politely, pauses while the pointer
+or the keyboard is inside the panel, and always offers "Continue now" and "Stay
+on this page". A page that navigates three seconds after it appears takes a
+decision away from a reader who is slow, distracted or listening to a screen
+reader.
+
+**The 320 pixel layer.** Three pieces, each of them a real phone failure: the
+breakpoint ladder is asserted to be exactly the mandated 320/375/430/768/1024/
+1280/1920 with no invented steps; our own stylesheets (`globals.css`,
+`print.css`) must contain no `max-width` media query, because a desktop-first
+rule is a rule written for the desktop and patched for the phone; and
+`styles/globals.css` declares the `.wrap-anywhere` utility (`overflow-wrap:
+anywhere`) which the state family applies to every reference code. Without it a
+single unbroken correlation id or address is wider than a 320 pixel column and
+drags the whole page sideways.
+
+**Accessibility primitives.** `components/ui/icon-button.tsx` makes the
+accessible name a _required_ prop typed as a catalogue key, so an icon button
+without a name does not compile; the drawing is `aria-hidden` and the tooltip is
+optional reinforcement rather than the name. `components/shared/live-region.tsx`
+always renders its element (a region mounted together with its text is announced
+inconsistently), sets both the role and the `aria-live` attribute, and is
+`aria-atomic`, so an announcement is read whole. The state family announces at
+the right politeness: loading and success politely, errors assertively, and a
+state that is the whole page can opt out with `live="off"`.
+
+**The audit.** `scripts/checks/page-states.mjs` is the twenty-fourth check. It
+verifies, from source: that every state module exists and exports what it
+claims; that loading announces itself politely, hides the announcement from
+sight, keeps its skeletons hidden and clamps its row count; that the state family
+can leave the live region off, pluralises its counts, and renders the reference
+inside the wrap guard **as read from the error state's own block**; that
+`ErrorState`'s retry carries a real `disabled` attribute (the first version of
+this rule matched `aria-disabled` too, which the control caught); that the
+success state is a client module whose timer is cleared and whose redirect can be
+stopped; that the boundary is a class with `getDerivedStateFromError`,
+`componentDidCatch`, a per-error reference, the guard `if
+(!this.state.autoRetried)` and no console call; that the retry hook really
+doubles (`2 ** Math.max(0, attempt - 1)`), really ceilings, really jitters,
+really stops at the budget branch and really clears its timer; that the
+illustration is hidden from assistive technology and inherits `currentColor`;
+that the icon button's name is required, resolved and applied; that the live
+region sets role and attribute together; that no hand-written
+`<Button size="icon">` anywhere in `app/` or `components/` lacks an `aria-label`;
+that the breakpoint ladder and the wrap guard hold; and that the gallery renders
+every member of the family and every state module has a consumer.
+
+**Controls.** Twenty-one negative controls against the check, each patched,
+required to fail with the message the rule promises, and reverted: a loading
+region without its announcement, an unclamped row count, a retry that ignores the
+backoff, an error reference outside the wrap guard, a success redirect with no
+stop control, a boundary that retries without a bound, a boundary that logs to
+the console, an exposed illustration, a live region without its role, an icon
+button with an optional name, an exposed icon, a hand-written icon button with no
+name, a backoff that stops doubling, a retry loop with no budget, an uncleared
+timer, a deleted wrap guard, an added desktop-first media query, a renamed
+breakpoint, a drifted breakpoint value, a showcase that leaves the gallery, and a
+missing empty variant. The first run missed four of them - and all four misses
+were rules that matched a _word_ rather than the construct (`aria-disabled`
+satisfying a `disabled` rule, a file-level reference check satisfied by a
+different state's element, `autoRetried` appearing in a state interface,
+`maxAttempts` appearing in a signature) - so the rules now match the attribute,
+the element and the branch, and all twenty-one fire. Four rendered controls
+against the gallery probe: the error state stops rendering, the live region stops
+rendering, the icon button loses its marker, and an icon-only button rendered
+without a name is reported by the page-wide accessible-name audit. All four fire.
+
+**Rendered evidence.** `docs/EVIDENCE/step-01/gallery-dom-probe.py` gained
+eleven markers (37 per scope, up from 26): the four loading layouts, the empty,
+permission, error and success states, two of the drawings, the icon button, the
+live region and the wrap guard. The gallery renders the whole family in all five
+themes - light, dark, both high-contrast scopes and reduced motion - with
+identical inventories and 0 accessible-name issues across 235 buttons.
+
+**Gates.** `npm run verify`: `RESULT: PASS (24 of 24 checks passed)`, one check
+more than 1.23. `check:i18n-strings`: 11 namespaces, 476 keys. `check:page-states`
+PASS. Probe: `findings: 0`, `RESULT: PASS`. Production: `next build` OK with 9
+static pages (`/gallery` 85.1 kB), and `next start` answers `/shortcuts` 200 with
+no state or specimen marker while `/`, `/shells`, `/gallery`, `/dashboard`,
+`/admin` and `/client-portal` answer 404 with none.
+
+**Not verified, and not claimed.** No browser dependency exists, so the retry
+countdown, the focus behaviour of the boundary's controls and the computed layout
+at 320 pixels are verified in source and in rendered markup, never by pressing a
+button or measuring a viewport. The route-level pages that will host these states
+(`app/(public)/error.tsx`, `loading.tsx`, the 404 and 500 pages) belong to
+sub-step 1.29, which owns the editorial versions; 1.24 builds the system they
+compose. Confetti and motion belong to 1.25, which owns the reduced-motion
+provider.
 
 ## Sub-step 1.23 evidence -- the command palette, one chord spelling and the shortcuts page
 
@@ -1197,24 +1348,33 @@ audit rules that silently stopped matching - the fix was not only the rule but a
 count in the check's summary line, so a rule that matches nothing is visible in
 `npm run verify`.
 
-## Segment 1D starting point (sub-step 1.24)
+## Sub-step 1.25 starting point
 
-Segment 1D owns sub-steps 1.24 to 1.32: the page-state system (skeletons, an
-error boundary with retry, empty and success states, the 320 pixel utilities,
-accessibility primitives), motion and media, web hardening, the usability
-primitives, the public site pages, the platform plumbing (middleware,
-instrumentation, CSP nonce, sitemap, robots, metadata) and the governance pack
-that closes step 1. Its gate is stricter than this one: production build passes,
-Lighthouse at least 90 on the homepage, dead-link audit clean, `npm run verify`
-fully green.
+1.25 is "Motion and media: Framer Motion providers, page transitions, stagger,
+confetti, illustration baseline, reduced-motion handling". What 1.24 hands it:
 
-Two step 1 gates stay open and must not be claimed until that work lands: the
-Lighthouse score (no homepage exists yet) and the typed `/api/health` response.
-The public site is where the palette finally gets a product host - the workspace
-and platform frames already mount it in the top bar, and the client portal is
-deliberately without one.
+**Reduced motion is already a token.** `styles/globals.css` zeroes the motion
+tokens under `@media (prefers-reduced-motion: reduce)` and the
+`.theme-reduced-motion` scope does the same inside the gallery, so a provider
+must read the same tokens (`--duration-*`, `--ease-*`) rather than inventing
+durations. The gallery's reduced-motion scope is the place a transition that
+ignores the preference becomes visible.
 
-## Blockers## Blockers## Blockers
+**The state family is the illustration baseline.** `StateIllustration` draws four
+geometric scenes with `currentColor` and token classes, at 96x72, legible at 320
+pixels; `components/branding/logo-mark.tsx` and the `lib/seo/og-image.ts`
+renderer already share one geometry. A new illustration should follow the same
+rules: drawn, not exported, no raw colour, hidden from assistive technology.
+
+**What must not regress.** `check:page-states` now reads the state modules and
+the stylesheets; `check:design-tokens` owns the motion scales and requires the
+reduced-motion and forced-colors handling; `scripts/checks/layout-shells.mjs`
+checks that no pinned surface uses `fixed`. A provider that mounts a motion
+context in the root layout has to keep the root render server-safe: the root
+layout is where `TooltipProvider` already lives, and every client boundary below
+it is the caller's.
+
+## Blockers## Blockers## Blockers## Blockers
 
 None recorded.
 
