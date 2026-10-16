@@ -38,13 +38,21 @@
  *      promise a response window, which is a commitment the deployment makes
  *      and this file cannot know. The licence may not be an open-source licence
  *      the plan does not grant, and the manifest may not disagree with it.
+ *   6. **The records keep their promises.** Every decision record carries its
+ *      metadata, its five sections and the name of a check script that would
+ *      fail if the record stopped being true; a record that says it was
+ *      superseded agrees with the record that replaced it; and the index, the
+ *      README and the runner agree with each other about what exists. The
+ *      README is the front door, so a script the manifest defines and the
+ *      README does not document, or a Node major that the engine and the README
+ *      disagree about, is a finding rather than a surprise.
  *
  * What this check cannot prove is that the workflow runs, that the review
  * requirement is switched on or that the private advisory channel is open.
  * Those are facts about GitHub, and `docs/EVIDENCE/step-01/governance-probe.py`
  * reads them from the platform and records them as gate evidence.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { listTrackedFiles, reportResult, REPO_ROOT } from './_lib.mjs';
@@ -65,6 +73,19 @@ const PROGRESS = 'docs/handoffs/CHAT_01_PROGRESS.md';
 const VERIFY_RUNNER = 'scripts/verify.mjs';
 const GATES_DOC = 'docs/PLAN/04_DEFINITION_OF_DONE_AND_GATES.md';
 const GIT_WORKFLOW_DOC = 'docs/PLAN/07_BRANCH_AND_GIT_WORKFLOW.md';
+const README = 'README.md';
+const ADR_DIRECTORY = 'docs/ADR';
+const ADR_INDEX = 'docs/ADR/README.md';
+const ADR_NUMBERS = ['0001', '0002', '0003', '0004', '0005', '0006', '0007'];
+const ADR_STATUSES = ['Proposed', 'Accepted', 'Superseded', 'Deprecated'];
+const ADR_METADATA = ['Status', 'Date', 'Step', 'Supersedes', 'Superseded by'];
+const ADR_SECTIONS = [
+  'Context',
+  'Decision',
+  'Consequences',
+  'Alternatives considered',
+  'Verification',
+];
 
 /** The CI jobs that must exist, with what each one is for. */
 const REQUIRED_JOBS = [
@@ -858,7 +879,222 @@ if (changelog !== null) {
 }
 
 // ---------------------------------------------------------------------------
-// 9. The files are tracked, and nothing else was smuggled in
+// 9. The decision records, and the README that opens the repository
+// ---------------------------------------------------------------------------
+
+function fieldValue(source, label) {
+  const match = new RegExp(`^- ${label}: (.+)$`, 'm').exec(source);
+  return match === null ? null : match[1].trim();
+}
+
+function referencedNumbers(value) {
+  return [...value.matchAll(/ADR-(\d{4})/g)].map((match) => match[1]);
+}
+
+const adrFiles = (() => {
+  try {
+    return readdirSync(join(REPO_ROOT, ADR_DIRECTORY))
+      .filter((entry) => /^ADR-\d{4}-.+\.md$/.test(entry))
+      .sort();
+  } catch {
+    return [];
+  }
+})();
+
+const records = new Map();
+for (const number of ADR_NUMBERS) {
+  const matches = adrFiles.filter((entry) => entry.startsWith(`ADR-${number}-`));
+  if (matches.length !== 1) {
+    finding(
+      ADR_DIRECTORY,
+      `expected exactly one ADR-${number} record, found ${String(matches.length)}; the set the plan asks for is 0001 to 0007`,
+    );
+    continue;
+  }
+  const file = `${ADR_DIRECTORY}/${matches[0]}`;
+  const text = requireFile(file, `ADR-${number} is listed in the directory but cannot be read`);
+  if (text === null) {
+    continue;
+  }
+  records.set(number, { file, text });
+  if (!text.startsWith(`// path: ${file}`)) {
+    finding(file, `the first line must be "// path: ${file}"`);
+  }
+  const heading = text.split('\n').find((line) => line.startsWith(`# ADR-${number} -- `));
+  if (heading === undefined || heading.trimEnd().length === `# ADR-${number} -- `.length) {
+    finding(file, `the heading must be "# ADR-${number} -- <title>"`);
+  }
+  for (const label of ADR_METADATA) {
+    if (fieldValue(text, label) === null) {
+      finding(file, `the metadata block must carry "- ${label}: ..."`);
+    }
+  }
+  const status = fieldValue(text, 'Status');
+  if (status !== null && !ADR_STATUSES.includes(status)) {
+    finding(file, `the status must be one of ${ADR_STATUSES.join(', ')}`);
+  }
+  if (!/^- Date: \d{4}-\d{2}-\d{2}$/m.test(text)) {
+    finding(file, 'the date must be written as YYYY-MM-DD');
+  }
+  let previous = -1;
+  for (const section of ADR_SECTIONS) {
+    const at = text.indexOf(`\n## ${section}\n`);
+    if (at === -1) {
+      finding(file, `the record must carry the section "## ${section}"`);
+      continue;
+    }
+    if (at < previous) {
+      finding(file, `the section "## ${section}" is out of order`);
+    }
+    previous = at;
+  }
+  const named = [...text.matchAll(/check:[a-z0-9-]+/g)].map((match) => match[0]);
+  if (!named.some((candidate) => candidate in packageScripts)) {
+    finding(
+      file,
+      'the record names no check script of this repository, so nothing would fail if the decision stopped being true',
+    );
+  }
+}
+
+for (const [number, record] of records) {
+  const supersedes = fieldValue(record.text, 'Supersedes');
+  const supersededBy = fieldValue(record.text, 'Superseded by');
+  if (supersedes === null || supersededBy === null) {
+    continue;
+  }
+  const forward = referencedNumbers(supersedes);
+  const backward = referencedNumbers(supersededBy);
+  if (supersedes !== 'none' && forward.length === 0) {
+    finding(record.file, 'the supersedes field must name a record by its number, or say none');
+  }
+  if (supersededBy !== 'none' && backward.length === 0) {
+    finding(record.file, 'the superseded-by field must name a record by its number, or say none');
+  }
+  for (const target of forward) {
+    const other = records.get(target);
+    if (other === undefined) {
+      finding(record.file, `the record supersedes ADR-${target}, which is not in the set`);
+      continue;
+    }
+    if (!(fieldValue(other.text, 'Superseded by') ?? '').includes(`ADR-${number}`)) {
+      finding(record.file, `ADR-${target} does not record that ADR-${number} superseded it`);
+    }
+  }
+  for (const target of backward) {
+    const other = records.get(target);
+    if (other === undefined) {
+      finding(record.file, `the record is superseded by ADR-${target}, which is not in the set`);
+      continue;
+    }
+    if (!(fieldValue(other.text, 'Supersedes') ?? '').includes(`ADR-${number}`)) {
+      finding(record.file, `ADR-${target} does not record that it superseded ADR-${number}`);
+    }
+  }
+  if (backward.length > 0 && fieldValue(record.text, 'Status') !== 'Superseded') {
+    finding(record.file, 'a record that was replaced must say superseded in its status');
+  }
+  if (backward.length === 0 && fieldValue(record.text, 'Status') === 'Superseded') {
+    finding(record.file, 'a record with a superseded status must name the record that replaced it');
+  }
+}
+
+const index = requireFile(ADR_INDEX, 'the decision record index is missing');
+if (index !== null) {
+  if (!index.startsWith(`// path: ${ADR_INDEX}`)) {
+    finding(ADR_INDEX, `the first line must be "// path: ${ADR_INDEX}"`);
+  }
+  for (const number of ADR_NUMBERS) {
+    if (!index.includes(`ADR-${number}`)) {
+      finding(ADR_INDEX, `the index does not list ADR-${number}`);
+    }
+  }
+  for (const record of records.values()) {
+    if (!index.includes(record.file.slice(ADR_DIRECTORY.length + 1))) {
+      finding(ADR_INDEX, `the index does not name the record ${record.file}`);
+    }
+  }
+}
+
+const entriesBlock = /const ENTRIES = \[([\s\S]*?)\n\];/.exec(read(VERIFY_RUNNER) ?? '')?.[1] ?? '';
+const runnerEntries = [...entriesBlock.matchAll(/name: '([^']+)'/g)].map((match) => match[1]);
+
+const readme = requireFile(README, 'the README is missing');
+if (readme !== null) {
+  if (!readme.startsWith(`// path: ${README}`)) {
+    finding(README, `the first line must be "// path: ${README}"`);
+  }
+  if (enginesMajor !== null) {
+    if (!readme.includes(`Node.js ${String(enginesMajor)}`)) {
+      finding(
+        README,
+        `the README must state the Node.js major the engines field requires (${String(enginesMajor)})`,
+      );
+    }
+    const stated = new Set([...readme.matchAll(/Node(?:\.js)? (\d+)/g)].map((match) => match[1]));
+    for (const major of stated) {
+      if (major !== String(enginesMajor)) {
+        finding(
+          README,
+          `the README says Node ${major} while package.json requires ${String(enginesMajor)}; the engines field is the authority and two versions in one document are one too many`,
+        );
+      }
+    }
+  }
+  requireText(README, readme, 'npm ci', 'the README must install from the lockfile with npm ci');
+  const fromScratch = readme.split('\n').findIndex((line) => line.trim() === 'npm install');
+  if (fromScratch !== -1) {
+    finding(
+      README,
+      'the README tells a reader to run npm install from scratch; the reproducible command is npm ci and the line that says otherwise is read by everyone',
+    );
+  }
+  for (const script of Object.keys(packageScripts)) {
+    if (script === 'prepare') {
+      continue;
+    }
+    if (!readme.includes(`npm run ${script}`) && !readme.includes(`npm ${script}`)) {
+      finding(
+        README,
+        `the README does not document the "${script}" script, so the gate section drifts from the manifest`,
+      );
+    }
+  }
+  for (const entry of runnerEntries) {
+    if (!(entry in packageScripts)) {
+      finding(
+        VERIFY_RUNNER,
+        `the runner runs ${entry} but package.json has no script for it, so no reader can run that entry by name`,
+      );
+    }
+  }
+  if (runnerEntries.length === 0) {
+    finding(
+      VERIFY_RUNNER,
+      'the runner declares no entries, so the count in the README cannot be read',
+    );
+  } else {
+    if (!readme.includes(`${String(runnerEntries.length)} entries`)) {
+      finding(
+        README,
+        `the README must state how many entries the floor runs (${String(runnerEntries.length)})`,
+      );
+    }
+    for (const entry of runnerEntries) {
+      if (!readme.includes(`npm run ${entry}`)) {
+        finding(README, `the README does not document the ${entry} entry of the floor`);
+      }
+    }
+  }
+  for (const pointer of [ADR_INDEX, CONTRIBUTING, SECURITY, CHANGELOG]) {
+    if (!readme.includes(pointer)) {
+      finding(README, `the README does not point at ${pointer}`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 10. The files are tracked, and nothing else was smuggled in
 // ---------------------------------------------------------------------------
 
 const tracked = new Set(listTrackedFiles());
@@ -871,6 +1107,9 @@ for (const file of [
   CHANGELOG,
   LICENSE,
   CHANGELOG_SCRIPT,
+  README,
+  ADR_INDEX,
+  ...[...records.values()].map((record) => record.file),
 ]) {
   if (!tracked.has(file)) {
     finding(
@@ -883,6 +1122,6 @@ for (const file of [
 reportResult(
   CHECK,
   findings,
-  `the seven governance artefacts verified (${String(REQUIRED_JOBS.length)} CI jobs, Node.js ${String(enginesMajor)} pinned by both the workflow and engines, ${String(REVIEW_REQUIRED_PATHS.length)} surfaces under named review, ${String(PULL_REQUEST_FIELDS.length)} pull request fields, the proprietary licence and the manifest agreeing, the changelog carrying every recorded sub-step commit)`,
+  `the ten governance artefacts verified (${String(REQUIRED_JOBS.length)} CI jobs, Node.js ${String(enginesMajor)} pinned by both the workflow and engines, ${String(REVIEW_REQUIRED_PATHS.length)} surfaces under named review, ${String(PULL_REQUEST_FIELDS.length)} pull request fields, ${String(ADR_NUMBERS.length)} architecture decision records, the proprietary licence and the manifest agreeing, the changelog carrying every recorded sub-step commit)`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;
