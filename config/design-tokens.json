@@ -122,6 +122,36 @@
     "sheet": {
       "value": "24rem",
       "usage": "maximum width of an edge panel, wide enough for a field and its label"
+    },
+    "sidebar": {
+      "value": "16rem",
+      "usage": "the navigation rail on a desktop screen: wide enough for a two-word module name beside its icon, and narrower than the content it sits next to"
+    },
+    "page": {
+      "value": "72rem",
+      "usage": "the page container on a wide screen: the content column stops growing here, so a footer or a marketing band does not stretch a measure across an ultrawide display"
+    }
+  },
+  "safe_area": {
+    "top": {
+      "variable": "--safe-top",
+      "value": "env(safe-area-inset-top, 0px)",
+      "usage": "status bar and camera band: padding above a bar pinned to the top"
+    },
+    "right": {
+      "variable": "--safe-right",
+      "value": "env(safe-area-inset-right, 0px)",
+      "usage": "notch on a landscape phone: padding on the trailing edge"
+    },
+    "bottom": {
+      "variable": "--safe-bottom",
+      "value": "env(safe-area-inset-bottom, 0px)",
+      "usage": "home indicator: padding below a bar pinned to the bottom"
+    },
+    "left": {
+      "variable": "--safe-left",
+      "value": "env(safe-area-inset-left, 0px)",
+      "usage": "notch on a landscape phone: padding on the leading edge"
     }
   },
   "radius": {

@@ -30,6 +30,17 @@
  *      paper block, the chrome-hiding and print-only selectors exist, and no
  *      rule carries a raw colour. The rendered result is measured separately,
  *      by the shell probe in docs/EVIDENCE.
+ *   5. **The navigation surfaces.** The rail, the drawer, the bottom bar, the
+ *      trail, the footer, the top bar, the offline banner and the action bar
+ *      are read as a set, because their defects are set-level: a second surface
+ *      that invents its own current-page attribute, an icon-only control with
+ *      no name, a bar that measures its bottom edge in raw pixels instead of
+ *      the device's own inset report, a drawer that reaches into the DOM to
+ *      close itself, a link whose touch target is the height of its text. Each
+ *      rule here is one of those, and each one is written against the code
+ *      rather than the prose: comments are stripped before a rule reads a
+ *      string, so a class that was deleted cannot pass on a comment that
+ *      remembers it.
  *
  * Everything here is a static read of the source. That is deliberate: this
  * check must run in a fresh clone with no browser, on the machine that runs
@@ -39,7 +50,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import ts from 'typescript';
+
 import {
+  blankRange,
   listTrackedFiles,
   parseCssDeclarations,
   reportResult,
@@ -599,9 +613,390 @@ if (print !== null) {
   }
 }
 
+/** Every module in the layout directory, as tracked by git. */
+function layoutModules() {
+  return listTrackedFiles().filter(
+    (file) => file.startsWith(NAV_LAYOUT_DIR) && (file.endsWith('.ts') || file.endsWith('.tsx')),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 5. The navigation surfaces
+// ---------------------------------------------------------------------------
+
+/**
+ * Every surface the shell renders around a page, and what it owes the reader.
+ *
+ *   marker       the data-layout value the surface is identified by, which is
+ *                also what the evidence probe selects on;
+ *   landmark     the surface declares a navigation landmark, so it owes an
+ *                accessible name;
+ *   entries      the surface renders navigation entries, so it must render
+ *                them through NavLink and may not grow an anchor of its own;
+ *   pinned       the surface is pinned to the bottom edge of the viewport, so
+ *                it owes the device's bottom inset;
+ *   link         the surface renders a link, so it owes a 44 pixel target.
+ */
+const NAV_SURFACES = [
+  {
+    file: 'components/layout/nav-link.tsx',
+    marker: null,
+    landmark: false,
+    entries: false,
+    pinned: false,
+    link: true,
+  },
+  {
+    file: 'components/layout/sidebar-nav.tsx',
+    marker: 'sidebar',
+    landmark: true,
+    entries: true,
+    pinned: false,
+    link: false,
+  },
+  {
+    file: 'components/layout/mobile-drawer.tsx',
+    marker: 'drawer',
+    landmark: true,
+    entries: true,
+    pinned: false,
+    link: false,
+  },
+  {
+    file: 'components/layout/bottom-navigation.tsx',
+    marker: 'bottom-navigation',
+    landmark: true,
+    entries: true,
+    pinned: true,
+    link: false,
+  },
+  {
+    file: 'components/layout/breadcrumbs.tsx',
+    marker: 'breadcrumbs',
+    landmark: true,
+    entries: false,
+    pinned: false,
+    link: true,
+  },
+  {
+    file: 'components/layout/site-footer.tsx',
+    marker: 'site-footer',
+    landmark: true,
+    entries: false,
+    pinned: false,
+    link: true,
+  },
+  {
+    file: 'components/layout/top-bar.tsx',
+    marker: 'topbar',
+    landmark: false,
+    entries: false,
+    pinned: false,
+    link: true,
+  },
+  {
+    file: 'components/layout/sticky-action-bar.tsx',
+    marker: 'sticky-action-bar',
+    landmark: false,
+    entries: false,
+    pinned: true,
+    link: false,
+  },
+  {
+    file: 'components/layout/offline-banner.tsx',
+    marker: 'offline-banner',
+    landmark: false,
+    entries: false,
+    pinned: false,
+    link: false,
+  },
+];
+
+const NAV_LAYOUT_DIR = 'components/layout/';
+const BOTTOM_NAV_MAX_ITEMS = 5;
+
+/**
+ * The source with its comments blanked out and everything else left alone:
+ * strings and template literals stay, because the rules below are about class
+ * names, attribute values and import specifiers, which live inside strings.
+ *
+ * The scanner is TypeScript's own, so a `//` inside a URL never ends a line and
+ * a `/*` inside a string never starts a block. The alternative - a regular
+ * expression over the raw text - either reads prose as code or misses a rule
+ * hidden behind a comment, and the second failure is worse.
+ */
+function withoutComments(file, text) {
+  const scanner = ts.createScanner(ts.ScriptTarget.ES2022, false, ts.LanguageVariant.JSX, text);
+  const out = text.split('');
+  for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
+    if (
+      token === ts.SyntaxKind.SingleLineCommentTrivia ||
+      token === ts.SyntaxKind.MultiLineCommentTrivia
+    ) {
+      blankRange(text, out, scanner.getTokenStart(), scanner.getTokenEnd());
+    }
+  }
+  return out.join('');
+}
+
+/** Every JSX attribute named `name`, with its initializer, in one file. */
+function jsxAttributes(file, text, name) {
+  const sourceFile = ts.createSourceFile(
+    file,
+    text,
+    ts.ScriptTarget.ES2022,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const found = [];
+  const visit = (node) => {
+    if (ts.isJsxAttribute(node) && node.name.getText(sourceFile) === name) {
+      found.push(node);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return found;
+}
+
+const navFiles = [];
+for (const surface of NAV_SURFACES) {
+  const text = read(surface.file);
+  if (text === null) {
+    finding(surface.file, 'the navigation surface is missing');
+    continue;
+  }
+  navFiles.push({ ...surface, text, code: withoutComments(surface.file, text) });
+}
+
+for (const surface of navFiles) {
+  if (surface.marker !== null && !surface.code.includes(`data-layout="${surface.marker}"`)) {
+    finding(
+      surface.file,
+      `the surface must carry data-layout="${surface.marker}": the evidence probe and every later refactor identify it by that marker`,
+    );
+  }
+  if (surface.landmark) {
+    if (!surface.code.includes('<nav')) {
+      finding(surface.file, 'the surface declares a navigation landmark');
+    } else if (!surface.code.includes('aria-label={')) {
+      finding(
+        surface.file,
+        'every navigation landmark owes an accessible name: two unnamed navigations on one page are two menus the reader has to explore to tell apart',
+      );
+    }
+  }
+  if (surface.entries) {
+    if (!surface.code.includes('<NavLink')) {
+      finding(
+        surface.file,
+        'navigation entries render through NavLink, the one place that decides what "current page" announces',
+      );
+    }
+    if (/<a\s/.test(surface.code)) {
+      finding(
+        surface.file,
+        'the surface renders its own anchor instead of NavLink, which is how a second opinion about aria-current starts',
+      );
+    }
+  }
+  if (surface.pinned) {
+    if (!surface.code.includes('var(--safe-bottom)')) {
+      finding(
+        surface.file,
+        'a surface pinned to the bottom edge owes the device inset (var(--safe-bottom)); without it the controls sit under the home indicator',
+      );
+    }
+    if (/\bfixed\b/.test(surface.code)) {
+      finding(
+        surface.file,
+        'a bottom bar belongs in the shell column (sticky), not fixed: a fixed bar needs matching content padding that drifts, and then the last row of the page is unreachable',
+      );
+    }
+  }
+}
+
+/**
+ * The touch target belongs to the element a finger hits, not to the file.
+ *
+ * A file-level "this file mentions min-h-touch" rule passes when the class sits
+ * on a wrapper: the list item grows to 44 pixels and the link inside it stays
+ * the height of its own text, which is the shape of a mis-tap. So the class is
+ * read off every anchor's own class list. The rendered result is measured
+ * separately, by the probe.
+ */
+const TOUCH_TARGET_TAGS = new Set(['a', 'Link']);
+for (const surface of navFiles) {
+  const sourceFile = ts.createSourceFile(
+    surface.file,
+    surface.text,
+    ts.ScriptTarget.ES2022,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const visit = (node) => {
+    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const opening = ts.isJsxElement(node) ? node.openingElement : node;
+      const tag = opening.tagName.getText(sourceFile);
+      if (TOUCH_TARGET_TAGS.has(tag)) {
+        const className = opening.attributes.properties.find(
+          (property) =>
+            ts.isJsxAttribute(property) && property.name.getText(sourceFile) === 'className',
+        );
+        const declared = className === undefined ? '' : className.getText(sourceFile);
+        if (!declared.includes('min-h-touch')) {
+          finding(
+            surface.file,
+            `the <${tag}> at offset ${String(opening.getStart(sourceFile))} owes its own 44 pixel touch target (min-h-touch): a target on a wrapper is a control a thumb misses`,
+          );
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+}
+
+// Current page is derived, never asserted. A literal aria-current on a nav
+// surface claims the current page unconditionally, which is true on exactly one
+// page in the product and wrong on every other.
+for (const surface of navFiles) {
+  for (const attribute of jsxAttributes(surface.file, surface.text, 'aria-current')) {
+    if (attribute.initializer === undefined || !ts.isJsxExpression(attribute.initializer)) {
+      finding(
+        surface.file,
+        'aria-current must be derived from the resolved entry; a literal claims the current page on every page',
+      );
+    }
+  }
+}
+
+// An icon-only control owes a name. The drawer's trigger is the case that
+// matters: a hamburger glyph is not a name, and the name is what a screen
+// reader user hears.
+for (const surface of navFiles) {
+  for (const attribute of jsxAttributes(surface.file, surface.text, 'size')) {
+    const value = attribute.initializer === undefined ? null : attribute.initializer.getText();
+    if (value !== null && value.includes('"icon"')) {
+      const element = attribute.parent.parent;
+      const named = jsxAttributes(surface.file, element.getText(), 'aria-label');
+      if (named.length === 0) {
+        finding(
+          surface.file,
+          'an icon-sized control owes an accessible name: an icon is not a label',
+        );
+      }
+    }
+  }
+}
+
+// The drawer owns its own open state. Reaching into the rendered panel to press
+// its close button is the trick that works until a dependency renames an
+// attribute, and it fails silently on the one path that matters - a keyboard
+// activation - so the DOM is out of bounds for a layout module.
+const DOM_ESCAPES = ['querySelector', 'getElementById', 'document.body', '.click()'];
+for (const surface of navFiles) {
+  for (const escape of DOM_ESCAPES) {
+    if (surface.code.includes(escape)) {
+      finding(
+        surface.file,
+        `a layout module reaches into the DOM (${escape}); the surface owns its state and the component owns its behaviour`,
+      );
+    }
+  }
+  if (surface.file.endsWith('mobile-drawer.tsx')) {
+    if (!surface.code.includes('open={') || !surface.code.includes('onOpenChange')) {
+      finding(
+        surface.file,
+        'the drawer must be a controlled surface: a drawer that navigates without closing leaves the reader on a panel over the page they just asked for',
+      );
+    }
+    if (!surface.code.includes('side="left"')) {
+      finding(surface.file, 'the drawer opens from the leading edge');
+    }
+    if (!surface.code.includes('var(--safe-left)')) {
+      finding(
+        surface.file,
+        'the drawer opens from the leading edge, so it owes the leading inset (var(--safe-left)); without it its content sits under the cut-out in landscape',
+      );
+    }
+    if (!surface.code.includes('onNavigate={')) {
+      finding(
+        surface.file,
+        'the drawer must close when an entry is followed: a drawer left open over the page the reader just asked for is a dead end on a phone',
+      );
+    }
+  }
+}
+
+// The callback the drawer hangs its own state on, declared by the entry
+// renderer. Both halves are checked, because a handler nobody calls is a drawer
+// that never closes and a link nobody hands a handler to is the same bug with a
+// different shape.
+const navLinkEntry = navFiles.find((surface) => surface.file === 'components/layout/nav-link.tsx');
+if (navLinkEntry !== undefined && !navLinkEntry.code.includes('onClick={onNavigate}')) {
+  finding(
+    navLinkEntry.file,
+    'NavLink must invoke onNavigate when the link is followed, which is how a surface that must close itself learns that it was used',
+  );
+}
+
+// The bottom bar caps at five entries, and the cap is a named constant: a sixth
+// column takes every label below the size where it can be read.
+const bottomNavFile = 'components/layout/bottom-navigation.tsx';
+const bottomNav = navFiles.find((surface) => surface.file === bottomNavFile);
+if (bottomNav !== undefined) {
+  const cap = /BOTTOM_NAVIGATION_MAX_ITEMS = (\d+)/.exec(bottomNav.text);
+  if (cap === null) {
+    finding(bottomNavFile, 'the bottom bar must declare BOTTOM_NAVIGATION_MAX_ITEMS');
+  } else if (Number(cap[1]) !== BOTTOM_NAV_MAX_ITEMS) {
+    finding(
+      bottomNavFile,
+      `the bottom bar must cap at ${String(BOTTOM_NAV_MAX_ITEMS)} entries, found ${cap[1]}`,
+    );
+  }
+  if (!/slice\(0, BOTTOM_NAVIGATION_MAX_ITEMS\)/.test(bottomNav.code)) {
+    finding(bottomNavFile, 'the bottom bar must slice its entries by the cap it declares');
+  }
+}
+
+// Seams, both permanent: the surfaces are presentational (entries arrive as
+// props), so no module here reads a request header, and none of them imports
+// the navigation map. The map lands in sub-step 1.22 and the route-group
+// layouts wire it to a shell; a surface that imports it is a surface that
+// cannot be rendered in a specimen, a test or a story.
+const FORBIDDEN_IMPORTS = [
+  {
+    specifier: 'next/headers',
+    reason: 'a navigation surface renders entries, it does not read a session',
+  },
+  {
+    specifier: 'config/nav-map',
+    reason: 'the route-group layout wires the navigation map to a shell',
+  },
+];
+for (const file of layoutModules()) {
+  const text = read(file);
+  if (text === null) {
+    continue;
+  }
+  const code = withoutComments(file, text);
+  for (const rule of FORBIDDEN_IMPORTS) {
+    if (new RegExp(`from ['"][^'"]*${rule.specifier.replace('/', '\\/')}['"]`).test(code)) {
+      finding(file, `${rule.specifier} in a layout module: ${rule.reason}`);
+    }
+  }
+  if (code.includes('env(safe-area')) {
+    finding(
+      file,
+      'the safe-area inset is read through the token (var(--safe-*)), never through env() in a component',
+    );
+  }
+}
+
 reportResult(
   CHECK,
   findings,
-  `${String(SHELLS.length)} shells and ${String(ROUTE_LAYOUTS.length)} route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), ${String(MANDATED_ROLES.length)} roles framed through one seam with no privileged default, print base verified against ${TOKEN_FILE}`,
+  `${String(SHELLS.length)} shells and ${String(ROUTE_LAYOUTS.length)} route-group layouts verified (skip link first, one landmark per page, id shared with the landmark), ${String(MANDATED_ROLES.length)} roles framed through one seam with no privileged default, ${String(NAV_SURFACES.length)} navigation surfaces verified (named landmarks, one owner of the current page, 44 pixel targets, device inset on pinned bars, drawer state owned in the component), print base verified against ${TOKEN_FILE}`,
 );
 process.exitCode = findings.length === 0 ? 0 : 1;

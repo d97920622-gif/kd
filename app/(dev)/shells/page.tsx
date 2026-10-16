@@ -1,12 +1,23 @@
 // path: app/(dev)/shells/page.tsx
+import { FileText, PanelLeft, Wallet } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import { AdminShell } from '@/components/layout/admin-shell';
 import { AuthShell } from '@/components/layout/auth-shell';
+import { BottomNavigation } from '@/components/layout/bottom-navigation';
+import { Breadcrumbs, type BreadcrumbItem } from '@/components/layout/breadcrumbs';
 import { ClientPortalShell } from '@/components/layout/client-portal-shell';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
+import { MobileDrawer } from '@/components/layout/mobile-drawer';
+import { type NavEntryInput, type NavSectionInput } from '@/components/layout/nav-items';
+import { OfflineBanner } from '@/components/layout/offline-banner';
 import { PublicShell } from '@/components/layout/public-shell';
 import { AUDIENCE_ROLES } from '@/components/layout/role-framing';
+import { ShellTopBar } from '@/components/layout/shell-slots';
+import { SidebarNav } from '@/components/layout/sidebar-nav';
+import { SiteFooter } from '@/components/layout/site-footer';
+import { StickyActionBar } from '@/components/layout/sticky-action-bar';
+import { TopBar } from '@/components/layout/top-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { isDevelopment } from '@/lib/env/validate-env';
@@ -41,6 +52,22 @@ import { formatMoney } from '@/lib/utils/currency';
  * client sees a document with no navigation at all, and an unresolved reader
  * sees the frame stripped to its landmarks. A specimen that rendered one role
  * would prove that one frame renders, which is not a fact anybody doubted.
+ *
+ * The navigation surfaces are a second kind of evidence (sub-step 1.21). They
+ * are rendered here because half of what they owe the reader is only visible in
+ * a rendered document: one current page per navigation and never two, a label
+ * on every entry, no reserved entry leaking into a menu, a named landmark for
+ * each navigation so a screen reader's landmark list is not four identically
+ * named regions, and links whose touch target is 44 pixels rather than the
+ * height of their text. The rail, the drawer, the bottom bar, the trail, the
+ * footer and the action bar take their entries as props - the navigation map
+ * arrives in sub-step 1.22 - so the specimen supplies entries for the three
+ * routes this build has, plus one reserved entry whose absence is the point.
+ *
+ * The top bar's mark is a plain mark rather than a home link, because the home
+ * route does not exist until segment 1D: `TopBar` takes the link form only when
+ * it is given somewhere to go, and a link to the homepage of a build without a
+ * homepage is a dead link the audit would catch.
  *
  * The specimen content is a small invoice, because that is the document this
  * platform prints most and the one where a printing mistake costs the most.
@@ -95,6 +122,96 @@ export default function ShellsPage(): React.ReactElement {
           <AuthShell>
             <SpecimenDocument compact />
           </AuthShell>
+        </div>
+      </section>
+
+      <section aria-labelledby="specimen-navigation-heading" className="grid gap-4">
+        <h2 id="specimen-navigation-heading" className="text-2xl font-semibold">
+          {t('shells.label_section_navigation')}
+        </h2>
+        <p className="max-w-sheet text-base text-muted-foreground">
+          {t('shells.label_nav_specimen_note')}
+        </p>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_top_bar')}
+          </h3>
+          <div className="border border-border bg-background">
+            <ShellTopBar>
+              <TopBar
+                leading={
+                  <MobileDrawer
+                    sections={SPECIMEN_NAV_SECTIONS}
+                    activeHref={SPECIMEN_ACTIVE_HREF}
+                    header={<SpecimenIdentity />}
+                  />
+                }
+                trailing={<Badge variant="secondary">{t('shells.label_status_paid')}</Badge>}
+              >
+                <Breadcrumbs items={SPECIMEN_BREADCRUMBS} />
+              </TopBar>
+            </ShellTopBar>
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_rail')}
+          </h3>
+          <div className="flex border border-border bg-background">
+            <SidebarNav
+              sections={SPECIMEN_NAV_SECTIONS}
+              activeHref={SPECIMEN_ACTIVE_HREF}
+              header={<SpecimenIdentity />}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_bottom')}
+          </h3>
+          <div className="border border-border bg-background p-2">
+            <BottomNavigation entries={SPECIMEN_NAV_ENTRIES} activeHref={SPECIMEN_ACTIVE_HREF} />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_footer')}
+          </h3>
+          <div className="border border-border bg-background">
+            <SiteFooter links={SPECIMEN_NAV_ENTRIES} activeHref={SPECIMEN_ACTIVE_HREF} />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_action_bar')}
+          </h3>
+          <div className="border border-border bg-background p-4">
+            <StickyActionBar
+              summary={`${t('shells.label_sticky_summary')}: ${formatMoney('6000')}`}
+            >
+              <Button type="button" variant="outline">
+                {t('shells.label_document_link')}
+              </Button>
+              <Button type="button">{t('shells.label_document_action')}</Button>
+            </StickyActionBar>
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <h3 className="text-base font-medium text-muted-foreground">
+            {t('shells.label_nav_specimen_offline')}
+          </h3>
+          <p className="max-w-sheet text-base text-muted-foreground">
+            {t('shells.label_nav_specimen_offline_note')}
+          </p>
+          <div className="border border-border bg-background p-2">
+            <OfflineBanner />
+          </div>
         </div>
       </section>
 
@@ -156,6 +273,80 @@ export default function ShellsPage(): React.ReactElement {
         </div>
       </section>
     </div>
+  );
+}
+
+/**
+ * The path this specimen is being read at.
+ *
+ * Every navigation surface on the page is given the same active href, so a
+ * probe can assert the property that matters across all of them at once: one
+ * entry claims the current page, and the surfaces agree about which one.
+ */
+const SPECIMEN_ACTIVE_HREF = '/shells';
+
+/**
+ * The entries the surfaces share.
+ *
+ * Two real entries and one reserved entry, which is the whole set of routes
+ * this build has: the homepage arrives with the public pages in segment 1D, and
+ * check:dead-links is the reason an entry here cannot point at it early. Every
+ * navigation entry on this page is a link the build can actually serve.
+ *
+ * The reserved entry is what makes the specimen worth rendering: it must appear
+ * nowhere, and if a surface ever renders the list it was given instead of the
+ * list it resolved, the word "Payouts" turns up in a menu and the probe fails.
+ * Its href is a route that exists, so a leak would be a navigation defect and
+ * not a broken link - the two failures stay distinguishable.
+ */
+const SPECIMEN_NAV_ENTRIES: readonly NavEntryInput[] = [
+  {
+    id: 'specimen-layouts',
+    href: '/shells',
+    labelKey: 'shells.label_nav_specimen_layouts',
+    icon: <PanelLeft aria-hidden="true" className="size-5" />,
+  },
+  {
+    id: 'specimen-gallery',
+    href: '/gallery',
+    labelKey: 'shells.label_nav_specimen_gallery',
+    icon: <FileText aria-hidden="true" className="size-5" />,
+  },
+  {
+    id: 'specimen-payouts',
+    href: '/gallery',
+    labelKey: 'shells.label_nav_specimen_payouts',
+    icon: <Wallet aria-hidden="true" className="size-5" />,
+    reserved: true,
+  },
+];
+
+const SPECIMEN_NAV_SECTIONS: readonly NavSectionInput[] = [
+  {
+    id: 'specimen-workspace',
+    labelKey: 'shells.label_nav_workspace',
+    entries: SPECIMEN_NAV_ENTRIES,
+  },
+];
+
+/**
+ * The trail: a parent, the section and the page the reader is on.
+ *
+ * The trail starts at the gallery rather than at a home link, because there is
+ * no homepage in this build yet and a breadcrumb that points at a route nobody
+ * serves is a dead link with a friendly face. When segment 1D adds the public
+ * root, the first step becomes the home entry in `common.label_navigation_home`.
+ */
+const SPECIMEN_BREADCRUMBS: readonly BreadcrumbItem[] = [
+  { id: 'specimen-crumb-parent', labelKey: 'shells.label_nav_specimen_gallery', href: '/gallery' },
+  { id: 'specimen-crumb-section', labelKey: 'shells.label_nav_specimen_layouts', href: '/shells' },
+  { id: 'specimen-crumb-current', labelKey: 'shells.label_document_title' },
+];
+
+/** Workspace identity, as the rail and the drawer carry it. */
+function SpecimenIdentity(): React.ReactElement {
+  return (
+    <span className="text-base font-semibold">{t('shells.label_nav_specimen_drawer_header')}</span>
   );
 }
 

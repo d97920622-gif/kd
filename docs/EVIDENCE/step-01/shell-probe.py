@@ -41,11 +41,31 @@ only a rendered page can show:
      alone, the client gets a document frame with no band and no navigation,
      and an unresolved reader gets landmarks and nothing else.
 
+  8. The navigation surfaces are correct as rendered (sub-step 1.21): each
+     navigation has its own accessible name, exactly one entry inside it claims
+     the current page and never two, every entry has a readable name, every
+     entry's touch target is the 44 pixel class rather than the height of its
+     text, the reserved entry appears nowhere, the pinned bar and the action bar
+     carry the device inset, and the top bar owns the sticky position and the
+     `header` landmark. The entry list, the current page and the touch target
+     are the three things a reader notices when they are wrong, and none of them
+     is visible from the component source alone.
+  9. The safe-area chain reaches the browser: the four inset variables are
+     declared from the browser's own report, the utilities that consume them
+     compile, and the scale the surfaces use (the rail width, the page width,
+     the touch step, the bar label size) compiles to the values the token module
+     declares. A utility that compiles to nothing is a surface that silently
+     loses its padding on the one device it was written for.
+
 It deliberately does not open a print preview or a headless browser: the build
 has no browser dependency, and a probe that needs one would not run in this
 repository. What it can prove is that the rules and the markup that the rules
 select on both arrive intact, which is the part that breaks when a stylesheet
-import is moved or an attribute is dropped.
+import is moved or an attribute is dropped. What it cannot prove is stated with
+the measurements below: the drawer panel mounts into a portal on interaction and
+is not part of the server-rendered markup, so the drawer's focus trap and its
+close-on-navigate behaviour are verified in source by check:layout-shells rather
+than here.
 """
 from __future__ import annotations
 
@@ -224,6 +244,233 @@ def shell_blocks(markup: str) -> list[tuple[dict[str, str], str]]:
     return blocks
 
 
+def brace_block(text: str, open_index: int) -> str:
+    """The body of a block, given the index of the character after its `{`."""
+    depth = 1
+    index = open_index
+    while index < len(text) and depth > 0:
+        if text[index] == '{':
+            depth += 1
+        elif text[index] == '}':
+            depth -= 1
+        index += 1
+    return text[open_index : index - 1]
+
+
+def media_block(css: str, query: str) -> str:
+    """The body of the first at-rule whose prelude contains `query`."""
+    match = re.search(rf'@media[^{{]*{re.escape(query)}[^{{]*\{{', css)
+    if match is None:
+        return ''
+    return brace_block(css, match.end())
+
+
+def element_with_marker(markup: str, marker: str) -> str:
+    """The outer markup of the element carrying data-layout="marker".
+
+    The surfaces nest, so the element is closed by counting tags of the same
+    name rather than by looking for the next `</div>`: a probe that guesses the
+    end of a block measures a region that straddles two surfaces, and every
+    count inside it is wrong.
+    """
+    index = markup.find(f'data-layout="{marker}"')
+    if index < 0:
+        return ''
+    start = markup.rfind('<', 0, index)
+    name = re.match(r'<([a-zA-Z][a-zA-Z0-9-]*)', markup[start:])
+    if name is None:
+        return ''
+    tag = name.group(1)
+    depth = 0
+    for match in re.finditer(rf'<(/?){re.escape(tag)}\b[^>]*?>', markup[start:]):
+        if match.group(1) == '/':
+            depth -= 1
+        else:
+            depth += 1
+        if depth == 0:
+            return markup[start : start + match.end()]
+    return markup[start:]
+
+
+def visible_text(markup: str) -> str:
+    """The readable text of a fragment: tags removed, entities left alone."""
+    return re.sub(r'<[^>]+>', '', re.sub(r'<svg\b[\s\S]*?</svg>', '', markup)).strip()
+
+
+def css_declarations(css: str, selector: str) -> str:
+    """The declarations of the first rule whose selector matches exactly."""
+    match = re.search(rf'(?:^|[}},])\s*{re.escape(selector)}\s*\{{([^{{}}]*)\}}', css)
+    return match.group(1) if match is not None else ''
+
+
+def single_class(attributes: str, prefix: str) -> str:
+    """The first class token in an element's attributes that starts with prefix."""
+    found = re.search(r'class="([^"]*)"', attributes)
+    if found is None:
+        return ''
+    for token in found.group(1).split():
+        if token.startswith(prefix):
+            return token
+    return ''
+
+
+EXPECTED_NAV_LANDMARKS = [
+    ('sidebar', 'Main navigation', 'text-base'),
+    ('bottom-navigation', 'Primary navigation', 'text-xs'),
+    ('breadcrumbs', 'Breadcrumb', None),
+]
+
+EXPECTED_NAV_ENTRIES = 2
+RESERVED_ENTRY_LABEL = 'Payouts'
+
+EXPECTED_SAFE_AREA_VARIABLES = {
+    '--safe-top': 'env(safe-area-inset-top, 0px)',
+    '--safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+}
+
+EXPECTED_UTILITY_RULES = [
+    ('the rail keeps its declared width', '.w-sidebar', 'width:16rem'),
+    ('the page container keeps its declared width', '.max-w-page', 'max-width:72rem'),
+    ('the touch step is 44 pixels', '.min-h-touch', 'min-height:44px'),
+    ('the bottom bar consumes the bottom inset', '.pb-\\[var\\(--safe-bottom\\)\\]', 'padding-bottom:var(--safe-bottom)'),
+    (
+        'the action bar adds its own padding to the bottom inset',
+        '.pb-\\[calc\\(var\\(--safe-bottom\\)\\+12px\\)\\]',
+        'padding-bottom:calc(var(--safe-bottom) + 12px)',
+    ),
+    ('the top bar consumes the top inset', '.pt-\\[var\\(--safe-top\\)\\]', 'padding-top:var(--safe-top)'),
+    ('the bar label is the documented 12 pixels', '.text-xs', 'font-size:12px'),
+    ('the bar columns follow the entry count', '.auto-cols-fr', 'grid-auto-columns:minmax(0, 1fr)'),
+]
+
+
+def verify_navigation_surfaces(markup: str, css: str, findings: list[str]) -> None:
+    """Sub-step 1.21: the navigation surfaces, as the server sends them."""
+    print('navigation surfaces')
+    for marker, label, size_class in EXPECTED_NAV_LANDMARKS:
+        surface = element_with_marker(markup, marker)
+        problems: list[str] = []
+        if surface == '':
+            problems.append('missing from the page')
+        else:
+            if f'<nav aria-label="{label}"' not in surface:
+                problems.append(f'landmark is not named "{label}"')
+            links = re.findall(r'<a\b[^>]*>', surface)
+            names = [visible_text(entry) for entry in re.findall(r'<a\b[\s\S]*?</a>', surface)]
+            current = len(re.findall(r'aria-current="page"', surface))
+            if current != 1:
+                problems.append(f'{current} entries claim the current page, expected 1')
+            if len(links) != EXPECTED_NAV_ENTRIES:
+                problems.append(f'{len(links)} entries, expected {EXPECTED_NAV_ENTRIES}')
+            for entry, name in zip(links, names):
+                if 'min-h-touch' not in entry:
+                    problems.append('an entry has no 44 pixel touch target')
+                if name == '':
+                    problems.append('an entry has no readable name')
+            if size_class is not None and not all(
+                f' {size_class}' in entry or f' {size_class} ' in entry for entry in links
+            ):
+                problems.append(f'an entry is not set in {size_class}')
+            if marker == 'bottom-navigation' and 'pb-[var(--safe-bottom)]' not in surface:
+                problems.append('the bar does not consume the bottom inset')
+        print(f'  {marker:20}{"ok" if not problems else "; ".join(problems)}')
+        for problem in problems:
+            findings.append(f'{marker}: {problem}')
+
+    footer = element_with_marker(markup, 'site-footer')
+    footer_link_nav = re.search(r'<nav aria-label="Product"[\s\S]*?</nav>', footer)
+    footer_links = [] if footer_link_nav is None else re.findall(r'<a\b', footer_link_nav.group(0))
+    footer_current = 0 if footer_link_nav is None else len(re.findall(r'aria-current="page"', footer_link_nav.group(0)))
+    legal = re.search(r'Copyright \d{4} KD SOLUTION IT\. All rights reserved\.', footer)
+    print(
+        f'  {"site-footer":20}'
+        + (
+            'ok'
+            if footer_link_nav is not None and len(footer_links) == EXPECTED_NAV_ENTRIES and footer_current == 1 and legal is not None
+            else 'problem'
+        )
+    )
+    if footer_link_nav is None:
+        findings.append('site-footer: the link group is missing or unnamed')
+    elif len(footer_links) != EXPECTED_NAV_ENTRIES:
+        findings.append(f'site-footer: {len(footer_links)} links, expected {EXPECTED_NAV_ENTRIES}')
+    elif footer_current != 1:
+        findings.append(f'site-footer: {footer_current} links claim the current page, expected 1')
+    elif legal is None:
+        findings.append('site-footer: the legal line is missing the composed year')
+
+    action_bar = element_with_marker(markup, 'sticky-action-bar')
+    action_problems = []
+    if 'role="group"' not in action_bar or 'aria-label="Form actions"' not in action_bar:
+        action_problems.append('the action bar is not a named group')
+    if 'pb-[calc(var(--safe-bottom)+12px)]' not in action_bar:
+        action_problems.append('the action bar does not consume the bottom inset')
+    if 'data-print="hide"' not in action_bar:
+        action_problems.append('the action bar is not hidden in print')
+    if 'sticky' not in action_bar or 'fixed' in action_bar:
+        action_problems.append('the action bar is not sticky in the shell column')
+    print(f'  {"sticky-action-bar":20}{"ok" if not action_problems else "; ".join(action_problems)}')
+    for problem in action_problems:
+        findings.append(f'sticky-action-bar: {problem}')
+
+    top_shell = element_with_marker(markup, 'shell-top-bar')
+    top_bar = element_with_marker(markup, 'topbar')
+    trigger = re.search(r'<button[^>]*data-layout="drawer-trigger"[^>]*>', top_bar)
+    trigger_open = re.search(r'<button[^>]*aria-haspopup="dialog"[^>]*>', top_bar)
+    top_problems = []
+    for required in ('sticky', 'top-0', 'z-sticky', 'pt-[var(--safe-top)]', 'data-print="hide"'):
+        if required not in top_shell:
+            top_problems.append(f'the header is missing {required}')
+    if top_shell.count('<header') != 1:
+        top_problems.append('the header landmark is not declared exactly once')
+    if trigger is None or 'aria-label=' not in (trigger.group(0) if trigger else ''):
+        top_problems.append('the drawer trigger has no accessible name')
+    if trigger_open is None:
+        top_problems.append('the drawer trigger does not announce that it opens a dialog')
+    if 'min-h-touch' not in top_bar:
+        top_problems.append('the top bar is shorter than a touch target')
+    if re.search(r'<a\b[^>]*href="/"', top_bar):
+        top_problems.append('the mark links to a home route this build does not serve')
+    print(f'  {"top bar":20}{"ok" if not top_problems else "; ".join(top_problems)}')
+    for problem in top_problems:
+        findings.append(f'top bar: {problem}')
+
+    # The reserved entry is the negative control the specimen carries in the
+    # page itself: it is in the list every surface was handed, and it must not
+    # reach the reader.
+    reserved = len(re.findall(re.escape(RESERVED_ENTRY_LABEL), markup))
+    print(f'  {"reserved entry":20}{"ok" if reserved == 0 else f"rendered {reserved} times"}')
+    if reserved != 0:
+        findings.append(f'the reserved entry appears {reserved} times in the rendering')
+
+    # While the browser reports a connection, the banner has nothing to say.
+    offline = len(re.findall(r'data-layout="offline-banner"', markup))
+    print(f'  {"offline banner":20}{"ok (absent while online)" if offline == 0 else "present while online"}')
+    if offline != 0:
+        findings.append('the offline banner rendered while the page reports a connection')
+
+    print()
+    print('safe-area chain and navigation scale in the loaded stylesheet')
+    for name, value in EXPECTED_SAFE_AREA_VARIABLES.items():
+        match = re.search(rf'{re.escape(name)}:\s*([^;]+);', css)
+        declared = match.group(1).strip() if match is not None else 'MISSING'
+        ok = declared == value
+        print(f'  {"yes" if ok else "NO "}  {name}: {declared}')
+        if not ok:
+            findings.append(f'{name} is {declared} in the loaded stylesheet, expected {value}')
+    for description, selector, declaration in EXPECTED_UTILITY_RULES:
+        declarations = css_declarations(css, selector).replace(' ', '')
+        ok = declaration.replace(' ', '') in declarations
+        print(f'  {"yes" if ok else "NO "}  {description}')
+        if not ok:
+            findings.append(f'the loaded stylesheet is missing the utility: {description}')
+    narrow = media_block(without_comments(css), '(min-width: 768px)')
+    hidden = css_declarations(narrow, '.md\\:hidden').replace(' ', '')
+    print(f'  {"yes" if "display:none" in hidden else "NO "}  the bottom bar is hidden from the medium breakpoint up')
+    if 'display:none' not in hidden:
+        findings.append('the loaded stylesheet does not hide .md\\:hidden inside the medium breakpoint')
+
+
 def main() -> int:
     page = fetch(PAGE_URL)
     markup = strip_scripts(page)
@@ -385,6 +632,9 @@ def main() -> int:
     for role in EXPECTED_FRAMES:
         if role not in seen_roles:
             findings.append(f'no shell in the page is framed for {role}')
+
+    print()
+    verify_navigation_surfaces(markup, without_comments(css), findings)
 
     print()
     print(f'findings: {len(findings)}')

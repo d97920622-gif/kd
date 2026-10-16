@@ -1427,6 +1427,19 @@ function cssVariableExpectations() {
     }
   }
 
+  const safeArea = reader.read('SAFE_AREA_TOKENS');
+  if (isPlainObject(safeArea)) {
+    for (const token of Object.values(safeArea)) {
+      if (
+        isPlainObject(token) &&
+        typeof token.variable === 'string' &&
+        typeof token.value === 'string'
+      ) {
+        result[token.variable] = token.value;
+      }
+    }
+  }
+
   const print = reader.read('PRINT_TOKENS');
   if (isPlainObject(print)) {
     for (const token of Object.values(print)) {

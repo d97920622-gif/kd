@@ -272,6 +272,16 @@ export const LAYOUT_WIDTH_TOKENS: Record<string, LayoutWidthToken> = {
     value: '24rem',
     usage: 'maximum width of an edge panel, wide enough for a field and its label',
   },
+  sidebar: {
+    value: '16rem',
+    usage:
+      'the navigation rail on a desktop screen: wide enough for a two-word module name beside its icon, and narrower than the content it sits next to',
+  },
+  page: {
+    value: '72rem',
+    usage:
+      'the page container on a wide screen: the content column stops growing here, so a footer or a marketing band does not stretch a measure across an ultrawide display',
+  },
 };
 
 /**
@@ -398,6 +408,60 @@ export const PRINT_CONTRAST_PAIRS: readonly {
 /** Paper margins, in millimetres, for the @page rule in styles/print.css. */
 export const PRINT_PAGE_MARGIN_MM = 16;
 
+/**
+ * A safe-area token: a viewport inset the device reserves for itself.
+ *
+ * On a phone with a display cutout or a home indicator, part of the screen is
+ * not ours: the top band holds the camera and the status bar, the bottom band
+ * holds the gesture area. A bar pinned to the bottom edge that ignores the
+ * bottom inset either sits under the indicator or, worse, is partly outside
+ * the touchable area, which is a broken control rather than a cosmetic
+ * mistake.
+ *
+ * The values come from `env()`, the browser's own report, so nothing here is
+ * guessed: on a device without insets every value is zero and the layout is
+ * exactly the desktop layout. `viewport-fit=cover` in the viewport metadata is
+ * what makes them non-zero on the devices that have them, which is why the two
+ * ship together.
+ *
+ * These are not spacing steps, so they are not in the spacing scale: a spacing
+ * token is a choice the designer makes, an inset is a fact the device reports.
+ */
+export interface SafeAreaToken {
+  /** CSS custom property the token is declared as. */
+  readonly variable: string;
+  /** The env() expression, with a zero fallback for older engines. */
+  readonly value: string;
+  /** Which edge of the viewport the inset belongs to. */
+  readonly usage: string;
+}
+
+export const SAFE_AREA_TOKENS: Record<string, SafeAreaToken> = {
+  top: {
+    variable: '--safe-top',
+    value: 'env(safe-area-inset-top, 0px)',
+    usage: 'status bar and camera band: padding above a bar pinned to the top',
+  },
+  right: {
+    variable: '--safe-right',
+    value: 'env(safe-area-inset-right, 0px)',
+    usage: 'notch on a landscape phone: padding on the trailing edge',
+  },
+  bottom: {
+    variable: '--safe-bottom',
+    value: 'env(safe-area-inset-bottom, 0px)',
+    usage: 'home indicator: padding below a bar pinned to the bottom',
+  },
+  left: {
+    variable: '--safe-left',
+    value: 'env(safe-area-inset-left, 0px)',
+    usage: 'notch on a landscape phone: padding on the leading edge',
+  },
+};
+
+/** Keys the safe-area set must contain, used by the layout check. */
+export const REQUIRED_SAFE_AREA_KEYS: readonly string[] = ['top', 'right', 'bottom', 'left'];
+
 /** Keys the layout width scale must contain, used by the token check. */
 export const REQUIRED_LAYOUT_WIDTH_KEYS: readonly string[] = [
   'menu',
@@ -405,6 +469,8 @@ export const REQUIRED_LAYOUT_WIDTH_KEYS: readonly string[] = [
   'tooltip',
   'dialog',
   'sheet',
+  'sidebar',
+  'page',
 ];
 
 /**
@@ -493,7 +559,13 @@ export type ThemeScopeClass = (typeof THEME_SCOPE_TOKENS)[number]['className'];
 export type ThemeScopeTheme = (typeof THEME_SCOPE_TOKENS)[number]['theme'];
 
 /** Tailwind width map: floating panels that need a fixed width. */
-export const WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths(['popover']);
+export const WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths([
+  'popover',
+  // The rail is a fixed-width column, not a ceiling: w-sidebar is the one
+  // width utility that names its surface. Everything else keeps the Tailwind
+  // fractions and auto.
+  'sidebar',
+]);
 
 /** Tailwind minWidth map: surfaces that need a floor but may grow. */
 export const MIN_WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths(['menu']);
@@ -503,6 +575,8 @@ export const MAX_WIDTH_CLASS_MAP: Record<string, string> = mapLayoutWidths([
   'tooltip',
   'dialog',
   'sheet',
+  'sidebar',
+  'page',
 ]);
 
 function mapLayoutWidths(keys: readonly string[]): Record<string, string> {
@@ -1211,6 +1285,11 @@ export const TOKEN_GROUPS: readonly {
     name: 'z-index',
     keyCount: Object.keys(Z_INDEX_TOKENS).length,
     requiredKeys: REQUIRED_Z_LAYERS,
+  },
+  {
+    name: 'safe-area',
+    keyCount: Object.keys(SAFE_AREA_TOKENS).length,
+    requiredKeys: REQUIRED_SAFE_AREA_KEYS,
   },
   {
     name: 'layout-width',

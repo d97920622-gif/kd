@@ -50,12 +50,45 @@ export interface ShellSlotsProps {
   readonly className?: string;
 }
 
+/**
+ * The top bar slot. It owns everything about the bar that the bar itself must
+ * not own: the `header` landmark, the sticky position and the device's top
+ * inset.
+ *
+ * Three reasons this is a wrapper rather than a class on the bar:
+ *
+ *   - A sticky element only sticks inside its own parent, so the parent is the
+ *     element that has to be sticky. A sticky bar inside a plain wrapper scrolls
+ *     away at the wrapper's bottom edge, which is the bug this shape prevents.
+ *   - The landmark belongs to the page frame. A bar that declared its own
+ *     `header` could be rendered twice on one page and produce two banners.
+ *   - The top inset (`--safe-top`) pads the bar below a notch or a status bar
+ *     in landscape. The inset is the device's report through the token, zero
+ *     where the device reserves nothing, so a desktop bar has no padding it did
+ *     not ask for.
+ *
+ * The bar is hidden in print: a printed page keeps the document, not the
+ * chrome, and a navigation bar on paper is a control the reader cannot use.
+ */
 export function ShellTopBar({
   children,
+  className,
 }: {
   readonly children: React.ReactNode;
+  readonly className?: string;
 }): React.ReactElement {
-  return <header className="w-full">{children}</header>;
+  return (
+    <header
+      data-layout="shell-top-bar"
+      data-print="hide"
+      className={cn(
+        'sticky top-0 z-sticky w-full border-b border-border bg-card pt-[var(--safe-top)] text-card-foreground',
+        className,
+      )}
+    >
+      {children}
+    </header>
+  );
 }
 
 export function ShellSidebar({

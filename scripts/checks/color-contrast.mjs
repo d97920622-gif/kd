@@ -60,15 +60,19 @@ const NON_COLOR_VARIABLES = ['--radius', '--font-sans', '--font-mono', '--shadow
 /**
  * Variables the light block declares that are not screen colour roles.
  *
- * `--print-*` belongs here rather than in a role table: the print palette is
- * not a theme, it is what the printer puts on the sheet, and it is declared
- * once for every theme. Its values are verified in both directions by
- * checkPrintPalette below, exactly as a role would be.
+ * `--print-*` and `--safe-*` belong here rather than in a role table. The
+ * print palette is not a theme, it is what the printer puts on the sheet, and
+ * it is declared once for every theme; the safe-area variables are not even
+ * ours, they are the device reporting what it keeps for itself. Both are
+ * verified against the token module in both directions - print by the block
+ * below, the safe-area set by scripts/checks/design-tokens.mjs - so neither
+ * can drift by being outside the contrast contract.
  */
 function nonColorVariablePattern(property) {
   return (
     NON_COLOR_VARIABLES.includes(property) ||
     property.startsWith('--print-') ||
+    property.startsWith('--safe-') ||
     property.startsWith('--shadow-') ||
     property.startsWith('--z-') ||
     property.startsWith('--duration-') ||

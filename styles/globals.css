@@ -44,6 +44,17 @@
      * the page is printed. Declared here so the token check verifies them in
      * both directions like every other value.
      */
+    /*
+     * Viewport insets the device reserves for itself
+     * (config/design-tokens.ts SAFE_AREA_TOKENS). The values are env()
+     * expressions, not lengths: on a device without a cutout or a gesture bar
+     * every one of them is zero and the layout is the desktop layout.
+     */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+
     --print-paper: 0 0% 100%;
     --print-ink: 0 0% 0%;
     --print-muted-ink: 0 0% 33%;
