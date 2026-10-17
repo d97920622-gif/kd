@@ -40,7 +40,7 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 | 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | done    | ae5f1a6 |
 | 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | done    | 1e6a98d |
 | 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | done    | f150aa2 |
-| 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | pending |         |
+| 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | done    | f456c34 |
 | 2.10     | Envelope keys: per-tenant DEKs, wrapped storage, usage audit, scheduled rotation window, crypto-shredding with verification query                                      | pending |         |
 | 2.11     | Secret registry: records with owner and purpose, access audit, boot-time validation hook, rotation checklist                                                           | pending |         |
 | 2.12     | Concurrency: idempotency middleware and table, optimistic, pessimistic, advisory and leader locks, duplicate detector, request_logs, rate_limits                       | pending |         |
@@ -49,6 +49,46 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.9
+
+- **The root key is random bytes, never a passphrase.** `ENCRYPTION_KEY` is 32
+  random bytes in canonical base64, 44 characters with one `=`. A passphrase needs
+  a password KDF, which is the MASTER_PROMPT rule for passphrases; this key needs
+  only HKDF. `decodeRootKey()` refuses a spelling that does not re-encode to itself.
+- **One derivation path.** Every key is HKDF-SHA256 of the root, with the salt
+  `kd.encryption.v1` and the info `purpose=...;version=...`. The root never encrypts
+  directly, and a rotation is a new derivation, so the root never rotates
+  (FEATURE_LIST item 3188).
+- **The envelope names its version.** `kdenc.v1.<purpose>.<version>.<iv>.<tag>.<ct>`,
+  with the version in the clear, so a rotation can count the values still on an old
+  version (FEATURE_LIST item 3190). The associated data binds the header and the
+  caller's context.
+- **Blind indexes are scoped and versioned.** HMAC-SHA256 over the normalised value,
+  with a length-prefixed message that names the company and the field, stored as
+  `v<version>:<64 hex>`. The vault's MAC is refused for every purpose except
+  `blind_index`, so a field key is never a MAC oracle.
+- **Activation has two gates, and the database holds the inner one.** The function
+  is granted to `kd_app` only. Inside it accepts a super_admin session or a
+  superuser/BYPASSRLS session user, takes a per-purpose advisory lock, requires the
+  next contiguous version, and retires the active version in one transaction.
+- **The ledger check closes the loop with config.** `encryption:ledger:check`
+  requires one active version per purpose that matches `ENCRYPTION_CONFIG`, and a
+  key check for every recorded version that matches the environment root key. A
+  deploy with the wrong root key fails before it writes a value.
+- **`ENCRYPTION_KEY` is in the step-1 env schema.** It is in `ENV_SOURCE_KEYS`,
+  `SECRET_ENV_KEYS` and `PRODUCTION_REQUIRED_KEYS`, and it is validated through
+  `decodeRootKey()`, so production boot fails fast and the value is never echoed.
+- **The rotation interval is an owner decision.** `rotationIntervalDays` is 90, from
+  MASTER_PROMPT layer 4. FEATURE_LIST item 3189 asks for annual rotation, which the
+  365-day bound supports. The owner confirms the value before it is final.
+- **The logger is unchanged.** `pii-redaction.ts` delegates to
+  `lib/logger/redaction.ts` and adds no rules of its own.
+- **Existing error codes.** `configuration_error` for a missing or malformed key,
+  `internal_error` (message never exposed) for an authentication failure, and
+  `validation_failed` for an oversize field. No catalogue edit was needed.
+- **No test files.** Rule 4 forbids them, so the rotation rules run as the script
+  `encryption:rotation:rehearse`, which is part of `npm run verify`.
 
 ## Decisions taken in 2.8
 
@@ -293,17 +333,17 @@ the 2.4 storage.
 
 ## Next action
 
-Sub-step 2.9: the encryption core. Read the 2.9 row in
-`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, the ownership table in `docs/PLAN/03`, and
-the encryption rows of FEATURE_LIST. Then add the support tables in the 2.9 block
-`20260116080000` (listed in `migrations/README.md`), and the application modules
-`lib/encryption/aes-256-gcm.ts`, `key-vault.ts` and `key-rotation.ts`, with the
-blind index, PII redaction and the benchmark document.
+Sub-step 2.10: envelope key management. Read the 2.10 row in
+`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`: per-tenant data encryption keys, wrapped key
+storage, key usage audit, a scheduled rotation window, and a crypto-shredding
+procedure with a verification query. Read the encryption rows of FEATURE_LIST and
+the 2.9 runbook in `docs/security/ENCRYPTION_KEY_ROTATION.md` first.
 
-Two rules set the shape of 2.9, and both are FEATURE_LIST.md items. Item 3188
-says the root key `ENCRYPTION_KEY` never rotates. Items 3189 and 3190 say other
-keys rotate annually with zero downtime, and that encrypted fields carry a
-key-version tag. Per-tenant data keys are rotatable, and the root key is
-immutable. Every new table takes the five universal columns, RLS forced with
-its policies, and a capture trigger from the 2.8 helper. Run the same loop as
-2.7 and 2.8, and keep the twenty absolute rules.
+Two points carry over from 2.9. The root key `ENCRYPTION_KEY` never rotates, and
+per-tenant keys are wrapped under it through the key vault, not held in clear
+(MASTER_PROMPT layer 4). Every new table takes the five universal columns, RLS
+forced with its policies, and a capture trigger from the 2.8 helper. Run the same
+loop as 2.7 to 2.9, and keep the twenty absolute rules.
+
+Open owner decision from 2.9: confirm the rotation interval, 90 days by default
+(`ENCRYPTION_CONFIG.rotationIntervalDays`) or annual (365). Until then 90 applies.
