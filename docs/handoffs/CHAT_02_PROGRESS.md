@@ -2,7 +2,7 @@
 
 # CHAT 02 PROGRESS -- Step 2: Database Foundation, Migrations, RLS, Encryption, Audit Ledger
 
-Status: in progress (sub-step 2.5 of 14)
+Status: in progress (sub-step 2.6 of 14)
 Date started: 2026-10-17
 Branch: arena/b7780282-kd
 Starting commit: b2ef9ef (the step 1 audit close, pushed to origin)
@@ -37,7 +37,7 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 | 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | done    | 1f36e7b |
 | 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | done    | 90732a9 |
 | 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | done    | 5ba6225 |
-| 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | pending |         |
+| 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | done    |         |
 | 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | pending |         |
 | 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | pending |         |
 | 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | pending |         |
@@ -49,6 +49,29 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.6
+
+- **Reference codes have two indexes each.** An ISO code is never reused and a
+  foreign key needs an unconditional unique index to point at, so each code has
+  a full unique index (the target, which also keeps a retired code reserved) and
+  a partial unique index on `deleted_at IS NULL` (the soft-delete standard).
+- **Five deferred foreign keys are added here**, each with its own leading index
+  and `ON DELETE RESTRICT`: `companies.country_code`, `company_settings.timezone`,
+  `company_settings.currency_code`, `plans.currency_code` and
+  `subscriptions.currency_code`.
+- **Only USD and UTC are seeded by the migration**, because the column defaults
+  of `company_settings` and `plans` name them. Every other row is seeded in 2.14.
+- **The base currency is USD by a check and by an index**, so a second base
+  currency is refused twice over.
+- **A tax jurisdiction window cannot overlap another live window for the same
+  code.** A unique index cannot express a date window, so a trigger does it, under
+  a per-code advisory lock, and the probe proves an update is refused too.
+- **The rollback refuses while a tenant still uses a reference value.** Without
+  that guard the rollback orphaned data that the re-migrate could not restore; the
+  refusal is a restrict violation and drops nothing (evidence section 5).
+- **Row level security is still off on every table.** 2.6 records the read-only
+  intent for tenants in the migration header; 2.7 enables RLS on all 27 tables.
 
 ## Decisions taken in 2.5
 
@@ -195,33 +218,26 @@ printed or logged.
 6. The isolation assertion reports zero cross-tenant rows.
 7. The key rotation rehearsal is documented.
 
-At the moment of writing: gate 1 is proven for the 2.1 to 2.5 objects
+At the moment of writing: gate 1 is proven for the 2.1 to 2.6 objects
 (`db:assert` reports zero violations after a full down and up cycle), gate 3
-is proven by the catalog query for all twenty-three tables, gates 2, 4, 5 and
+is proven by the catalog query for all twenty-seven tables, gates 2, 4, 5 and
 6 belong to later sub-steps, and gate 7 belongs to 2.10. The step 3
 dependency "lock state survives a server restart" was already proven against
 the 2.4 storage.
 
 ## Next action
 
-Sub-step 2.6: reference tables. Read the 2.6 row in
-`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, then create the migration pair for
-`countries`, `currencies`, `tax_jurisdictions` and `timezones`, with
-read-only policies for authenticated tenants (the policy half is 2.7's
-framework; 2.6 records the intent and 2.7 enables the policies with the
-`current_company_id()` helper).
+Sub-step 2.7: the row level security framework. Read the 2.7 row in
+`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, the RLS rules in `docs/PLAN/03` and the
+tenancy section of `docs/PLAN/02`, then add one migration pair that creates
+`current_company_id()` and `current_role_name()`, enables row level security on
+all twenty-seven tables with default-deny, and writes the tenant isolation policy
+(company_id must equal the caller's company) and the shared read-only policy for
+the platform reference rows (`plans`, `plan_features`, `permissions`, `currencies`,
+`countries`, `timezones`, `tax_jurisdictions`, and the global rows of
+`feature_flags`). The isolation assertion and the isolation fuzz SQL go in
+`scripts/db/sql/`, and `scripts/checks/rls-coverage.mjs` with an
+`npm run check:rls-coverage` script arrives with them, with a README row.
 
-These are platform reference rows: `company_id` null enforced by a named
-check, the ISO 3166-1 alpha-2 code as the business key, the ISO 4217 code for
-currencies, and the IANA identifier for timezones. In the same migration, add
-the foreign keys that earlier sub-steps deferred in writing:
-`companies.country_code` to `countries`, `company_settings.currency_code`
-and `company_settings.timezone` to their tables, `plans.currency_code` and
-`subscriptions.currency_code` to `currencies`. Every added `fk_` needs its
-own index and ON DELETE RESTRICT.
-
-`tax_jurisdictions` carries the jurisdiction code, the country, the level
-(country/state/local), a display name and the effective window; rates are
-step 6's versioned table, not this one.
-
-Run the loop, then `npm run db:assert`.
+Test the policies as a non-owner role, because the table owner bypasses row
+level security unless the table is forced.
