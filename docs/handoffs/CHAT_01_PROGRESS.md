@@ -2,16 +2,16 @@
 
 # CHAT 01 PROGRESS -- Step 1: Foundation, Governance, Design System, Layout Architecture
 
-Status: in progress
-Current segment: 1D (states, hardening, public site, governance) -- all nine sub-steps complete, segment gate next
+Status: complete (step 1 done; one gate item outstanding, see below)
+Current segment: 1D (states, hardening, public site, governance) -- all nine sub-steps complete and the segment gate recorded 2026-10-17
 Last completed sub-step: 1.32 (governance B: the seven decision records and their index, the README
 refresh, the step 1 handoff, and the check rules that keep them honest).
 Previous sub-step: 1.31 (governance A: the CI workflow and the three jobs it runs, review ownership, the pull request template, the contributing guide, the security policy, the licence and the generated changelog).
-Next sub-step: none in step 1 (1.32 is the last one); the segment 1D gate runs next, on the owner's word.
+Next: step 2 (database foundation, migrations, RLS, encryption and the audit ledger), opened with docs/PLAN/chat-prompts/CHAT_02.md after this branch is merged. The segment 1D gate is recorded in docs/EVIDENCE/step-01/gate-1D.md; its browser performance item is the one thing step 1 could not measure here.
 Segment 1A: complete
 Segment 1B: complete (gate evidence in docs/EVIDENCE/step-01/gate-1B.md)
 Segment 1C: complete (1.18 to 1.23 done; gate PASSED 2026-10-16, evidence in docs/EVIDENCE/step-01/gate-1C.md)
-Segment 1D: sub-steps complete (1.24 to 1.32 done; segment gate next)
+Segment 1D: complete (1.24 to 1.32 done; gate recorded 2026-10-17 in docs/EVIDENCE/step-01/gate-1D.md, three of four items PASS and the browser performance audit outstanding)
 Date started: 2026-10-15
 Branch: arena/b7780282-kd
 
@@ -104,7 +104,60 @@ passes on the current route set. Status: pending.
 | 1.32     | Governance B: ADR-0001 to ADR-0007, README update, docs/handoffs/CHAT_01_COMPLETED.md                                                          | done   | 4dfa2b0 |
 
 Segment 1D gate: production build passes; Lighthouse at least 90 on the
-homepage; dead-link audit clean; npm run verify fully green. Status: pending.
+homepage; dead-link audit clean; npm run verify fully green. Status: RECORDED
+2026-10-17, evidence in docs/EVIDENCE/step-01/gate-1D.md. Three items PASS (the
+production build with its four artefacts asserted and 12 public routes answering
+200; the dead-link audit at 15 routes and 58 links with 0 skipped; the
+verification floor at 30 of 30). The fourth item, the browser performance audit,
+cannot be measured in this environment: no browser binary exists, GitHub release
+assets are unreachable and the shared libraries a Chromium needs are absent from
+the image. The section 2 substitute measurements stand in for it and the owner
+action - one Lighthouse command against the deployed preview - is recorded in the
+gate file, in the handoff risks and below.
+
+## Segment 1D gate evidence -- the production build, the performance item, the audit and the floor
+
+The gate ran on 2026-10-17 against the tree at `9262354`. The full record is
+`docs/EVIDENCE/step-01/gate-1D.md`, written in the shape of the two earlier gate
+records: the command that was run, the output it produced, and a closing section
+naming what the result does not cover.
+
+| Gate item                              | Result | The measurement behind it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production build passes                | PASS   | `npx next build` in a copy of the tree, exit 0: Next.js 15.5.28, compiled in 19.9s, 8 of 8 static pages generated, 0 `dynamicIO` diagnostics, `BUILD_ID`, `robots.txt.body`, `sitemap.xml.body` and `opengraph-image.body` all present, 20 route rows (5 prerendered file routes, 15 routes rendered on demand), and all 12 public routes answering 200 from the served build                                                                                                                                                                                                             |
+| Lighthouse at least 90 on the homepage | OPEN   | Not measurable here, and the gate file records the three checks that prove it: no browser binary in the image, GitHub release assets unreachable, and the shared libraries a Chromium needs absent with no package-manager network. The substitute measurements are in the gate file: the document is 15,839 bytes over the wire, the median time to first byte is 14.9 ms over five requests, the whole page is 345,464 bytes over 27 requests, the document names one absolute origin (its own), it carries no image element, and every one of its 42 script elements carries the nonce |
+| Dead-link audit clean                  | PASS   | `check:dead-links`: 15 routes, 58 verified links, 0 dynamic links skipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `npm run verify` fully green           | PASS   | 30 of 30 entries, exit code 0, on the same commit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+
+Supporting probes, all green, production and development: the platform probe
+(0 findings in both environments: robots, sitemap with 12 of 12 locations
+answering, the nonce in both directives, a production policy with no inline and
+no eval, framing refused, the print sheets, the head metadata, the social image,
+`/gallery` answering 404 in production, and a start-up record with no key name
+and no value), the http hardening probe (0 findings in both environments: nine
+header values exact, the policy judged by content, the Permissions-Policy
+refusals and grants, the same matrix on a static asset), the public-pages probe
+(PASS, every public page read out of the served response), the shell probe
+(0 findings) and the gallery DOM probe (0 findings, 61 markers in each of the
+five theme scopes).
+
+Two defects were found and fixed while proving the gate, both recorded in the
+gate file: a Python bytecode cache had been tracked under
+`docs/EVIDENCE/step-01/__pycache__/` (fixed by `9262354`, which also teaches
+`.gitignore` to refuse `__pycache__/` and `*.pyc`), and two checks were runnable
+from the floor but not by name because their `package.json` aliases were missing
+(fixed by `4dfa2b0`).
+
+The one open item is the owner's to close, and it needs a browser rather than a
+repository change:
+
+```
+npx lighthouse <the deployed origin> --output html --output-path lighthouse-home.html
+```
+
+Until that report exists, step 1 is complete on everything this environment can
+measure and the performance item stays in the known risks rather than being
+declared passed.
 
 ## Sub-step 1.32 evidence -- the decision records, the README and the last sub-step of step 1
 
@@ -3114,38 +3167,46 @@ only variable the build reads for the origin (`lib/seo/site.ts`); the schema in
 `.env.example` lists what a deployment must set. The three Supabase variables are
 required in production by that schema and are already refused outside `lib/env`.
 
-## Segment 1D gate starting point
+## Step 1 complete -- what the next chat needs
 
-Step 1 has no sub-step left. The next action is the segment 1D gate, and it runs
-only on the owner's word. What it has to measure, with the machinery for each
-item already in place:
+Step 1 delivered sub-steps 1.1 to 1.32 across four segments, all of them
+committed, pushed and verified, with three gates recorded before this one. What
+the next chat needs from this state:
 
-- **The production build passes.** A copy of the repository outside the working
-  tree, `npm ci`, `npx next build`, then the artefact assertions the CI build job
-  makes (`.next` removed first, `BUILD_ID` present, the crawler files emitted,
-  the sitemap route built) and zero dynamicIO diagnostics in the build output. At
-  1.32 the local run was exit 0 with 0 diagnostics, and the runner runs the same
-  build on every push.
-- **Lighthouse at least 90 on the homepage.** This environment has no browser, so
-  the number cannot be produced here. The recorded substitute is the
-  public-pages probe's measurement of the homepage: document bytes, the number of
-  stylesheets and the script count, server rendered, with the policy in front of
-  them. The item stays open in the handoff until the owner runs Lighthouse
-  against the deployed preview, and the gate record says exactly that instead of
-  printing a number nobody measured.
-- **The dead-link audit is clean.** `check:dead-links` is in the floor: 15 routes
-  and 58 verified links with 0 dynamic links skipped at this commit, and the pages
-  1.28 and 1.29 added are inside the audit.
-- **`npm run verify` is fully green.** 30 of 30 entries at this commit, which is
-  the unchanged command the `verify` job of `.github/workflows/ci.yml` runs on
-  the runner.
-- **The evidence record** is `docs/EVIDENCE/step-01/gate-1D.md`: the command, the
-  commit, the raw output, and a closing paragraph naming what the result does not
-  cover (the browser item) rather than leaving it implied.
+- **The floor is 30 entries and green.** `npm run verify` covers the compiler,
+  the linter, the formatter, the environment schema, the token export and 25
+  checks. It is the pre-commit hook, the pull request gate and the `verify` job
+  of `.github/workflows/ci.yml`, so a pass here and a pass on the runner mean the
+  same thing.
+- **Two servers, two environments, both proving themselves.** `next dev` on 3000
+  is the review preview and the environment the development runs of both probes
+  read; the built server on 3020 is the production shape, with the nonce policy,
+  the framing refusal, HSTS and the boot refusal. Neither shares a `.next`
+  directory with the other, which is why the gate builds in a copy.
+- **The evidence set.** `docs/EVIDENCE/step-01/` holds the three gate records,
+  the seven probes (four Python, two Node, one browser-free DOM reader) and the
+  probe controls. A probe is run by hand at a gate and is deliberately not an
+  entry of the floor: what it measures needs a running server.
+- **The rules a later step must not undo.** The document is rendered per request
+  so the nonce reaches every script (the three file routes are the exception and
+  carry `force-static`); a development policy must not refuse framing, because
+  the preview window is a frame; `config/nav-map.ts` is the single destination
+  source and `components/layout/` may not import it; the shells take role data as
+  props and decide nothing about who the reader is; and every string lives in the
+  catalogue while every visual value lives in the token module.
+- **The two directories that stay empty until step 2.** `migrations/` (the first
+  table, its RLS policy, its audit trigger and its rollback pair) and the
+  database client itself. `check:migration-pairs` currently reports "no
+  migrations yet: nothing to pair", which is the correct reading of an empty
+  directory and will change the moment the first pair lands.
+- **The open item.** The browser performance audit on the homepage, with the
+  owner action recorded above. Step 2 does not depend on it.
 
-After the gate is recorded, step 1 is complete: the chat closes with
-"Segment 1D complete; step 1 complete", the merge into `integration` follows the
-pull request review, and step 2 opens with `docs/PLAN/chat-prompts/CHAT_02.md`.
+Step 2 opens with `docs/PLAN/chat-prompts/CHAT_02.md` after `integration` has
+this branch, and its reading order is `MASTER_PROMPT.md`, `FEATURE_LIST.md`,
+`docs/PLAN/00`, `02`, `03`, `04`, `08` (STEP 02), then
+`docs/PLAN/09_REVISION_2_ADDITIONS.md` and sections A11 to A15 of
+`docs/PLAN/05_ADDITIONAL_REQUIREMENTS_SPEC.md`.
 
 ## Blockers
 

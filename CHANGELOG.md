@@ -48,8 +48,13 @@ that introduced them and the newest entry is first within a section.
 - add eslint guard configuration (step-01/1.2, 8317d34)
 - add repository toolchain baseline (step-01/1.1, 57947a7)
 
+### Changed
+
+- stop tracking the probe bytecode caches (step-01/1d, 9262354)
+
 ### Documentation
 
+- record sub-step 1.32 evidence and the step handoff (step-01/1.32, 88904a8)
 - record sub-step 1.31 evidence (step-01/1.31, 6c685a4)
 - record sub-step 1.30 evidence (step-01/1.30, 136bff2)
 - pages B evidence and the 1.30 handover (step-01/1.29, 2224f6a)
