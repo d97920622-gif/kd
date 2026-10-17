@@ -30,22 +30,22 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 ## Sub-steps
 
-| Sub-step | Description                                                                                                                                                            | Status  | Commit  |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 2.1      | Migration framework: ordered runner, checksums, up and down pairs, seeds runner, `db:migrate`, `db:rollback`, `db:seed`, CI database job                               | done    | 49e483a |
-| 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | done    | dba8a11 |
-| 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | done    | 1f36e7b |
-| 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | done    | 90732a9 |
-| 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | done    | 5ba6225 |
-| 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | done    | ae5f1a6 |
-| 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | done    | 1e6a98d |
-| 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | done    | f150aa2 |
-| 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | done    | f456c34 |
-| 2.10     | Envelope keys: per-tenant DEKs, wrapped storage, usage audit, scheduled rotation window, crypto-shredding with verification query                                      | pending |         |
-| 2.11     | Secret registry: records with owner and purpose, access audit, boot-time validation hook, rotation checklist                                                           | pending |         |
-| 2.12     | Concurrency: idempotency middleware and table, optimistic, pessimistic, advisory and leader locks, duplicate detector, request_logs, rate_limits                       | pending |         |
-| 2.13     | Governance data: data_classification, retention policies, DSAR tables, soft delete and restore helpers, backup metadata                                                | pending |         |
-| 2.14     | Seeds and types: plans, permissions, countries, currencies, tax presets, super_admin bootstrap, `types/database.ts`, handoff                                           | pending |         |
+| Sub-step | Description                                                                                                                                                            | Status  | Commit           |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------- |
+| 2.1      | Migration framework: ordered runner, checksums, up and down pairs, seeds runner, `db:migrate`, `db:rollback`, `db:seed`, CI database job                               | done    | 49e483a          |
+| 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | done    | dba8a11          |
+| 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | done    | 1f36e7b          |
+| 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | done    | 90732a9          |
+| 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | done    | 5ba6225          |
+| 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | done    | ae5f1a6          |
+| 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | done    | 1e6a98d          |
+| 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | done    | f150aa2          |
+| 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | done    | f456c34, f86c2bd |
+| 2.10     | Envelope keys: per-tenant DEKs, wrapped storage, usage audit, scheduled rotation window, crypto-shredding with verification query                                      | pending |                  |
+| 2.11     | Secret registry: records with owner and purpose, access audit, boot-time validation hook, rotation checklist                                                           | pending |                  |
+| 2.12     | Concurrency: idempotency middleware and table, optimistic, pessimistic, advisory and leader locks, duplicate detector, request_logs, rate_limits                       | pending |                  |
+| 2.13     | Governance data: data_classification, retention policies, DSAR tables, soft delete and restore helpers, backup metadata                                                | pending |                  |
+| 2.14     | Seeds and types: plans, permissions, countries, currencies, tax presets, super_admin bootstrap, `types/database.ts`, handoff                                           | pending |                  |
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
