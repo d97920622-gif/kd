@@ -2,7 +2,7 @@
 
 # CHAT 02 PROGRESS -- Step 2: Database Foundation, Migrations, RLS, Encryption, Audit Ledger
 
-Status: in progress (sub-step 2.4 of 14)
+Status: in progress (sub-step 2.5 of 14)
 Date started: 2026-10-17
 Branch: arena/b7780282-kd
 Starting commit: b2ef9ef (the step 1 audit close, pushed to origin)
@@ -36,7 +36,7 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 | 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | done    | dba8a11 |
 | 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | done    | 1f36e7b |
 | 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | done    | 90732a9 |
-| 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | pending |         |
+| 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | done    | pending |
 | 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | pending |         |
 | 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | pending |         |
 | 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | pending |         |
@@ -49,6 +49,30 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.5
+
+- **Prices are `numeric(18,4)` and USD only.** Every money column is exact;
+  `currency_code` is checked to `'USD'` until 2.6 adds the `currencies`
+  foreign key. The probe reads `12.0000` back as the string `12.0000`.
+- **The plan table owns a published price.** `lib/i18n/strings/en/pricing.ts`
+  already says the plan table wins and names the four slugs; 2.14 seeds
+  `free`, `starter`, `pro` and `enterprise` with `0`, `12`/`120`, `29`/`290`.
+- **A subscription stores a price snapshot** (`price_amount`), never a read of
+  the current plan price, so a later price change cannot rewrite an agreed
+  amount.
+- **One live subscription per tenant**, enforced by a partial unique index;
+  an upgrade is cancel plus insert in one transaction.
+- **Entitlements are the materialised answer** the guard reads, one row per
+  tenant per feature with its source; the engine that writes them is step 4.
+- **A feature flag is not an entitlement.** `feature_flags` gates a release
+  (global row or per-tenant override, with a rollout); `entitlements` bills a
+  feature. Two tables so one cannot answer for the other.
+- **A coupon is one-time per tenant, enforced by a partial unique index.**
+  The first draft also carried `max_redemptions_per_company`, which the probe
+  proved contradictory (a reversed redemption blocked reuse, and a limit of 3
+  could never be reached). The column was removed in favour of the index;
+  the evidence records the defect and the reasoning.
 
 ## Decisions taken in 2.4
 
@@ -171,30 +195,33 @@ printed or logged.
 6. The isolation assertion reports zero cross-tenant rows.
 7. The key rotation rehearsal is documented.
 
-At the moment of writing: gate 1 is proven for the 2.1 to 2.4 objects
+At the moment of writing: gate 1 is proven for the 2.1 to 2.5 objects
 (`db:assert` reports zero violations after a full down and up cycle), gate 3
-is proven by the catalog query for all sixteen tables, gates 2, 4, 5 and 6
-belong to later sub-steps, and gate 7 belongs to 2.10. The step 3 dependency
-"lock state survives a server restart" was already proven against this
-sub-step's storage (evidence section 6).
+is proven by the catalog query for all twenty-three tables, gates 2, 4, 5 and
+6 belong to later sub-steps, and gate 7 belongs to 2.10. The step 3
+dependency "lock state survives a server restart" was already proven against
+the 2.4 storage.
 
 ## Next action
 
-Sub-step 2.5: platform tables. Read the 2.5 row in
+Sub-step 2.6: reference tables. Read the 2.6 row in
 `docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, then create the migration pair for
-`plans`, `plan_features`, `subscriptions`, `entitlements`, `coupons`,
-`coupon_redemptions` and `feature_flags`.
+`countries`, `currencies`, `tax_jurisdictions` and `timezones`, with
+read-only policies for authenticated tenants (the policy half is 2.7's
+framework; 2.6 records the intent and 2.7 enables the policies with the
+`current_company_id()` helper).
 
-Guidance carried from 2.2 to 2.4: six universal columns declared inline,
-`trg_{table}_set_updated_at`, `assert_universal_columns(...)`, a partial
-unique index on `deleted_at IS NULL`, `(company_id, created_at)`, every `fk_`
-indexed and ON DELETE RESTRICT, named checks, money as `numeric(18,4)` and
-never a float. Plan prices are money: use `numeric(18,4)` and a currency code
-checked against `^[A-Z]{3}$` until 2.6 adds the `currencies` foreign key in
-its own migration. `subscriptions` and `entitlements` are tenant rows;
-`plans`, `plan_features` and `feature_flags` are platform rows with a null
-`company_id` enforced by a named check. `coupons` may be platform-wide
-(null company) or tenant-issued (set company): document the rule and enforce
-it with a check, do not leave it implicit.
+These are platform reference rows: `company_id` null enforced by a named
+check, the ISO 3166-1 alpha-2 code as the business key, the ISO 4217 code for
+currencies, and the IANA identifier for timezones. In the same migration, add
+the foreign keys that earlier sub-steps deferred in writing:
+`companies.country_code` to `countries`, `company_settings.currency_code`
+and `company_settings.timezone` to their tables, `plans.currency_code` and
+`subscriptions.currency_code` to `currencies`. Every added `fk_` needs its
+own index and ON DELETE RESTRICT.
 
-Run the loop, then `npm run db:assert` (RLS is still off until 2.7).
+`tax_jurisdictions` carries the jurisdiction code, the country, the level
+(country/state/local), a display name and the effective window; rates are
+step 6's versioned table, not this one.
+
+Run the loop, then `npm run db:assert`.
