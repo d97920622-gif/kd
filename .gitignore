@@ -63,3 +63,7 @@ secrets/
 # Local quality report output
 lighthouse/
 verify-report.txt
+
+# Python bytecode caches written when the evidence probes run
+__pycache__/
+*.pyc
