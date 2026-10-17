@@ -44,8 +44,9 @@ of one hundred sequence numbers, and later steps keep to their own window.
 
 Sub-step 2.14 adds no migration: it adds seed data, which lives in `seeds/`
 and has its own ledger. A sub-step that needs more than one migration takes
-the next free sequence number inside its own block, for example
-`20260116060100` for the second migration of sub-step 2.7.
+the next free sequence number inside its own block: sub-step 2.3 ships
+`20260116020000_tenancy_identity` and `20260116020100_tenancy_membership`,
+and both still belong to the one 2.3 commit.
 
 ## Rules the runner enforces
 
