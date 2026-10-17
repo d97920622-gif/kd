@@ -2,7 +2,7 @@
 
 # CHAT 02 PROGRESS -- Step 2: Database Foundation, Migrations, RLS, Encryption, Audit Ledger
 
-Status: in progress (sub-step 2.3 of 14)
+Status: in progress (sub-step 2.4 of 14)
 Date started: 2026-10-17
 Branch: arena/b7780282-kd
 Starting commit: b2ef9ef (the step 1 audit close, pushed to origin)
@@ -35,7 +35,7 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 | 2.1      | Migration framework: ordered runner, checksums, up and down pairs, seeds runner, `db:migrate`, `db:rollback`, `db:seed`, CI database job                               | done    | 49e483a |
 | 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | done    | dba8a11 |
 | 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | done    | 1f36e7b |
-| 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | pending |         |
+| 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | done    | pending |
 | 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | pending |         |
 | 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | pending |         |
 | 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | pending |         |
@@ -49,6 +49,33 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.4
+
+- **Roles are tenant rows, the permission catalog is platform reference.** A
+  tenant's "manager" is not another tenant's; the catalog that every tenant
+  reads has a null `company_id` enforced by a named check.
+- **Tenancy is enforced by composite foreign keys, not by a service.**
+  `role_permissions` and `user_roles` reference `roles (id, company_id)`, and
+  `user_roles` references `company_members (id, company_id)`. Three
+  cross-tenant inserts are refused by the database in the evidence file.
+- **The composite target index must exist before the table that references
+  it.** The first apply failed with `42830`, rolled back cleanly, and the
+  corrected order applied; the failure is recorded in the evidence, not
+  hidden.
+- **`permissions.code` must agree with its parts** (`code = resource || '.' ||
+action`), and `category` is not enumerated because resources grow with
+  later steps.
+- **`login_attempts` stores a hashed email, never clear text.** `email_hash`
+  becomes the blind index 2.9 formalises and is the column the velocity query
+  reads. `correlation_id` is unique per live row, so a retried handler cannot
+  double-record one attempt.
+- **`login_lock_state` is storage only.** Thresholds, the 60 minute lock and
+  the exponential backoff are step 3. The state was proved to survive a
+  `pg_ctl -m fast` restart, which is the property the step 3 gate depends on.
+- **The permission override and the matrix engine are step 4**, with the
+  "permission matrix SQL assertion" gate. 2.4 creates the six tables the
+  checklist names and nothing more.
 
 ## Decisions taken in 2.3
 
@@ -144,25 +171,30 @@ printed or logged.
 6. The isolation assertion reports zero cross-tenant rows.
 7. The key rotation rehearsal is documented.
 
-At the moment of writing: gate 1 is proven for the 2.1 to 2.3 objects
+At the moment of writing: gate 1 is proven for the 2.1 to 2.4 objects
 (`db:assert` reports zero violations after a full down and up cycle), gate 3
-is proven by the catalog query for all ten tables, gates 2, 4, 5 and 6 belong
-to later sub-steps, and gate 7 belongs to 2.10.
+is proven by the catalog query for all sixteen tables, gates 2, 4, 5 and 6
+belong to later sub-steps, and gate 7 belongs to 2.10. The step 3 dependency
+"lock state survives a server restart" was already proven against this
+sub-step's storage (evidence section 6).
 
 ## Next action
 
-Sub-step 2.4: access tables. Read the 2.4 row in
+Sub-step 2.5: platform tables. Read the 2.5 row in
 `docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, then create the migration pair for
-`roles`, `permissions`, `role_permissions`, `user_roles`, `login_attempts` and
-`login_lock_state`. `login_lock_state` is state only: the two-failed-attempt
-lock and its exponential backoff are step 3 (FEATURE_LIST 440-442), and the
-table exists so the lock survives a restart.
+`plans`, `plan_features`, `subscriptions`, `entitlements`, `coupons`,
+`coupon_redemptions` and `feature_flags`.
 
-`user_roles` is the permission-preset assignment that 2.3 deliberately left
-out of `company_members`; its foreign keys point at `roles` and
-`company_members` (or `user_profiles` plus `company_id`). Keep every rule of
-2.2 and 2.3: six universal columns inline, `trg_{table}_set_updated_at`,
-`assert_universal_columns(...)`, a partial unique index, `(company_id,
-created_at)`, indexed `fk_` columns with ON DELETE RESTRICT, named checks.
+Guidance carried from 2.2 to 2.4: six universal columns declared inline,
+`trg_{table}_set_updated_at`, `assert_universal_columns(...)`, a partial
+unique index on `deleted_at IS NULL`, `(company_id, created_at)`, every `fk_`
+indexed and ON DELETE RESTRICT, named checks, money as `numeric(18,4)` and
+never a float. Plan prices are money: use `numeric(18,4)` and a currency code
+checked against `^[A-Z]{3}$` until 2.6 adds the `currencies` foreign key in
+its own migration. `subscriptions` and `entitlements` are tenant rows;
+`plans`, `plan_features` and `feature_flags` are platform rows with a null
+`company_id` enforced by a named check. `coupons` may be platform-wide
+(null company) or tenant-issued (set company): document the rule and enforce
+it with a check, do not leave it implicit.
 
 Run the loop, then `npm run db:assert` (RLS is still off until 2.7).
