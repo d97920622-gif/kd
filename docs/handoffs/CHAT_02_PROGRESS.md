@@ -1,0 +1,103 @@
+// path: docs/handoffs/CHAT_02_PROGRESS.md
+
+# CHAT 02 PROGRESS -- Step 2: Database Foundation, Migrations, RLS, Encryption, Audit Ledger
+
+Status: in progress (sub-step 2.1 of 14)
+Date started: 2026-10-17
+Branch: arena/b7780282-kd
+Starting commit: b2ef9ef (the step 1 audit close, pushed to origin)
+Work order: docs/PLAN/08_SUBSTEP_CHECKLISTS.md STEP 02 (2.1 to 2.14), read
+with docs/PLAN/04 (definition of done and gates), docs/PLAN/03 (ownership),
+docs/PLAN/09 and docs/PLAN/05 sections A11 to A15 (Revision 2 additions).
+
+Step 2 is not segmented: the whole step is one chat, one sub-step per commit,
+and the loop below is repeated until 2.14 is done.
+
+Per-sub-step loop (docs/PLAN/04 section 2 and the chat prompt):
+
+1. Implement the sub-step.
+2. `npm run db:migrate` on a fresh database.
+3. `npm run db:rollback -- <timestamp>`.
+4. `npm run db:migrate` again.
+5. `npm run verify`, `npm run check:rls-coverage`, `npm run check:schema-standards`.
+6. Commit `<type>(step-02/S.S): <summary>`.
+7. Update this file.
+
+The two check scripts of step 5 arrive with their owners: `check:schema-standards`
+in 2.2 and `check:rls-coverage` in 2.7. Until then the loop runs the checks that
+exist and the handoff states which one is not installed yet.
+
+## Sub-steps
+
+| Sub-step | Description                                                                                                                                                            | Status  | Commit  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| 2.1      | Migration framework: ordered runner, checksums, up and down pairs, seeds runner, `db:migrate`, `db:rollback`, `db:seed`, CI database job                               | done    | pending |
+| 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | pending |         |
+| 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | pending |         |
+| 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | pending |         |
+| 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | pending |         |
+| 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | pending |         |
+| 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | pending |         |
+| 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | pending |         |
+| 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | pending |         |
+| 2.10     | Envelope keys: per-tenant DEKs, wrapped storage, usage audit, scheduled rotation window, crypto-shredding with verification query                                      | pending |         |
+| 2.11     | Secret registry: records with owner and purpose, access audit, boot-time validation hook, rotation checklist                                                           | pending |         |
+| 2.12     | Concurrency: idempotency middleware and table, optimistic, pessimistic, advisory and leader locks, duplicate detector, request_logs, rate_limits                       | pending |         |
+| 2.13     | Governance data: data_classification, retention policies, DSAR tables, soft delete and restore helpers, backup metadata                                                | pending |         |
+| 2.14     | Seeds and types: plans, permissions, countries, currencies, tax presets, super_admin bootstrap, `types/database.ts`, handoff                                           | pending |         |
+
+Status values are `pending`, `done` or `blocked`. The commit cell is filled at
+the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.1
+
+- **The migration timestamp is the version.** The ledger stores the file name,
+  its SHA-256, the duration and the apply time; nothing else is a version.
+- **The runner owns the transaction.** One file plus its ledger row commit
+  together. Files must not contain `BEGIN`, `COMMIT` or `ROLLBACK`.
+- **Checksums cover normalized text** (BOM removed, CRLF folded, trailing blank
+  lines removed). Any applied file is immutable; a fix is a new migration.
+- **One advisory lock key** (`20260116000000`) serializes migrate, rollback and
+  seed, so two runners cannot interleave.
+- **Rollback deletes the ledger row first**, inside the same transaction,
+  because the framework down file drops the ledger table.
+- **The seeds ledger ships in 2.1, the seed files in 2.14.** `db:seed` reports
+  zero pending until then.
+- **The CI workflow gained a fourth job**, `database`, which applies the whole
+  set to `postgres:16`, reverts it with `-- all`, applies it again and runs the
+  seeds. The aggregate `ci` job depends on it.
+- **`check:migration-pairs` was fixed.** It could not classify a `_down` file,
+  so the first real pair failed the check. The fix and its four negative probes
+  are recorded in `docs/EVIDENCE/step-02/2.1-migration-framework.md` section 5.
+
+## Environment for the database loop
+
+PostgreSQL is not installed in the sandbox, so the evidence runs used the
+npm-distributed server binary `@embedded-postgres/linux-x64@17.5.0-beta.15`
+(PostgreSQL 17.5) on port 55432, started outside the working tree from
+`/tmp/pgtest`. The exact commands are in the evidence file, section 2. CI uses
+`postgres:16`. `DATABASE_URL` is the only input the commands read; it is never
+printed or logged.
+
+## Step 2 gates (recorded at the end in CHAT_02_COMPLETED.md)
+
+1. Fresh database migrates up and down clean.
+2. RLS coverage is 100 percent.
+3. The five universal columns are on every table.
+4. Hash chain verification passes.
+5. An audit trigger is present on every table.
+6. The isolation assertion reports zero cross-tenant rows.
+7. The key rotation rehearsal is documented.
+
+At the moment of writing: gate 1 is proven for the 2.1 tables (evidence
+section 3), gates 2 to 6 belong to later sub-steps, and gate 7 belongs to 2.10.
+
+## Next action
+
+Sub-step 2.2: database primitives. Read the 2.2 row in
+`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, then implement
+`migrations/20260116010000_database_primitives.sql` and its down pair, the
+`uuid_generate_v7()` and `set_updated_at()` functions, the universal column
+helper, `scripts/checks/schema-standards.mjs`, and the `db:assert` command.
+The migration also takes over the `id` default on `schema_migrations` and
+`seed_migrations` from `gen_random_uuid()` to `uuid_generate_v7()`.

@@ -90,6 +90,7 @@ const ADR_SECTIONS = [
 /** The CI jobs that must exist, with what each one is for. */
 const REQUIRED_JOBS = [
   { name: 'verify', reason: 'the aggregate verification floor' },
+  { name: 'database', reason: 'the migrations applied, reverted and applied again' },
   { name: 'build', reason: 'the production build and the probes against it' },
   { name: 'ci', reason: 'the single status check branch protection names' },
 ];

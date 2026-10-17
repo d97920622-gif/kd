@@ -16,7 +16,8 @@
 import { listTrackedFiles, reportResult } from './_lib.mjs';
 
 const MIGRATION_DIRECTORY = 'migrations/';
-const FILE_PATTERN = /^migrations\/(\d{14})_([a-z0-9]+(?:_[a-z0-9]+)*)(_down)?\.sql$/;
+const DOWN_SUFFIX = '_down.sql';
+const FILE_PATTERN = /^migrations\/(\d{14})_([a-z0-9]+(?:_[a-z0-9]+)*)\.sql$/;
 
 function collect(files) {
   const ups = new Map();
@@ -24,10 +25,15 @@ function collect(files) {
   const findings = [];
   const timestamps = new Map();
   for (const file of files) {
-    if (!file.startsWith(MIGRATION_DIRECTORY)) {
+    if (!file.startsWith(MIGRATION_DIRECTORY) || !file.endsWith('.sql')) {
       continue;
     }
-    const match = FILE_PATTERN.exec(file);
+    // The suffix is stripped before the description is matched. A greedy
+    // description pattern would otherwise swallow "_down" and report a
+    // rollback file as an unpaired forward migration.
+    const isDown = file.endsWith(DOWN_SUFFIX);
+    const forwardFile = isDown ? `${file.slice(0, -DOWN_SUFFIX.length)}.sql` : file;
+    const match = FILE_PATTERN.exec(forwardFile);
     if (match === null) {
       findings.push({
         file,
@@ -40,22 +46,23 @@ function collect(files) {
     }
     const timestamp = match[1];
     const description = match[2];
-    const isDown = match[3] === '_down';
     const key = `${timestamp}_${description}`;
-    const seen = timestamps.get(timestamp);
-    if (seen !== undefined) {
-      findings.push({
-        file,
-        line: 1,
-        column: 1,
-        message: `timestamp ${timestamp} is already used by ${seen}`,
-      });
-    } else {
-      timestamps.set(timestamp, file);
-    }
     if (isDown) {
       downs.set(key, file);
     } else {
+      // Only a forward file claims a timestamp. The rollback file shares it
+      // on purpose, so counting the pair twice would fail every real change.
+      const seen = timestamps.get(timestamp);
+      if (seen !== undefined) {
+        findings.push({
+          file,
+          line: 1,
+          column: 1,
+          message: `timestamp ${timestamp} is already used by ${seen}`,
+        });
+      } else {
+        timestamps.set(timestamp, file);
+      }
       ups.set(key, file);
     }
   }
