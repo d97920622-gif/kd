@@ -1,6 +1,7 @@
 // path: lib/env/validate-env.ts
 import { z } from 'zod';
 
+import { decodeRootKey } from '../encryption/root-key';
 import { AppError } from '../errors/app-error';
 
 /**
@@ -34,6 +35,7 @@ export const ENV_SOURCE_KEYS = [
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'ENCRYPTION_KEY',
 ] as const;
 
 export type EnvKey = (typeof ENV_SOURCE_KEYS)[number];
@@ -42,6 +44,7 @@ export type EnvKey = (typeof ENV_SOURCE_KEYS)[number];
 export const SECRET_ENV_KEYS: readonly EnvKey[] = [
   'SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'ENCRYPTION_KEY',
 ];
 
 /** Variables that must be present and non-empty when the server boots. */
@@ -49,6 +52,7 @@ export const PRODUCTION_REQUIRED_KEYS: readonly EnvKey[] = [
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'ENCRYPTION_KEY',
 ];
 
 const enumMessage = (values: readonly string[]): string => `must be one of: ${values.join(', ')}`;
@@ -74,6 +78,15 @@ const envSchema = z
     SUPABASE_SERVICE_ROLE_KEY: z
       .string()
       .min(20, { message: 'must be at least 20 characters' })
+      .optional(),
+    // The encryption root key (sub-step 2.9). Accepted only as 32 random bytes in
+    // canonical base64; the message never repeats the value.
+    ENCRYPTION_KEY: z
+      .string()
+      .refine((value) => decodeRootKey(value) !== null, {
+        message:
+          'must be 32 random bytes in base64 (44 characters, for example openssl rand -base64 32)',
+      })
       .optional(),
   })
   .superRefine((value, ctx) => {

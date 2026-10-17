@@ -60,6 +60,12 @@ const ENTRIES = [
     args: ['scripts/checks/schema-standards.mjs'],
   },
   { name: 'check:rls-coverage', command: 'node', args: ['scripts/checks/rls-coverage.mjs'] },
+  { name: 'check:encryption', command: 'node', args: ['scripts/checks/encryption.mjs'] },
+  {
+    name: 'encryption:rotation:rehearse',
+    command: 'npx',
+    args: ['tsx', 'scripts/encryption/rotation-rehearsal.ts'],
+  },
   { name: 'check:dead-links', command: 'node', args: ['scripts/checks/dead-links.mjs'] },
   { name: 'check:secrets', command: 'node', args: ['scripts/checks/secrets.mjs'] },
   { name: 'check:any-types', command: 'node', args: ['scripts/checks/any-types.mjs'] },
