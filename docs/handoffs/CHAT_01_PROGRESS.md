@@ -115,6 +115,47 @@ the image. The section 2 substitute measurements stand in for it and the owner
 action - one Lighthouse command against the deployed preview - is recorded in the
 gate file, in the handoff risks and below.
 
+## Verification after the gate -- the owner's second pass over step 1
+
+The owner asked for step 1 to be verified again, in case anything is wrong,
+before the branch is merged. The pass is recorded in section 7 of
+`docs/EVIDENCE/step-01/gate-1D.md`; this entry is the summary.
+
+Re-run end to end on the restored tree: the floor (PASS 30/30), a fresh
+production build in a copy (exit 0, 0 deprecated diagnostics, served on 3020),
+the production probes (platform, http hardening, public pages: 0 findings, 0
+findings, PASS), the development probes (platform, http hardening, shell,
+gallery DOM: 0 findings in all four), the sub-step tables against `git log` (all
+32 rows name a commit that exists), the route inventory (15 pages, none outside
+`(public)` and `(dev)`), the tracked-file list (no cache, log, build output or
+`.env`), and the environment schema against `.env.example` (six keys, identical
+both ways).
+
+Four defects were found, all of them documents rather than code, and all four
+are fixed:
+
+1. The platform probe printed "44 script elements carry the nonce" where the
+   document has 42 script elements and 2 link elements carrying it. The count was
+   right, the noun was wrong. The probe now reports "42 of 42 script elements"
+   and states the two links separately, which is also a stronger assertion: it
+   fails if any script is missing its nonce.
+2. The gate record repeated the wrong noun, and its transfer total counted the
+   preloaded chunk twice: 345,464 bytes over 27 requests for a document that
+   names 25 distinct URLs. It now reads about 298 kB over 26 requests, with the
+   duplicate named.
+3. The compressed sizes were printed as constants when they move by a few dozen
+   bytes between responses, because every response carries a fresh nonce. They
+   are now about-values with the measured range and a paragraph explaining why.
+4. The step 1 handoff said 335 tracked files and 12 UI primitives (342 and 20 are
+   the truth), and the README documented 18 of the 20 primitives and none of the
+   seven state components 1.24 added. Both are corrected, and the README gained
+   the two tables it was missing.
+
+Two apparent gaps were checked and left alone because each is a statement about a
+later step, not a false claim: `lib/middleware/csrf.ts` (sub-step 3.4) and the
+`CHAT_NN_*` handoff naming pattern. The one thing the pass could not settle is
+the same thing the gate could not: the Lighthouse score, which needs a browser.
+
 ## Segment 1D gate evidence -- the production build, the performance item, the audit and the floor
 
 The gate ran on 2026-10-17 against the tree at `9262354`. The full record is
@@ -122,12 +163,12 @@ The gate ran on 2026-10-17 against the tree at `9262354`. The full record is
 records: the command that was run, the output it produced, and a closing section
 naming what the result does not cover.
 
-| Gate item                              | Result | The measurement behind it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| -------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build passes                | PASS   | `npx next build` in a copy of the tree, exit 0: Next.js 15.5.28, compiled in 19.9s, 8 of 8 static pages generated, 0 `dynamicIO` diagnostics, `BUILD_ID`, `robots.txt.body`, `sitemap.xml.body` and `opengraph-image.body` all present, 20 route rows (5 prerendered file routes, 15 routes rendered on demand), and all 12 public routes answering 200 from the served build                                                                                                                                                                                                             |
-| Lighthouse at least 90 on the homepage | OPEN   | Not measurable here, and the gate file records the three checks that prove it: no browser binary in the image, GitHub release assets unreachable, and the shared libraries a Chromium needs absent with no package-manager network. The substitute measurements are in the gate file: the document is 15,839 bytes over the wire, the median time to first byte is 14.9 ms over five requests, the whole page is 345,464 bytes over 27 requests, the document names one absolute origin (its own), it carries no image element, and every one of its 42 script elements carries the nonce |
-| Dead-link audit clean                  | PASS   | `check:dead-links`: 15 routes, 58 verified links, 0 dynamic links skipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `npm run verify` fully green           | PASS   | 30 of 30 entries, exit code 0, on the same commit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Gate item                              | Result | The measurement behind it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production build passes                | PASS   | `npx next build` in a copy of the tree, exit 0: Next.js 15.5.28, compiled in 19.9s, 8 of 8 static pages generated, 0 `dynamicIO` diagnostics, `BUILD_ID`, `robots.txt.body`, `sitemap.xml.body` and `opengraph-image.body` all present, 20 route rows (5 prerendered file routes, 15 routes rendered on demand), and all 12 public routes answering 200 from the served build                                                                                                                                                                                                                                                                                           |
+| Lighthouse at least 90 on the homepage | OPEN   | Not measurable here, and the gate file records the three checks that prove it: no browser binary in the image, GitHub release assets unreachable, and the shared libraries a Chromium needs absent with no package-manager network. The substitute measurements are in the gate file: the document is about 15.8 kB over the wire (15,744 to 15,818 across six responses, because the nonce differs every time), the median time to first byte is 14.9 ms over five requests, the whole page is about 298 kB over 26 requests, the document names one absolute origin (its own), it carries no image element, and every one of its 42 script elements carries the nonce |
+| Dead-link audit clean                  | PASS   | `check:dead-links`: 15 routes, 58 verified links, 0 dynamic links skipped                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `npm run verify` fully green           | PASS   | 30 of 30 entries, exit code 0, on the same commit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 Supporting probes, all green, production and development: the platform probe
 (0 findings in both environments: robots, sitemap with 12 of 12 locations
@@ -495,8 +536,10 @@ below rather than half-built here.
   gone: the flag is `cacheComponents` now, its meaning unchanged.
 - The platform probe against the built server (`platform-probe.py --base
 http://127.0.0.1:3020 --environment production --server-log /tmp/prod-130.log`):
-  **PASS, 0 findings** (`/tmp/probe-130-prod.txt`). It reads 44 script elements
-  carrying the nonce in the document, two nonces across two responses, a
+  **PASS, 0 findings** (`/tmp/probe-130-prod.txt`). It reads 42 script elements
+  carrying the nonce in the document, plus the two linked assets that carry it
+  as well (the probe counted all 44 elements before 1D's audit separated the two
+  kinds), two nonces across two responses, a
   production policy with no inline or eval and `frame-ancestors 'none'`, a static
   asset with no policy, the print base and both named sheets in the compiled
   stylesheet, one paper marker marked for paper, the open graph title,

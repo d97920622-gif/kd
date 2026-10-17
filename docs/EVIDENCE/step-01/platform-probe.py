@@ -193,11 +193,18 @@ def check_document_and_policy(base: str, environment: str) -> str:
     )
 
     attribute = f'nonce="{nonce}"'
-    stored = html.count(attribute)
+    total = html.count(attribute)
+    scripts_marked = len(re.findall(r"<script[^>]*nonce=" + re.escape(f'"{nonce}"'), html))
+    scripts = len(re.findall(r"<script", html))
     report(
         "the document's scripts carry the nonce",
-        stored > 0,
-        f"{stored} script elements carry {attribute}",
+        scripts_marked == scripts and scripts > 0,
+        f"{scripts_marked} of {scripts} script elements carry {attribute}",
+    )
+    report(
+        "the nonce reaches the linked assets too",
+        total >= scripts,
+        f"{total} elements carry {attribute} ({scripts} scripts and {total - scripts} links)",
     )
 
     if environment == "production":

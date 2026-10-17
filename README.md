@@ -125,26 +125,28 @@ comes from the design tokens, so light, dark, high contrast light and high
 contrast dark are complete without a conditional style, and `npm run verify`
 fails on a raw color, a raw size or an arbitrary value.
 
-| Primitive   | File                              | Notes                                                                                                  |
-| ----------- | --------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Button      | `components/ui/button.tsx`        | Variants default, destructive, outline, secondary, ghost, link; sizes sm, default, lg, icon            |
-| Input       | `components/ui/input.tsx`         | 44px tall, 16px text so iOS never zooms on focus, destructive boundary when invalid                    |
-| Textarea    | `components/ui/textarea.tsx`      | Starts at the 64px token, vertical resize only                                                         |
-| Label       | `components/ui/label.tsx`         | Radix association, dims with a disabled control through the peer variants                              |
-| Checkbox    | `components/ui/checkbox.tsx`      | Role checkbox, checked and indeterminate states, 44x44 pointer target                                  |
-| Radio group | `components/ui/radio-group.tsx`   | Roving tabindex and arrow key navigation, 44x44 pointer target                                         |
-| Select      | `components/ui/select.tsx`        | Combobox with listbox, keyboard and type-ahead navigation, hidden native select for forms              |
-| Switch      | `components/ui/switch.tsx`        | Role switch, thumb travel of one token step, 44px vertical pointer target                              |
-| Dialog      | `components/ui/dialog.tsx`        | Modal surface: focus moves in and returns to the trigger, page behind hidden from assistive technology |
-| Sheet       | `components/ui/sheet.tsx`         | Edge panel built on the dialog: top, bottom, left and right                                            |
-| Popover     | `components/ui/popover.tsx`       | Interactive surface anchored to its trigger, opened by pointer or keyboard, never by hover             |
-| Dropdown    | `components/ui/dropdown-menu.tsx` | Menu contract: arrow keys, type-ahead, Escape, destructive items separated, submenus                   |
-| Tabs        | `components/ui/tabs.tsx`          | Arrow navigation, one visible panel, the tab list scrolls instead of wrapping at 320px                 |
-| Tooltip     | `components/ui/tooltip.tsx`       | Hint on hover and on focus, never the only copy of a requirement, never an accessible name             |
-| Toast       | `components/ui/toast.tsx`         | Live-region toast; queue and viewport wiring in `lib/hooks/use-toast.tsx`                              |
-| Table       | `components/ui/table.tsx`         | Real table elements with scoped headers, a caption and a horizontal scroll wrapper                     |
-| Skeleton    | `components/ui/skeleton.tsx`      | Shape of pending content, hidden from assistive technology, pulse stops under reduced motion           |
-| Badge       | `components/ui/badge.tsx`         | Status label using the semantic role pairs, never the only signal of a state                           |
+| Primitive   | File                              | Notes                                                                                                                                                                  |
+| ----------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Button      | `components/ui/button.tsx`        | Variants default, destructive, outline, secondary, ghost, link; sizes sm, default, lg, icon                                                                            |
+| Input       | `components/ui/input.tsx`         | 44px tall, 16px text so iOS never zooms on focus, destructive boundary when invalid                                                                                    |
+| Textarea    | `components/ui/textarea.tsx`      | Starts at the 64px token, vertical resize only                                                                                                                         |
+| Label       | `components/ui/label.tsx`         | Radix association, dims with a disabled control through the peer variants                                                                                              |
+| Checkbox    | `components/ui/checkbox.tsx`      | Role checkbox, checked and indeterminate states, 44x44 pointer target                                                                                                  |
+| Radio group | `components/ui/radio-group.tsx`   | Roving tabindex and arrow key navigation, 44x44 pointer target                                                                                                         |
+| Select      | `components/ui/select.tsx`        | Combobox with listbox, keyboard and type-ahead navigation, hidden native select for forms                                                                              |
+| Switch      | `components/ui/switch.tsx`        | Role switch, thumb travel of one token step, 44px vertical pointer target                                                                                              |
+| Dialog      | `components/ui/dialog.tsx`        | Modal surface: focus moves in and returns to the trigger, page behind hidden from assistive technology                                                                 |
+| Sheet       | `components/ui/sheet.tsx`         | Edge panel built on the dialog: top, bottom, left and right                                                                                                            |
+| Popover     | `components/ui/popover.tsx`       | Interactive surface anchored to its trigger, opened by pointer or keyboard, never by hover                                                                             |
+| Dropdown    | `components/ui/dropdown-menu.tsx` | Menu contract: arrow keys, type-ahead, Escape, destructive items separated, submenus                                                                                   |
+| Tabs        | `components/ui/tabs.tsx`          | Arrow navigation, one visible panel, the tab list scrolls instead of wrapping at 320px                                                                                 |
+| Tooltip     | `components/ui/tooltip.tsx`       | Hint on hover and on focus, never the only copy of a requirement, never an accessible name                                                                             |
+| Toast       | `components/ui/toast.tsx`         | Live-region toast; queue and viewport wiring in `lib/hooks/use-toast.tsx`                                                                                              |
+| Table       | `components/ui/table.tsx`         | Real table elements with scoped headers, a caption and a horizontal scroll wrapper                                                                                     |
+| Skeleton    | `components/ui/skeleton.tsx`      | Shape of pending content, hidden from assistive technology, pulse stops under reduced motion                                                                           |
+| Badge       | `components/ui/badge.tsx`         | Status label using the semantic role pairs, never the only signal of a state                                                                                           |
+| IconButton  | `components/ui/icon-button.tsx`   | A button whose label is a name rather than a word on screen: the label is a required prop backed by a tooltip, so an icon-only control cannot lose its accessible name |
+| Kbd         | `components/ui/kbd.tsx`           | A keycap and a chord, so a shortcut reads as separate keys rather than as one string; the chord labels come from the same registry the palette listens on              |
 
 ### Shared form layer
 
@@ -193,6 +195,24 @@ Three rules the primitives follow, each one enforced rather than promised:
    sentence from the catalogue; anything else, including the text of a schema a
    later step writes by hand, is replaced by the catalogue sentence for that
    kind of failure.
+
+### State components
+
+`components/shared/` also holds the states a page shows when it has nothing to
+render, so every surface composes the same behaviour instead of inventing one.
+Each one is announced, actionable and named: `check:page-states` verifies that
+each of them tells a screen reader what happened, offers the reader a way
+forward, and takes its words from the catalogue.
+
+| Component      | File                                           | Notes                                                                                                      |
+| -------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| StatusState    | `components/shared/status-state.tsx`           | One shell for empty, error, permission and offline: a sentence, a named control and the space between them |
+| LoadingState   | `components/shared/loading-state.tsx`          | The skeleton shapes the product's pages actually have, in the four layouts rather than one generic block   |
+| ErrorBoundary  | `components/shared/error-boundary.tsx`         | The route error surface: a reference the reader can quote, a bounded retry and no internal detail          |
+| SuccessState   | `components/shared/success-state.tsx`          | The done state, with what happens next and, when a count is involved, the plural pair from the catalogue   |
+| LiveRegion     | `components/shared/live-region.tsx`            | The one place a change is announced, so two components cannot announce the same thing twice                |
+| Illustration   | `components/shared/state-illustration.tsx`     | The drawn, token-coloured illustration that keeps an empty panel from reading as a page that failed        |
+| Explainability | `components/shared/explainability-message.tsx` | Why something happened, from a closed set of reasons, with a sanitized reference and a UTC timestamp       |
 
 ### Component gallery
 

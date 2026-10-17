@@ -149,19 +149,27 @@ What is measured instead, on the served production build of the homepage. These
 describe the same page the audit would score, and none of them is a Lighthouse
 score:
 
-| Measurement                                                | Value                                                    |
-| ---------------------------------------------------------- | -------------------------------------------------------- |
-| Document, identity encoding                                | 61,455 bytes                                             |
-| Document, gzip (how it is served)                          | 15,839 bytes, `Content-Encoding: gzip`                   |
-| Time to first byte, five requests                          | 33.9, 14.9, 14.1, 16.6, 13.2 ms; median 14.9 ms          |
-| Requests the document names                                | 24 scripts, 1 stylesheet, 1 preload                      |
-| Transfer total, gzip, document plus every request it names | 345,464 bytes over 27 requests                           |
-| Script requests and bytes as served (public-pages probe)   | 24 requests, 855,915 bytes                               |
-| Image elements                                             | 0, and 0 images without a declared size                  |
-| Script elements in the document                            | 42, all 42 carrying the nonce (24 with `src`, 18 inline) |
-| Absolute origins named in the document                     | one, the deployment's own                                |
-| Static asset caching                                       | `public, max-age=31536000, immutable`                    |
-| Server readiness after boot                                | 373 ms                                                   |
+| Measurement                                              | Value                                                                                                                                                                                                |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Document, identity encoding                              | 61,455 bytes                                                                                                                                                                                         |
+| Document, gzip (how it is served)                        | about 15.8 kB, `Content-Encoding: gzip`; the exact size moves by a few dozen bytes between responses because the per-request nonce is different every time (six responses measured 15,744 to 15,818) |
+| Time to first byte, five requests                        | 33.9, 14.9, 14.1, 16.6, 13.2 ms; median 14.9 ms                                                                                                                                                      |
+| Requests the document names                              | 24 scripts, 1 stylesheet, 1 preload, which is 25 distinct URLs because the preload names a script the document also loads                                                                            |
+| Transfer total, gzip, document plus every distinct asset | about 298 kB over 26 requests (298,109 on the run recorded here)                                                                                                                                     |
+| The 24 scripts, uncompressed                             | 855,915 bytes, which is the number the public-pages probe reports as script bytes as served                                                                                                          |
+| Image elements                                           | 0, and 0 images without a declared size                                                                                                                                                              |
+| Script elements in the document                          | 42, all 42 carrying the nonce (24 with `src`, 18 inline)                                                                                                                                             |
+| Absolute origins named in the document                   | one, the deployment's own                                                                                                                                                                            |
+| Static asset caching                                     | `public, max-age=31536000, immutable`                                                                                                                                                                |
+| Server readiness after boot                              | 373 ms                                                                                                                                                                                               |
+
+The numbers above are properties of this build, measured on the served production
+output. The compressed sizes are the only ones that move between responses: every
+response carries a fresh nonce, so the gzip stream differs by a few dozen bytes
+and the transfer total by a few hundred. They are recorded as about-values with
+the measured range rather than as exact constants, because a number that changes
+every request is not a constant and a document that prints one invites the next
+reader to think it was miscopied.
 
 The evidence file for step 1's gate keeps this item open rather than closed, and
 the owner action is one command against the deployed preview:
@@ -208,15 +216,15 @@ claim.
 Nothing here is required by the gate statement; each one is a measurement that
 could have failed the segment if it had come back wrong.
 
-| Probe                                         | Environment | Result                                                                                                                                                                                                                                                                                                                                                                                    |
-| --------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `platform-probe.py`                           | production  | 0 findings: robots with 5 checks, sitemap with 12 locations, 12 of 12 answering 200, the nonce on all 44 script elements of the homepage, a production policy with no inline and no eval, framing refused, one stylesheet, the print sheets, the head metadata, the social image answering `image/png`, `/gallery` answering 404, and a start-up record carrying no key name and no value |
-| `http-hardening-probe.py 3020 production`     | production  | 0 findings: nine header values compared exactly, the content security policy judged by content with the nonce in both directives, Permissions-Policy refusing six features and granting two, the same matrix on a static asset                                                                                                                                                            |
-| `public-pages-probe.py 3020`                  | production  | PASS: every public page read out of the response, one `h1` each, the header marking one current page at a time, the pricing figures, the calculator forms, the 404 page                                                                                                                                                                                                                   |
-| `platform-probe.py --environment development` | development | 0 findings: the development policy differs only where it is meant to (no framing refusal, no HSTS), robots refusing the whole site, the start-up record structured                                                                                                                                                                                                                        |
-| `http-hardening-probe.py 3000 development`    | development | 0 findings                                                                                                                                                                                                                                                                                                                                                                                |
-| `shell-probe.py`                              | development | 0 findings: the shells, the skip link, the navigation map with its three trail cases and its role filter, the command surface, the shortcuts page                                                                                                                                                                                                                                         |
-| `gallery-dom-probe.py`                        | development | 0 findings: five theme scopes, 61 markers per scope, two page-level markers, every interactive control named                                                                                                                                                                                                                                                                              |
+| Probe                                         | Environment | Result                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `platform-probe.py`                           | production  | 0 findings: robots with 5 checks, sitemap with 12 locations, 12 of 12 answering 200, the nonce on all 42 script elements of the homepage and on the 2 linked assets beside them, a production policy with no inline and no eval, framing refused, one stylesheet, the print sheets, the head metadata, the social image answering `image/png`, `/gallery` answering 404, and a start-up record carrying no key name and no value |
+| `http-hardening-probe.py 3020 production`     | production  | 0 findings: nine header values compared exactly, the content security policy judged by content with the nonce in both directives, Permissions-Policy refusing six features and granting two, the same matrix on a static asset                                                                                                                                                                                                   |
+| `public-pages-probe.py 3020`                  | production  | PASS: every public page read out of the response, one `h1` each, the header marking one current page at a time, the pricing figures, the calculator forms, the 404 page                                                                                                                                                                                                                                                          |
+| `platform-probe.py --environment development` | development | 0 findings: the development policy differs only where it is meant to (no framing refusal, no HSTS), robots refusing the whole site, the start-up record structured                                                                                                                                                                                                                                                               |
+| `http-hardening-probe.py 3000 development`    | development | 0 findings                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `shell-probe.py`                              | development | 0 findings: the shells, the skip link, the navigation map with its three trail cases and its role filter, the command surface, the shortcuts page                                                                                                                                                                                                                                                                                |
+| `gallery-dom-probe.py`                        | development | 0 findings: five theme scopes, 61 markers per scope, two page-level markers, every interactive control named                                                                                                                                                                                                                                                                                                                     |
 
 The development runs matter because the review preview is a development
 deployment: the gate would be worth little if the checks passed only against the
@@ -234,7 +242,48 @@ The first one is the reason this gate was worth running rather than assumed: the
 repository had been carrying a generated file for several sub-steps and nothing
 in the floor objected, because no rule refuses a tracked build artefact.
 
-## 7. What this gate does not cover
+## 7. The audit after the gate
+
+The owner asked for step 1 to be verified again before the branch is merged, so
+the gate was not taken as the end of the work. This section records what a second
+pass over the whole of step 1 found, because a verification that finds nothing is
+worth less than one that says what it looked at.
+
+**What was re-run, and its result.**
+
+| Surface            | Command                                                 | Result                                                                                                                                        |
+| ------------------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository state   | `git status`, `git ls-files`, `git log`                 | Tree clean, 342 tracked files, 60 commits, no merge commit, every subject in the conventional format and none over 72 characters or non-ASCII |
+| Floor              | `npm run verify`                                        | PASS, 30 of 30                                                                                                                                |
+| Production build   | fresh copy, `npx next build`, then `next start -p 3020` | exit 0, 0 deprecated diagnostics, served and probed                                                                                           |
+| Production probes  | platform, http hardening, public pages                  | 0 findings, 0 findings, PASS                                                                                                                  |
+| Development probes | platform, http hardening, shell, gallery DOM            | 0 findings in all four                                                                                                                        |
+| Sub-step coverage  | every SEGMENT table row against `git log`               | all 32 rows name a commit that exists                                                                                                         |
+| Routes             | `find app -name page.tsx`                               | 15 pages, all under `(public)` and `(dev)`; no unauthenticated application page outside them                                                  |
+| Artefacts          | `git ls-files` for caches, logs, build output, `.env`   | none tracked                                                                                                                                  |
+| Environment        | schema against `.env.example`                           | six keys, identical in both directions                                                                                                        |
+
+**What it found, and what was fixed.** Four defects, all in documents rather than
+in code, and each one was a number or a noun that had stopped being true:
+
+| Defect                                                                                                                                                                                                                              | Where                                             | Fix                                                                                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The platform probe reported "44 script elements carry the nonce" when the document has 42 script elements and 2 link elements carrying it. The attribute count was right and the noun was wrong                                     | `docs/EVIDENCE/step-01/platform-probe.py`         | The probe now counts script tags and reports them against the script total, and states the linked assets separately: "42 of 42 script elements" and "44 elements (42 scripts and 2 links)"                                                       |
+| The gate record repeated the same wrong noun, and its transfer total double-counted the preloaded chunk (345,464 bytes over 27 requests, when the document names 25 distinct URLs)                                                  | this file, section 2                              | 42 script elements, about 298 kB over 26 requests, and the preload named as the one duplicated URL                                                                                                                                               |
+| The compressed sizes were printed as constants. They are not: every response carries a fresh nonce, so the gzip stream moves by a few dozen bytes and the transfer total by a few hundred                                           | this file, section 2                              | Recorded as about-values with the measured range, plus a paragraph saying why they move                                                                                                                                                          |
+| The step 1 handoff said the repository holds 335 tracked files and `components/ui/` holds 12 primitives, while it holds 342 and 20; the README documented 18 of the 20 primitives and none of the seven state components 1.24 added | `docs/handoffs/CHAT_01_COMPLETED.md`, `README.md` | 342 files, 20 primitives, and two new README tables: IconButton and Kbd in the primitive table, and a state-components table for StatusState, LoadingState, ErrorBoundary, SuccessState, LiveRegion, StateIllustration and ExplainabilityMessage |
+
+Two findings were checked and deliberately left as they are, because each is a
+statement about the future rather than a defect: the README still names
+`lib/middleware/csrf.ts` as the file sub-step 3.4 will write, and `docs/ADR/`
+uses `CHAT_NN_*` as the handoff naming pattern. A defect is a claim that is false
+today; a claim that a later step will create a file is a plan.
+
+**What the audit could not settle.** The same item the gate could not: the
+Lighthouse score. Everything else that the gate asserts was re-measured rather
+than re-read.
+
+## 8. What this gate does not cover
 
 - **The Lighthouse score itself.** Recorded as an open item in section 2 with the
   owner action. It is the only gate item that could not be measured here.
@@ -249,7 +298,7 @@ in the floor objected, because no rule refuses a tracked build artefact.
   deployment itself (Netlify pointed at `integration`) is the owner's one-time
   setup.
 
-## 8. Gate result
+## 9. Gate result
 
 | Gate item                              | Result                                                                                                                       |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
