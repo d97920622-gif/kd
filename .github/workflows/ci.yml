@@ -177,6 +177,12 @@ jobs:
         env:
           NODE_ENV: production
         run: |
+          # Production boot requires ENCRYPTION_KEY (sub-step 2.9). This run has no
+          # deployment secret, so the probe gets an ephemeral 32-byte key, generated
+          # here and exported only into the server's environment. It is never written
+          # to a file or to the log, and it is discarded when the job ends.
+          ENCRYPTION_KEY="$(openssl rand -base64 32)"
+          export ENCRYPTION_KEY
           npm run start -- -p 3020 > /tmp/ci-server.log 2>&1 &
           for attempt in $(seq 1 30); do
             if curl -sf -o /dev/null http://127.0.0.1:3020/; then
