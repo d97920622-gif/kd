@@ -27,6 +27,8 @@
     "db:seed": "node scripts/db/seed.mjs",
     "db:assert": "node scripts/db/assert.mjs",
     "db:fuzz": "node scripts/db/fuzz.mjs",
+    "db:audit:sign": "node scripts/db/audit-sign.mjs",
+    "db:audit:verify": "node scripts/db/audit-verify.mjs",
     "tokens:export": "tsx scripts/export-design-tokens.ts",
     "changelog": "node scripts/changelog.mjs",
     "brand:generate": "tsx scripts/generate-brand-assets.ts",

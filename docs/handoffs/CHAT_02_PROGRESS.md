@@ -39,7 +39,7 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 | 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | done    | 5ba6225 |
 | 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | done    | ae5f1a6 |
 | 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | done    | 1e6a98d |
-| 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | pending |         |
+| 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | done    |         |
 | 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | pending |         |
 | 2.10     | Envelope keys: per-tenant DEKs, wrapped storage, usage audit, scheduled rotation window, crypto-shredding with verification query                                      | pending |         |
 | 2.11     | Secret registry: records with owner and purpose, access audit, boot-time validation hook, rotation checklist                                                           | pending |         |
@@ -49,6 +49,38 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.8
+
+- **The chain covers content, the signature covers the chain.** `current_hash`
+  is SHA-256 over `previous_hash` and the canonical content of the row, and the
+  Ed25519 signature covers that hash. A content change fails the hash check, and
+  a recomputed hash fails the signature.
+- **Gapless sequences under a lock.** `audit_logs_chain()` takes
+  `pg_advisory_xact_lock(hashtext('audit_logs:chain'))` and writes the next
+  sequence number. Every audited write serialises on it. That is the cost of a
+  gapless sequence.
+- **Signature-only and `updated_at`-only changes are not audited**, or the signer
+  would write a row for every row it signs. A checkpoint writes a root only when
+  a non-root row exists at or after its first sequence, which stops the
+  single-leaf churn found in the first draft.
+- **Attach once, insert only.** A signature attaches once, while it is NULL.
+  Keys and roots are insert-only, and the ledger takes no write grant to
+  `kd_app`.
+- **Deviation from the 2.7 shape, recorded.** The ledger tables grant SELECT to
+  `kd_app` and carry the read policies `tenant_audit_read` and
+  `platform_audit_read`. A tenant needs to read its own trail. The grant is
+  SELECT only, with no DELETE grant and no DELETE policy.
+- **Verification fails closed.** `db:audit:verify` runs `audit_verify_chain()`
+  as well as the signature checks, so a content-only change fails the verifier.
+- **`audit_logs` is exempt from capture**, so the chain does not recurse. Its
+  integrity rests on the chain, signed-once and truncate guards.
+- **The signing key is environment only.** `AUDIT_SIGNING_PRIVATE_KEY` is read by
+  the signer and never stored; the database holds the public key. The CI key is
+  ephemeral and removed when the step exits.
+- **The owner must hold BYPASSRLS.** The SECURITY DEFINER audit functions need
+  it, as the 2.7 runners do. This is documented, not enforced. The deployment
+  checklist must check it.
 
 ## Decisions taken in 2.7
 
@@ -252,20 +284,26 @@ down and up cycle, with `db:assert` and `db:fuzz` clean after each); gate 2 is
 proven at 100 percent for the twenty-seven tables by the catalogue assertion and
 the static check; gate 3 is proven by the catalogue query for all twenty-seven
 tables; gate 6 is proven by the isolation fuzz and the live assertion (zero
-cross-tenant rows, evidence section 6); gates 4 and 5 belong to 2.8 (the audit
-trigger on every table is written there); gate 7 belongs to 2.10. The step 3
+cross-tenant rows, evidence section 6); gates 4 and 5 are now proven in 2.8
+(the chain verifies on a fresh database, and every table except `audit_logs`
+carries a capture trigger, while `audit_logs` carries its own guards); gate 7
+belongs to 2.10. The step 3
 dependency "lock state survives a server restart" was already proven against
 the 2.4 storage.
 
 ## Next action
 
-Sub-step 2.8: the audit ledger. Read the 2.8 row in
-`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, the audit field list in MASTER_PROMPT and
-the ownership table in `docs/PLAN/03`. Then add one migration pair that creates
-`audit_logs` with a sequence number, a hash chain (SHA-256 over the previous
-hash), an Ed25519 signature, append-only triggers, a verification function, a
-merkle root table and function, and an export function, and attaches the audit
-trigger to every table. `audit_logs` follows the 2.7 ledger shape: RLS forced,
-`default_deny`, no grant to `kd_app`, and writes by the trigger function only.
-Extend `scripts/db/sql/` with the ledger verification assertion, and keep
-`check:rls-coverage` at 100 percent for the new table.
+Sub-step 2.9: the encryption core. Read the 2.9 row in
+`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, the ownership table in `docs/PLAN/03`, and
+the encryption rows of FEATURE_LIST. Then add the support tables in the 2.9 block
+`20260116080000` (listed in `migrations/README.md`), and the application modules
+`lib/encryption/aes-256-gcm.ts`, `key-vault.ts` and `key-rotation.ts`, with the
+blind index, PII redaction and the benchmark document.
+
+Two rules set the shape of 2.9, and both are FEATURE_LIST.md items. Item 3188
+says the root key `ENCRYPTION_KEY` never rotates. Items 3189 and 3190 say other
+keys rotate annually with zero downtime, and that encrypted fields carry a
+key-version tag. Per-tenant data keys are rotatable, and the root key is
+immutable. Every new table takes the five universal columns, RLS forced with
+its policies, and a capture trigger from the 2.8 helper. Run the same loop as
+2.7 and 2.8, and keep the twenty absolute rules.

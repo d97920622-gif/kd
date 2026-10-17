@@ -7,10 +7,11 @@
  * read-only transaction, prints the violations and exits 1 when any file found
  * one, so a deploy pipeline can gate on it.
  *
- * A file declares what it covers in its header. Today there are three:
- * `check-schema-standards.sql` (sub-step 2.2), and `check-rls-isolation.sql`
- * and `check-rls-coverage.sql` (sub-step 2.7). The ledger and lock assertions
- * of sub-steps 2.8 and 2.12 add their own files here.
+ * A file declares what it covers in its header. Today there are five:
+ * `check-schema-standards.sql` (sub-step 2.2), `check-rls-isolation.sql` and
+ * `check-rls-coverage.sql` (sub-step 2.7), and `check-audit-chain.sql` and
+ * `check-audit-coverage.sql` (sub-step 2.8). The lock assertions of sub-step
+ * 2.12 add their own files here.
  *
  * Usage:
  *   npm run db:assert
