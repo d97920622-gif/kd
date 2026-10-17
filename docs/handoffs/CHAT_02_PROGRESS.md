@@ -2,7 +2,7 @@
 
 # CHAT 02 PROGRESS -- Step 2: Database Foundation, Migrations, RLS, Encryption, Audit Ledger
 
-Status: in progress (sub-step 2.1 of 14)
+Status: in progress (sub-step 2.2 of 14)
 Date started: 2026-10-17
 Branch: arena/b7780282-kd
 Starting commit: b2ef9ef (the step 1 audit close, pushed to origin)
@@ -23,16 +23,17 @@ Per-sub-step loop (docs/PLAN/04 section 2 and the chat prompt):
 6. Commit `<type>(step-02/S.S): <summary>`.
 7. Update this file.
 
-The two check scripts of step 5 arrive with their owners: `check:schema-standards`
-in 2.2 and `check:rls-coverage` in 2.7. Until then the loop runs the checks that
-exist and the handoff states which one is not installed yet.
+`check:schema-standards` arrived in 2.2 and `check:rls-coverage` arrives in 2.7;
+until then the loop runs the checks that exist and the handoff states which one
+is not installed yet. The database half of the loop is `npm run db:assert`,
+which reads the live catalog through the files in `scripts/db/sql/`.
 
 ## Sub-steps
 
 | Sub-step | Description                                                                                                                                                            | Status  | Commit  |
 | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | 2.1      | Migration framework: ordered runner, checksums, up and down pairs, seeds runner, `db:migrate`, `db:rollback`, `db:seed`, CI database job                               | done    | 49e483a |
-| 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | pending |         |
+| 2.2      | Database primitives: extensions, `uuid_generate_v7()`, `set_updated_at()`, universal column helper, `check-schema-standards`                                           | done    | pending |
 | 2.3      | Tenancy tables: companies, company_settings, company_members, user_profiles, platform_users, invitations, devices, sessions                                            | pending |         |
 | 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | pending |         |
 | 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | pending |         |
@@ -48,6 +49,31 @@ exist and the handoff states which one is not installed yet.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.2
+
+- **`uuid_generate_v7()` is plpgsql over `gen_random_bytes`**: 48-bit
+  millisecond prefix from `clock_timestamp()`, version nibble 7, variant `10`,
+  62 random bits. No extension provides v7 on PostgreSQL 16, and `pgcrypto`
+  already provides the randomness.
+- **One `updated_at` writer.** `set_updated_at()` is a `BEFORE UPDATE` trigger
+  function; it never touches `version`, because a hidden bump would defeat the
+  optimistic lock of 2.12.
+- **The universal columns are declared inline, with a guard.** Every later
+  migration writes the six columns explicitly and ends with
+  `assert_universal_columns(...)`, so a forgotten column fails the apply.
+  `apply_universal_columns()` exists for an existing table that gains them.
+- **Two halves of one standard.** The text check (`check:schema-standards`)
+  runs in `verify` with no database; the catalog query
+  (`scripts/db/sql/check-schema-standards.sql`) runs in `db:assert` and in the
+  CI database job. Twenty rules, the same twenty.
+- **`db:assert` is a runner, not a second implementation.** It executes every
+  read-only file in `scripts/db/sql/` inside a read-only transaction. The
+  isolation assertion (2.7), ledger verification (2.8) and lock assertion
+  (2.12) add files, never another command.
+- **The 2.1 ledgers were brought to the standard** rather than exempted: `id`
+  defaults to v7, `version` starts at 0, the business-key unique indexes are
+  partial on `deleted_at IS NULL`.
 
 ## Decisions taken in 2.1
 
@@ -89,15 +115,22 @@ printed or logged.
 6. The isolation assertion reports zero cross-tenant rows.
 7. The key rotation rehearsal is documented.
 
-At the moment of writing: gate 1 is proven for the 2.1 tables (evidence
-section 3), gates 2 to 6 belong to later sub-steps, and gate 7 belongs to 2.10.
+At the moment of writing: gate 1 is proven for the 2.1 and 2.2 objects
+(`db:assert` reports zero violations after a full down and up cycle), gate 3
+is proven by the catalog query for both ledgers, gates 2, 4, 5 and 6 belong to
+later sub-steps, and gate 7 belongs to 2.10.
 
 ## Next action
 
-Sub-step 2.2: database primitives. Read the 2.2 row in
-`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, then implement
-`migrations/20260116010000_database_primitives.sql` and its down pair, the
-`uuid_generate_v7()` and `set_updated_at()` functions, the universal column
-helper, `scripts/checks/schema-standards.mjs`, and the `db:assert` command.
-The migration also takes over the `id` default on `schema_migrations` and
-`seed_migrations` from `gen_random_uuid()` to `uuid_generate_v7()`.
+Sub-step 2.3: tenancy tables. Read the 2.3 row in
+`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, then create
+`migrations/20260116020000_tenancy_tables.sql` and its down pair for
+`companies`, `company_settings`, `company_members`, `user_profiles`,
+`platform_users`, `invitations`, `devices` and `sessions`, each with the six
+universal columns declared inline, its `trg_{table}_set_updated_at` trigger,
+`assert_universal_columns(...)`, the partial unique index for soft deletes,
+the company_id and created_at indexes, `fk_` foreign keys with ON DELETE
+RESTRICT, and no audit trigger yet (2.8 attaches them to every table).
+
+Run the loop, then `npm run db:assert` (RLS is still off until 2.7, so
+`check:rls-coverage` does not exist yet).

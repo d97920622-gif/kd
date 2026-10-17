@@ -69,7 +69,42 @@ EXISTS`, `CREATE OR REPLACE FUNCTION`, and `DROP ... IF EXISTS` in the down
    exactly what the up file added, and the fresh-database gate runs the pair
    down and up again before the sub-step is committed.
 6. **Money is `numeric(18,4)` and timestamps are `timestamptz`.** These are in
-   `MASTER_PROMPT.md`; the runner cannot check them, so the review does.
+   `MASTER_PROMPT.md`; `check:schema-standards` reads the text of every
+   migration and `npm run db:assert` reads the live catalog.
+
+## The primitives every later migration uses
+
+Sub-step 2.2 (migration `20260116010000_database_primitives`) installs
+`pgcrypto` and `pg_trgm`, and four functions:
+
+| Function                                 | Use                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| `uuid_generate_v7()`                     | `id` default on every table: 48-bit millisecond prefix, random tail |
+| `set_updated_at()`                       | `BEFORE UPDATE` trigger function that maintains `updated_at`        |
+| `apply_universal_columns(table, scoped)` | adds the six universal columns to an existing table                 |
+| `assert_universal_columns(table)`        | raises at apply time when a table is missing one of them            |
+
+A new table declares the six columns inline, with the exact defaults, and
+attaches the trigger:
+
+```sql
+CREATE TABLE IF NOT EXISTS invoices (
+  id uuid NOT NULL DEFAULT uuid_generate_v7(),
+  company_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz,
+  version integer NOT NULL DEFAULT 0,
+  ...
+);
+
+CREATE TRIGGER trg_invoices_set_updated_at
+  BEFORE UPDATE ON invoices
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+```
+
+`assert_universal_columns('invoices')` at the end of the migration turns a
+forgotten column into a failed apply rather than a failed step gate.
 
 ## Commands
 

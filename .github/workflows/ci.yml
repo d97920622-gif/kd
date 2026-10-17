@@ -112,6 +112,8 @@ jobs:
           npm run db:migrate
       - name: Apply the seeds
         run: npm run db:seed
+      - name: Assert the schema standards against the live catalog
+        run: npm run db:assert
 
   build:
     name: build

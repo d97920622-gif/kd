@@ -54,6 +54,11 @@ const ENTRIES = [
     args: ['scripts/checks/forbidden-brands.mjs'],
   },
   { name: 'check:migration-pairs', command: 'node', args: ['scripts/checks/migration-pairs.mjs'] },
+  {
+    name: 'check:schema-standards',
+    command: 'node',
+    args: ['scripts/checks/schema-standards.mjs'],
+  },
   { name: 'check:dead-links', command: 'node', args: ['scripts/checks/dead-links.mjs'] },
   { name: 'check:secrets', command: 'node', args: ['scripts/checks/secrets.mjs'] },
   { name: 'check:any-types', command: 'node', args: ['scripts/checks/any-types.mjs'] },
