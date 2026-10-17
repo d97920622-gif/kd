@@ -59,6 +59,7 @@ const ENTRIES = [
     command: 'node',
     args: ['scripts/checks/schema-standards.mjs'],
   },
+  { name: 'check:rls-coverage', command: 'node', args: ['scripts/checks/rls-coverage.mjs'] },
   { name: 'check:dead-links', command: 'node', args: ['scripts/checks/dead-links.mjs'] },
   { name: 'check:secrets', command: 'node', args: ['scripts/checks/secrets.mjs'] },
   { name: 'check:any-types', command: 'node', args: ['scripts/checks/any-types.mjs'] },

@@ -34,7 +34,7 @@ of one hundred sequence numbers, and later steps keep to their own window.
 | 2.4      | 20260116030000 | Access tables                            |
 | 2.5      | 20260116040000 | Platform tables                          |
 | 2.6      | 20260116050000 | Reference tables                         |
-| 2.7      | 20260116060000 | Row level security framework             |
+| 2.7      | 20260116060000 | RLS framework and policies               |
 | 2.8      | 20260116070000 | Audit ledger                             |
 | 2.9      | 20260116080000 | Encryption core support tables           |
 | 2.10     | 20260116090000 | Envelope keys and key usage              |

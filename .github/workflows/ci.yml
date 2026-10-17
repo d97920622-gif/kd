@@ -114,6 +114,8 @@ jobs:
         run: npm run db:seed
       - name: Assert the schema standards against the live catalog
         run: npm run db:assert
+      - name: Fuzz the row level security isolation rules, rolled back
+        run: npm run db:fuzz
 
   build:
     name: build

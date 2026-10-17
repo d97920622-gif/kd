@@ -2,7 +2,7 @@
 
 # CHAT 02 PROGRESS -- Step 2: Database Foundation, Migrations, RLS, Encryption, Audit Ledger
 
-Status: in progress (sub-step 2.6 of 14)
+Status: in progress (sub-step 2.7 of 14 done; 2.8 next)
 Date started: 2026-10-17
 Branch: arena/b7780282-kd
 Starting commit: b2ef9ef (the step 1 audit close, pushed to origin)
@@ -38,7 +38,7 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 | 2.4      | Access tables: roles, permissions, role_permissions, user_roles, login_attempts, login_lock_state                                                                      | done    | 90732a9 |
 | 2.5      | Platform tables: plans, plan_features, subscriptions, entitlements, coupons, coupon_redemptions, feature_flags                                                         | done    | 5ba6225 |
 | 2.6      | Reference tables: countries, currencies, tax_jurisdictions, timezones with read-only policies                                                                          | done    | ae5f1a6 |
-| 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | pending |         |
+| 2.7      | RLS framework: `current_company_id()`, `current_role_name()`, default-deny, tenant isolation, shared read-only, isolation assertion and fuzz SQL, `check:rls-coverage` | done    |         |
 | 2.8      | Audit ledger: audit_logs, sequence numbers, hash chain, Ed25519, immutability, triggers on every table, verification, merkle roots, export                             | pending |         |
 | 2.9      | Encryption core: AES-256-GCM, key vault, key rotation, blind index, PII redaction, benchmark doc                                                                       | pending |         |
 | 2.10     | Envelope keys: per-tenant DEKs, wrapped storage, usage audit, scheduled rotation window, crypto-shredding with verification query                                      | pending |         |
@@ -49,6 +49,35 @@ which reads the live catalog through the files in `scripts/db/sql/`.
 
 Status values are `pending`, `done` or `blocked`. The commit cell is filled at
 the handoff commit, because a commit cannot contain its own hash.
+
+## Decisions taken in 2.7
+
+- **The claim is the identity.** Every policy reads `request.jwt.claims`, the
+  JSON that PostgREST fills from a verified JWT. An empty claim is anonymous and
+  matches nothing; a claim that is not JSON, or a company that is not a uuid,
+  raises an error, so the database fails closed.
+- **Default deny, forced.** Every table has `ENABLE` and `FORCE` row level
+  security, so the table owner is subject to the policies. Only a superuser or a
+  `BYPASSRLS` role sees past them, and the migration and seed runners need one.
+- **Five policy shapes and no others:** `default_deny` (ledgers and login tables,
+  no grant), `shared_read` and `platform_write` (the catalogue), `tenant_isolation`
+  (tenant tables), `own_rows` (devices and sessions), and the self and colleague
+  forms for profiles.
+- **Membership is checked in the policy.** A device or session carries a company
+  only while the user holds an active membership of it, and a company update
+  needs an active owner membership and may not move the row to another id.
+- **No DELETE anywhere.** Rows leave by setting `deleted_at`. The static check
+  refuses a DELETE grant, and `companies` is never inserted by a tenant.
+- **RLS isolates tenants; the permission matrix gates actions.** A staff member
+  may insert a role in its own tenant; whether it should is the application's
+  permission matrix (2.14 and step 3).
+- **The shared role survives a rollback.** `kd_app` is a cluster object that
+  another database may use, so the down file revokes this database's usage and
+  leaves the inert role. Evidence section 5, defect 4.
+- **The fuzz sweeps before it samples.** The first 156 rounds cover every tenant
+  table, every operation and both directions once; only later rounds are random.
+- **A refusal is a refusal only with SQLSTATE 42501.** Any other error in the
+  fuzz is its own rule, so a constraint error never passes for isolation.
 
 ## Decisions taken in 2.6
 
@@ -218,26 +247,25 @@ printed or logged.
 6. The isolation assertion reports zero cross-tenant rows.
 7. The key rotation rehearsal is documented.
 
-At the moment of writing: gate 1 is proven for the 2.1 to 2.6 objects
-(`db:assert` reports zero violations after a full down and up cycle), gate 3
-is proven by the catalog query for all twenty-seven tables, gates 2, 4, 5 and
-6 belong to later sub-steps, and gate 7 belongs to 2.10. The step 3
+At the moment of writing: gate 1 is proven for the 2.1 to 2.7 objects (a full
+down and up cycle, with `db:assert` and `db:fuzz` clean after each); gate 2 is
+proven at 100 percent for the twenty-seven tables by the catalogue assertion and
+the static check; gate 3 is proven by the catalogue query for all twenty-seven
+tables; gate 6 is proven by the isolation fuzz and the live assertion (zero
+cross-tenant rows, evidence section 6); gates 4 and 5 belong to 2.8 (the audit
+trigger on every table is written there); gate 7 belongs to 2.10. The step 3
 dependency "lock state survives a server restart" was already proven against
 the 2.4 storage.
 
 ## Next action
 
-Sub-step 2.7: the row level security framework. Read the 2.7 row in
-`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, the RLS rules in `docs/PLAN/03` and the
-tenancy section of `docs/PLAN/02`, then add one migration pair that creates
-`current_company_id()` and `current_role_name()`, enables row level security on
-all twenty-seven tables with default-deny, and writes the tenant isolation policy
-(company_id must equal the caller's company) and the shared read-only policy for
-the platform reference rows (`plans`, `plan_features`, `permissions`, `currencies`,
-`countries`, `timezones`, `tax_jurisdictions`, and the global rows of
-`feature_flags`). The isolation assertion and the isolation fuzz SQL go in
-`scripts/db/sql/`, and `scripts/checks/rls-coverage.mjs` with an
-`npm run check:rls-coverage` script arrives with them, with a README row.
-
-Test the policies as a non-owner role, because the table owner bypasses row
-level security unless the table is forced.
+Sub-step 2.8: the audit ledger. Read the 2.8 row in
+`docs/PLAN/08_SUBSTEP_CHECKLISTS.md`, the audit field list in MASTER_PROMPT and
+the ownership table in `docs/PLAN/03`. Then add one migration pair that creates
+`audit_logs` with a sequence number, a hash chain (SHA-256 over the previous
+hash), an Ed25519 signature, append-only triggers, a verification function, a
+merkle root table and function, and an export function, and attaches the audit
+trigger to every table. `audit_logs` follows the 2.7 ledger shape: RLS forced,
+`default_deny`, no grant to `kd_app`, and writes by the trigger function only.
+Extend `scripts/db/sql/` with the ledger verification assertion, and keep
+`check:rls-coverage` at 100 percent for the new table.
